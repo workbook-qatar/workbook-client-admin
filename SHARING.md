@@ -63,7 +63,7 @@ npm run share:cf
 
 Terminal 2 will display a unique URL that looks like:
 
-> https://[random-name].trycloudflare.com
+> https://usd-eating-reliable-shine.trycloudflare.com
 
 Copy and share this URL with your team. They can now access your local dashboard securely over the internet.
 

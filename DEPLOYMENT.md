@@ -42,7 +42,7 @@ Since this is a new repository, push it to your GitHub account:
 
 ## 🌐 3. Verify Deployment
 
-- **Production URL**: Vercel will provide a URL like `https://workbook-client-admin.vercel.app`.
+- **Production URL**: Vercel will provide a URL like [https://workbook-client-admin-dfi8.vercel.app/](https://workbook-client-admin-dfi8.vercel.app/).
 - **Preview URLs**: When you create a Pull Request on GitHub, Vercel will auto-deploy a preview link.
 
 ## 🛠 Troubleshooting
