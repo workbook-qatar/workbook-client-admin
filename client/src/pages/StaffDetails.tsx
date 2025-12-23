@@ -225,18 +225,7 @@ export default function StaffDetails() {
       toast.success("Staff profile updated successfully");
   };
 
-  const handleDeleteStaff = () => {
-    if (confirm("Are you sure you want to delete this staff member? This action cannot be undone.")) {
-       const stored = localStorage.getItem("vendor_staff");
-       if (stored) {
-           let list = JSON.parse(stored);
-           list = list.filter((s: any) => s.id !== staff.id);
-           localStorage.setItem("vendor_staff", JSON.stringify(list));
-       }
-       toast.success("Staff member deleted successfully");
-       setLocation("/workforce");
-    }
-  };
+
 
   const updateLocalStorage = (data: any) => {
       const stored = localStorage.getItem("vendor_staff");
@@ -431,8 +420,8 @@ export default function StaffDetails() {
                         <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={handleEditToggle}><Edit className="h-4 w-4 mr-2" /> Edit Profile</DropdownMenuItem>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={handleDeleteStaff}>
-                                <Trash2 className="h-4 w-4 mr-2" /> Delete Staff
+                            <DropdownMenuItem className="text-red-600 focus:text-red-600 focus:bg-red-50" onClick={() => initiateStatusChange('Inactive')}>
+                                <AlertTriangle className="h-4 w-4 mr-2" /> Deactivate Staff
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                      </DropdownMenu>
