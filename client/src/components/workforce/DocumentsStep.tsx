@@ -75,116 +75,15 @@ export default function DocumentsStep({ data, onUpdate, onNext, onBack }: Docume
         <p className="text-gray-600">Upload legal documents and banking information required by your organization.</p>
       </div>
 
-      <div className="space-y-8">
-        
-        {/* Dynamic Documents Section */}
-        <div className="space-y-6">
-            {documentTypes.map((doc) => (
-                <div key={doc.id} className="border border-gray-100 bg-gray-50/50 rounded-xl p-5 hover:border-blue-100 transition-colors">
-                    <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
-                            {doc.name}
-                            {doc.status === "inactive" && <span className="text-xs bg-gray-200 px-2 py-0.5 rounded text-gray-500">Inactive</span>}
-                        </h3>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* ID Number */}
-                        <div>
-                            <Label className="text-sm font-medium text-gray-700">{doc.name} Number</Label>
-                            <Input
-                                type="text"
-                                placeholder={`Enter ${doc.name} Number`}
-                                value={getDocValue(doc.name, 'number') || ""}
-                                onChange={(e) => handleDocumentChange(doc.id, 'number', e.target.value)}
-                                className={`${UNIFORM_INPUT_CLASSES} mt-1.5`}
-                            />
-                        </div>
-
-                        {/* Expiry Date (Conditional) */}
-                        {doc.requiresExpiry && (
-                            <div>
-                                <Label className="text-sm font-medium text-gray-700">Expiry Date</Label>
-                                <Input
-                                    type="date"
-                                    value={getDocValue(doc.name, 'expiry') || ""}
-                                    onChange={(e) => handleDocumentChange(doc.id, 'expiry', e.target.value)}
-                                    className={`${UNIFORM_INPUT_CLASSES} mt-1.5`}
-                                />
-                            </div>
-                        )}
-                        
-                        {/* File Upload */}
-                        <div className="md:col-span-2">
-                            <Label className="text-sm font-medium text-gray-700">Upload Copy</Label>
-                            <div className="mt-1.5 flex items-center justify-center w-full">
-                                <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-50 transition-colors">
-                                    <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                        <p className="mb-1 text-sm text-gray-500"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                        <p className="text-xs text-gray-400">PDF, PNG, JPG up to 10MB</p>
-                                    </div>
-                                    <Input type="file" className="hidden" />
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            ))}
-
-            {documentTypes.length === 0 && (
-                <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                        No document requirements configured. Go to Settings &gt; Documents & Compliance to add them.
-                    </AlertDescription>
-                </Alert>
-            )}
+        <div className="flex flex-col items-center justify-center py-12 text-center bg-gray-50 border border-gray-100 rounded-xl border-dashed">
+            <div className="bg-blue-50 p-3 rounded-full mb-4">
+                <FileText className="h-8 w-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900">Documents Moved</h3>
+            <p className="text-gray-600 max-w-sm mt-2">
+                Documents & Compliance requirements have been moved to the Staff Details page. You can add them after creating the profile.
+            </p>
         </div>
-
-        {/* Bank Information (Static for now) */}
-        <div className="pt-6 border-t border-gray-200">
-            <div className="flex items-center gap-2 mb-6">
-                <Building className="h-5 w-5 text-gray-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Bank Account Details</h3>
-            </div>
-            <div className="grid grid-cols-2 gap-6 mb-4">
-                 <div>
-                    <Label htmlFor="bankName" className="text-sm font-medium text-gray-700">Bank Name</Label>
-                    <Input
-                        id="bankName"
-                        type="text"
-                        placeholder="e.g. QNB"
-                        value={data.bankName || ""}
-                        onChange={(e) => handleChange("bankName", e.target.value)}
-                        className={`${UNIFORM_INPUT_CLASSES} mt-1`}
-                    />
-                </div>
-                 <div>
-                    <Label htmlFor="accountNumber" className="text-sm font-medium text-gray-700">Account Number</Label>
-                    <Input
-                        id="accountNumber"
-                        type="text"
-                        placeholder="e.g. 0013-..."
-                        value={data.accountNumber || ""}
-                        onChange={(e) => handleChange("accountNumber", e.target.value)}
-                        className={`${UNIFORM_INPUT_CLASSES} mt-1`}
-                    />
-                </div>
-            </div>
-            <div>
-                 <Label htmlFor="iban" className="text-sm font-medium text-gray-700">IBAN</Label>
-                 <Input
-                    id="iban"
-                    type="text"
-                    placeholder="e.g. QA..."
-                    value={data.iban || ""}
-                    onChange={(e) => handleChange("iban", e.target.value)}
-                    className={`${UNIFORM_INPUT_CLASSES} mt-1`}
-                 />
-            </div>
-        </div>
-
-      </div>
 
       {/* Navigation */}
       <div className="flex items-center justify-between pt-8 mt-8 border-t border-gray-200">

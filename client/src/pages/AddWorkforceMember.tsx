@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Users, Truck, CheckCircle2, User, ShieldCheck } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import { toast } from "sonner";
+import { Label } from "@/components/ui/label";
 
 // Step components
 import StaffTypeStep from "@/components/workforce/StaffTypeStep";
 import QIDSearchStep from "@/components/workforce/QIDSearchStep";
 import BasicInfoStep from "@/components/workforce/BasicInfoStep";
 import EmploymentStep from "@/components/workforce/EmploymentStep";
-import DocumentsStep from "@/components/workforce/DocumentsStep";
 import AdditionalInfoStep from "@/components/workforce/AdditionalInfoStep";
 
 export interface WorkforceMemberData {
@@ -120,8 +120,7 @@ export default function AddWorkforceMember() {
             { id: 2, name: "QID & Search", icon: "🔍" },
             { id: 3, name: "Basic Info", icon: "👤" },
             { id: 4, name: "Employment", icon: "💼" },
-            { id: 5, name: "Documents", icon: "📄" },
-            { id: 6, name: "Additional", icon: "📋" },
+            { id: 5, name: "Additional", icon: "📋" },
         ];
     };
 
@@ -176,8 +175,8 @@ export default function AddWorkforceMember() {
           
           const newStaff = {
               id: newId,
-              staffId: staffId,
-              name: formData.fullName || formData.name || "Unknown", // Handle Name from different flows
+              staffId: "", // Empty until verified
+              name: formData.fullName || formData.name || "Unknown", 
               role: formData.position || "Staff",
               roleType: (formData.staffType && roleTypeMap[formData.staffType]) ? roleTypeMap[formData.staffType] : "part-time", 
               email: formData.emailAddress || "",
@@ -185,14 +184,20 @@ export default function AddWorkforceMember() {
               location: formData.city || "Qatar",
               
               // Status Model
-              status: formData.workStatus || "offline", // Work Status
-              employmentStatus: formData.employmentStatus || "Active", // Lifecycle Status
+              status: "offline", 
+              employmentStatus: formData.employmentStatus || "Active", 
+              
+              // Membership / Invite Status
+              membershipStatus: "pending",
+              inviteSentAt: new Date().toISOString(),
+              emailVerified: false,
+              phoneVerified: false,
               
               avatar: initials,
               avatarColor: "bg-blue-600",
               availabilityHours: 40,
               activeJobs: 0,
-              rating: 5.0,
+              rating: 0,
               jobsCompleted: 0,
               skills: formData.skills || [],
               
@@ -203,11 +208,9 @@ export default function AddWorkforceMember() {
           staffList.push(newStaff);
           localStorage.setItem("vendor_staff", JSON.stringify(staffList));
           
-          toast.success("Staff member added successfully");
-          // Route to detail page (Generic for now, or specific if we had them)
-          // Ideally: /staff/${newId} -> Detail Page
-          // The Detail Page needs to handle the type display.
-          setLocation(`/staff/${newId}`);
+          toast.success("Invite sent to staff member");
+          // Route to pending list
+          setLocation(`/workforce`);
           
           } catch (error) {
           console.error(error);
@@ -324,95 +327,362 @@ export default function AddWorkforceMember() {
                     {currentStep === 2 && <QIDSearchStep data={formData} onUpdate={updateFormData} onNext={handleNext} onBack={handleBack} />}
                     {currentStep === 3 && <BasicInfoStep data={formData} onUpdate={updateFormData} onNext={handleNext} onBack={handleBack} />}
                     {currentStep === 4 && <EmploymentStep data={formData} onChange={updateFormData} onContinue={handleNext} onBack={handleBack} />}
-                    {currentStep === 5 && <DocumentsStep data={formData} onUpdate={updateFormData} onNext={handleNext} onBack={handleBack} />}
-                    {currentStep === 6 && <AdditionalInfoStep data={formData} onUpdate={updateFormData} onSubmit={handleSubmit} onBack={handleBack} isSubmitting={isSubmitting} />}
+                    {currentStep === 5 && <AdditionalInfoStep data={formData} onUpdate={updateFormData} onSubmit={handleSubmit} onBack={handleBack} isSubmitting={isSubmitting} />}
                 </>
             )}
 
-            {/* Driver Flow (New & Simplified for Demo) */}
+            {/* Driver Flow (Complete MVP) */}
             {formData.staffType === 'driver' && (
                 <>
+                   {/* Step 2: Driver Profile & Identity */}
                    {currentStep === 2 && (
-                       <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
-                           <h2 className="text-lg font-semibold">Driver Profile</h2>
-                            <label className="block space-y-1">
-                                <span className="text-sm font-medium">Full Name</span>
-                                <input className="w-full border rounded p-2" placeholder="Driver Name" 
-                                    value={formData.fullName || ''} onChange={e => updateFormData({fullName: e.target.value})} />
-                            </label>
-                            <label className="block space-y-1">
-                                <span className="text-sm font-medium">License Number</span>
-                                <input className="w-full border rounded p-2" placeholder="DL-XXXX" />
-                            </label>
-                            <Button onClick={handleNext}>Continue</Button>
+                       <div className="bg-white p-6 rounded-lg border shadow-sm space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                           <div className="flex items-center gap-2 border-b pb-4">
+                               <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><Users className="h-5 w-5" /></div>
+                               <h2 className="text-lg font-semibold">1. Identity & Driver Details</h2>
+                           </div>
+
+                           {/* Identity Section */}
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                               <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Full Name *</Label>
+                                    <input className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none" 
+                                        placeholder="Full Name as per ID" 
+                                        value={formData.fullName || ''} onChange={e => updateFormData({fullName: e.target.value})} />
+                               </div>
+                               <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Nationality</Label>
+                                    <select className="w-full border rounded p-2 text-sm bg-white" 
+                                        value={formData.nationality || ''} onChange={e => updateFormData({nationality: e.target.value})}>
+                                        <option value="">Select Nationality</option>
+                                        <option value="India">India</option>
+                                        <option value="Philippines">Philippines</option>
+                                        <option value="Nepal">Nepal</option>
+                                        <option value="Sri Lanka">Sri Lanka</option>
+                                        <option value="Bangladesh">Bangladesh</option>
+                                        <option value="Pakistan">Pakistan</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                               </div>
+                               <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Mobile Number *</Label>
+                                    <input className="w-full border rounded p-2 text-sm" 
+                                        placeholder="+974" 
+                                        value={formData.mobileNumber || ''} onChange={e => updateFormData({mobileNumber: e.target.value})} />
+                               </div>
+                               <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Email (Optional)</Label>
+                                    <input className="w-full border rounded p-2 text-sm" 
+                                        placeholder="driver@example.com" type="email"
+                                        value={formData.emailAddress || ''} onChange={e => updateFormData({emailAddress: e.target.value})} />
+                               </div>
+                               <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">QID / ID Number *</Label>
+                                    <input className="w-full border rounded p-2 text-sm" 
+                                        placeholder="11-digit QID" 
+                                        value={formData.qidNumber || ''} onChange={e => updateFormData({qidNumber: e.target.value})} />
+                               </div>
+                               <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Date of Birth</Label>
+                                    <input className="w-full border rounded p-2 text-sm" type="date"
+                                        value={formData.dateOfBirth || ''} onChange={e => updateFormData({dateOfBirth: e.target.value})} />
+                               </div>
+                           </div>
+
+                           <div className="border-t pt-4 mt-4">
+                                <h3 className="text-sm font-semibold mb-3 flex items-center gap-2"><Truck className="h-4 w-4 text-orange-500" /> License Details</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">Driver Type *</Label>
+                                        <select className="w-full border rounded p-2 text-sm bg-white" 
+                                            value={formData.employmentType || ''} onChange={e => updateFormData({employmentType: e.target.value})}>
+                                            <option value="">Select Type</option>
+                                            <option value="Company Driver">Company Driver</option>
+                                            <option value="Freelancer">Freelancer</option>
+                                            <option value="Contractor">Contractor</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">License Category</Label>
+                                        <select className="w-full border rounded p-2 text-sm bg-white" 
+                                            value={formData.position || ''} onChange={e => updateFormData({position: e.target.value})}>
+                                            <option value="">Select Category</option>
+                                            <option value="Light Vehicle">Light Vehicle</option>
+                                            <option value="Heavy Vehicle">Heavy Vehicle</option>
+                                            <option value="Motorcycle">Motorcycle</option>
+                                        </select>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">License Number *</Label>
+                                        <input className="w-full border rounded p-2 text-sm" 
+                                            placeholder="License No." 
+                                            value={formData.passportNumber || ''} onChange={e => updateFormData({passportNumber: e.target.value})} /> 
+                                            {/* Using passportNumber field temporarily for License No as per generic structure or add new field */}
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">License Expiry *</Label>
+                                        <input className="w-full border rounded p-2 text-sm" type="date"
+                                            value={formData.passportExpiry || ''} onChange={e => updateFormData({passportExpiry: e.target.value})} />
+                                    </div>
+                                </div>
+                           </div>
+
+                           <div className="flex justify-end pt-4">
+                               <Button onClick={handleNext} disabled={!formData.fullName || !formData.mobileNumber}>Continue</Button>
+                           </div>
                        </div>
                    )}
+                   {/* Step 3: Vehicle & Employment */}
                    {currentStep === 3 && (
-                       <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
-                           <h2 className="text-lg font-semibold">Vehicle Assignment</h2>
-                           <p className="text-gray-500">Assign a vehicle now or later.</p>
-                           <Button onClick={handleNext}>Skip</Button>
+                       <div className="bg-white p-6 rounded-lg border shadow-sm space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                           <div className="flex items-center gap-2 border-b pb-4">
+                               <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600"><Truck className="h-5 w-5" /></div>
+                               <h2 className="text-lg font-semibold">2. Vehicle & Employment</h2>
+                           </div>
+                           
+                           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                               {/* Vehicle Assignment */}
+                               <div className="space-y-4">
+                                   <h3 className="text-sm font-semibold border-l-2 border-orange-500 pl-2">Vehicle Assignment</h3>
+                                   <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">Assigned Vehicle</Label>
+                                        <select className="w-full border rounded p-2 text-sm bg-white">
+                                            <option value="">No Vehicle Assigned</option>
+                                            <option value="v1">Toyota Hilux - 12345</option>
+                                            <option value="v2">Nissan Urvan - 67890</option>
+                                        </select>
+                                        <p className="text-xs text-muted-foreground mt-1">Select from fleet or leave empty.</p>
+                                   </div>
+                                    <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">Or Manual Plate No.</Label>
+                                        <input className="w-full border rounded p-2 text-sm" placeholder="123456" />
+                                   </div>
+                               </div>
+
+                               {/* Employment Details */}
+                               <div className="space-y-4">
+                                   <h3 className="text-sm font-semibold border-l-2 border-blue-500 pl-2">Employment Status</h3>
+                                   <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">Status</Label>
+                                        <select className="w-full border rounded p-2 text-sm bg-white" 
+                                            value={formData.employmentStatus || 'Active'} onChange={e => updateFormData({employmentStatus: e.target.value as any})}>
+                                            <option value="Active">Active</option>
+                                            <option value="On Leave">On Leave</option>
+                                            <option value="Inactive">Inactive</option>
+                                        </select>
+                                   </div>
+                                   <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">Joining Date</Label>
+                                        <input type="date" className="w-full border rounded p-2 text-sm" 
+                                            value={formData.startDate || ''} onChange={e => updateFormData({startDate: e.target.value})} />
+                                   </div>
+                                   <div className="space-y-1">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500">Notes</Label>
+                                        <textarea className="w-full border rounded p-2 text-sm h-20" placeholder="Additional notes..." />
+                                   </div>
+                               </div>
+                           </div>
+                           
+                           <div className="flex justify-between pt-6">
+                               <Button variant="ghost" onClick={handleNext}>Skip Vehicle</Button>
+                               <Button onClick={handleNext}>Continue</Button>
+                           </div>
                        </div>
                    )}
+                   {/* Step 4: Final Review */}
                    {currentStep === 4 && (
-                        <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4 text-center">
-                            <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-2">✅</div>
-                            <h2 className="text-xl font-bold">Ready to Create Driver?</h2>
-                            <p>Name: {formData.fullName}</p>
-                            <p>Role: Driver</p>
-                            <p>System Access: {formData.systemAccess ? 'Yes' : 'No'}</p>
-                            <Button className="w-full mt-4" onClick={handleSubmit} disabled={isSubmitting}>create Driver</Button>
+                        <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4 text-center animate-in zoom-in-95 duration-300">
+                            <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-4 shadow-sm">
+                                <CheckCircle2 className="h-8 w-8" />
+                            </div>
+                            <h2 className="text-2xl font-bold text-gray-900">Ready to Create Driver?</h2>
+                            <p className="text-gray-500 max-w-md mx-auto">Please review the details below before creating the driver profile.</p>
+                            
+                            <div className="bg-gray-50 rounded-lg p-4 text-left max-w-md mx-auto space-y-2 text-sm mt-4 border border-gray-100">
+                                <div className="flex justify-between"><span className="text-gray-500">Name:</span> <span className="font-semibold">{formData.fullName}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-500">Role:</span> <span className="font-semibold">{formData.employmentType || 'Driver'}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-500">License:</span> <span className="font-semibold">{formData.position}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-500">System Access:</span> 
+                                    <span className={`px-2 py-0.5 rounded text-xs font-bold ${formData.systemAccess ? 'bg-green-100 text-green-700' : 'bg-gray-200 text-gray-700'}`}>
+                                        {formData.systemAccess ? 'YES' : 'NO'}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <Button className="w-full max-w-md mt-6 h-12 text-lg" onClick={handleSubmit} disabled={isSubmitting}>
+                                {isSubmitting ? 'Creating...' : 'Confirm & Create Driver'}
+                            </Button>
                         </div>
                    )}
                 </>
             )}
 
-            {/* Internal Staff Flow (New & Simplified) */}
+            {/* Internal Staff Flow (Expanded MVP) */}
             {formData.staffType === 'internal' && (
                 <>
+                    {/* Step 2: Identity & Employment */}
                     {currentStep === 2 && (
-                        <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
-                            <h2 className="text-lg font-semibold">Internal Staff Profile</h2>
-                             <label className="block space-y-1">
-                                 <span className="text-sm font-medium">Full Name</span>
-                                 <input className="w-full border rounded p-2" placeholder="Staff Name" 
-                                     value={formData.fullName || ''} onChange={e => updateFormData({fullName: e.target.value})} />
-                             </label>
-                             <label className="block space-y-1">
-                                 <span className="text-sm font-medium">Job Title</span>
-                                 <input className="w-full border rounded p-2" placeholder="e.g. Finance Manager"
-                                     value={formData.position || ''} onChange={e => updateFormData({position: e.target.value})} />
-                             </label>
-                             <Button onClick={handleNext}>Continue to Permissions</Button>
+                        <div className="bg-white p-6 rounded-lg border shadow-sm space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                            <div className="flex items-center gap-2 border-b pb-4">
+                                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600"><User className="h-5 w-5" /></div>
+                                <h2 className="text-lg font-semibold">1. Identity & Employment</h2>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Full Name *</Label>
+                                    <input className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" 
+                                        placeholder="E.g. Ali Ahmed" 
+                                        value={formData.fullName || ''} onChange={e => updateFormData({fullName: e.target.value})} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Email Address *</Label>
+                                    <input className="w-full border rounded p-2 text-sm" 
+                                        placeholder="staff@company.com" type="email"
+                                        value={formData.emailAddress || ''} onChange={e => updateFormData({emailAddress: e.target.value})} />
+                                    <p className="text-[10px] text-gray-400">Will be used for login if access is granted.</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Mobile Number</Label>
+                                    <input className="w-full border rounded p-2 text-sm" 
+                                        placeholder="+974 0000 0000" 
+                                        value={formData.mobileNumber || ''} onChange={e => updateFormData({mobileNumber: e.target.value})} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Department</Label>
+                                    <select className="w-full border rounded p-2 text-sm bg-white" 
+                                        value={formData.department || ''} onChange={e => updateFormData({department: e.target.value})}>
+                                        <option value="">Select Department</option>
+                                        <option value="Operations">Operations</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="HR">HR</option>
+                                        <option value="Management">Management</option>
+                                        <option value="IT">IT</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Job Title</Label>
+                                    <input className="w-full border rounded p-2 text-sm" 
+                                        placeholder="E.g. Operations Manager" 
+                                        value={formData.position || ''} onChange={e => updateFormData({position: e.target.value})} />
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Employment Status</Label>
+                                    <select className="w-full border rounded p-2 text-sm bg-white" 
+                                        value={formData.employmentStatus || 'Active'} onChange={e => updateFormData({employmentStatus: e.target.value as any})}>
+                                        <option value="Active">Active</option>
+                                        <option value="Inactive">Inactive</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <Label className="text-xs font-semibold uppercase text-gray-500">Joining Date</Label>
+                                    <input type="date" className="w-full border rounded p-2 text-sm" 
+                                        value={formData.startDate || ''} onChange={e => updateFormData({startDate: e.target.value})} />
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end pt-4">
+                                <Button onClick={handleNext} disabled={!formData.fullName || !formData.emailAddress}>Continue</Button>
+                            </div>
                         </div>
                     )}
+
+                    {/* Step 3: Access & Security */}
                     {currentStep === 3 && (
-                         <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
-                             <h2 className="text-lg font-semibold">Permissions & Access</h2>
-                             {formData.systemAccess ? (
-                                 <div className="p-4 bg-green-50 border border-green-100 rounded text-green-800">
-                                     System Access is <strong>ENABLED</strong>. Select Role:
-                                     <div className="mt-2 space-y-2">
-                                         <label className="flex items-center gap-2"><input type="radio" name="role" /> Administrator</label>
-                                         <label className="flex items-center gap-2"><input type="radio" name="role" /> Dispatcher</label>
-                                         <label className="flex items-center gap-2"><input type="radio" name="role" /> Viewer</label>
-                                     </div>
-                                 </div>
-                             ) : (
-                                 <div className="p-4 bg-gray-100 border border-gray-200 rounded text-gray-600">
-                                     System Access is <strong>DISABLED</strong>. This user will not have a login.
-                                 </div>
-                             )}
-                             <Button onClick={handleNext}>Review</Button>
-                         </div>
+                        <div className="bg-white p-6 rounded-lg border shadow-sm space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                             <div className="flex items-center gap-2 border-b pb-4">
+                                <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600"><ShieldCheck className="h-5 w-5" /></div>
+                                <h2 className="text-lg font-semibold">2. Access & Security</h2>
+                            </div>
+
+                            {/* System Access Toggle - Already set in Step 1 but editable here */}
+                            <div className="bg-gray-50 p-4 rounded-md border border-gray-100 flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-sm font-semibold">Dashboard Access</h3>
+                                    <p className="text-xs text-gray-500">Allow this user to log in to the admin dashboard.</p>
+                                </div>
+                                <div className="flex bg-white rounded-lg border p-1">
+                                    <button onClick={() => updateFormData({systemAccess: true})} 
+                                        className={`px-4 py-1.5 text-xs font-medium rounded ${formData.systemAccess ? 'bg-purple-100 text-purple-700' : 'text-gray-500 hover:bg-gray-50'}`}>Yes</button>
+                                    <button onClick={() => updateFormData({systemAccess: false})}
+                                        className={`px-4 py-1.5 text-xs font-medium rounded ${!formData.systemAccess ? 'bg-gray-200 text-gray-800' : 'text-gray-500 hover:bg-gray-50'}`}>No</button>
+                                </div>
+                            </div>
+
+                            {formData.systemAccess && (
+                                <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500">System Role *</Label>
+                                            <select className="w-full border rounded p-2 text-sm bg-white focus:ring-2 focus:ring-purple-500 outline-none">
+                                                <option value="manager">Manager</option>
+                                                <option value="admin">Administrator</option>
+                                                <option value="supervisor">Supervisor</option>
+                                                <option value="dispatcher">Dispatcher</option>
+                                                <option value="finance">Finance</option>
+                                            </select>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500">Permission Scope</Label>
+                                            <select className="w-full border rounded p-2 text-sm bg-white">
+                                                <option value="full">Full Access (Role Default)</option>
+                                                <option value="limited">Limited Access</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 pt-2">
+                                        <input type="checkbox" id="invite" className="rounded border-gray-300 text-purple-600 focus:ring-purple-500" defaultChecked />
+                                        <label htmlFor="invite" className="text-sm text-gray-700">Send welcome email with login credentials</label>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="space-y-2 border-t pt-4">
+                                 <Label className="text-xs font-semibold uppercase text-gray-500">Internal Notes</Label>
+                                 <textarea className="w-full border rounded p-2 text-sm h-24" placeholder="Security notes, special instructions..." />
+                            </div>
+
+                            <div className="flex justify-between pt-4">
+                                <Button variant="ghost" onClick={handleBack}>Back</Button>
+                                <Button onClick={handleNext}>Review & Create</Button>
+                            </div>
+                        </div>
                     )}
+
+                    {/* Step 4: Review */}
                     {currentStep === 4 && (
-                         <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4 text-center">
-                             <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mb-2">✅</div>
-                             <h2 className="text-xl font-bold">Create Internal Staff?</h2>
-                             <p>Name: {formData.fullName}</p>
-                             <p>Position: {formData.position}</p>
-                             <Button className="w-full mt-4" onClick={handleSubmit} disabled={isSubmitting}>Create Staff</Button>
+                         <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4 text-center animate-in zoom-in-95 duration-300">
+                             <div className="mx-auto w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mb-4 shadow-sm">
+                                 <CheckCircle2 className="h-8 w-8" />
+                             </div>
+                             <h2 className="text-2xl font-bold text-gray-900">Create Internal Staff?</h2>
+                             <p className="text-gray-500 max-w-md mx-auto">Please confirm the details below.</p>
+                             
+                             <div className="bg-gray-50 rounded-lg p-4 text-left max-w-md mx-auto space-y-3 text-sm mt-4 border border-gray-100">
+                                 <div className="flex justify-between border-b border-gray-100 pb-2">
+                                     <span className="text-gray-500">Name</span> 
+                                     <span className="font-semibold">{formData.fullName}</span>
+                                 </div>
+                                 <div className="flex justify-between border-b border-gray-100 pb-2">
+                                     <span className="text-gray-500">Email</span> 
+                                     <span className="font-semibold">{formData.emailAddress}</span>
+                                 </div>
+                                 <div className="flex justify-between border-b border-gray-100 pb-2">
+                                     <span className="text-gray-500">Role</span> 
+                                     <span className="font-semibold">{formData.position}</span>
+                                 </div>
+                                 <div className="flex justify-between items-center">
+                                     <span className="text-gray-500">System Access</span> 
+                                     <span className={`px-2 py-0.5 rounded text-xs font-bold ${formData.systemAccess ? 'bg-purple-100 text-purple-700' : 'bg-gray-200 text-gray-700'}`}>
+                                         {formData.systemAccess ? 'GRANTED' : 'NONE'}
+                                     </span>
+                                 </div>
+                             </div>
+                             
+                             <Button className="w-full max-w-md mt-6 h-12 text-lg bg-purple-600 hover:bg-purple-700" onClick={handleSubmit} disabled={isSubmitting}>
+                                 {isSubmitting ? 'Creating...' : 'Confirm & Create Staff'}
+                             </Button>
                          </div>
                     )}
                 </>

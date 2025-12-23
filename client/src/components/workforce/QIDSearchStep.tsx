@@ -51,9 +51,33 @@ export default function QIDSearchStep({ data, onUpdate, onNext, onBack }: QIDSea
     }, 1500);
   };
 
+  const [searchResults, setSearchResults] = useState<any>(null);
+
   const handleSearch = () => {
-    console.log("Searching for:", searchQuery);
-    // TODO: Implement search functionality
+    // Mock Search Logic
+    if (searchQuery.includes("WB") || searchQuery.includes("100")) {
+        setSearchResults({
+            name: "John Doe (Existing)",
+            id: "WB-100001",
+            qid: "28567299102"
+        });
+    } else {
+        setSearchResults(null);
+        toast.error("No workbook member found.");
+    }
+  };
+
+  const handleSelectResult = () => {
+      if (!searchResults) return;
+      onUpdate({
+          qidNumber: searchResults.qid,
+          fullName: searchResults.name,
+          // Pre-fill other existing data if available
+          dateOfBirth: "01/01/1985",
+          nationality: "Existing Record"
+      });
+      setUploadSuccess(true);
+      toast.success("Linked to existing Workbook ID");
   };
 
   const canContinue = uploadSuccess || data.qidNumber;
@@ -89,6 +113,31 @@ export default function QIDSearchStep({ data, onUpdate, onNext, onBack }: QIDSea
             Search
           </Button>
         </div>
+
+        {/* Mock Search Results */}
+        {searchResults && (
+            <div className="mt-4 border border-gray-200 rounded-lg p-4 bg-gray-50/50">
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Search Results</h4>
+                <div className="flex items-center justify-between bg-white p-3 border rounded-lg shadow-sm">
+                    <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
+                            {searchResults.name.substring(0,2)}
+                        </div>
+                        <div>
+                            <div className="font-semibold text-gray-900">{searchResults.name}</div>
+                            <div className="text-xs text-gray-500 flex gap-2">
+                                <span>ID: {searchResults.id}</span>
+                                <span>•</span>
+                                <span>QID: {searchResults.qid}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <Button size="sm" onClick={handleSelectResult} variant={uploadSuccess ? "outline" : "default"}>
+                        {uploadSuccess ? "Selected" : "Select"}
+                    </Button>
+                </div>
+            </div>
+        )}
       </div>
 
       {/* Upload QID Document */}

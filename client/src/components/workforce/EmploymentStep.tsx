@@ -59,7 +59,10 @@ export default function EmploymentStep({
       { name: "Full Time" }, { name: "Part Time" }, { name: "Contract" }
     ]);
 
-    loadConfig("vendor_contract_types", setContractTypes, [
+    loadConfig("vendor_contract_types", (values) => {
+        // Ensure 'Employment' is not in the list (User Request)
+        setContractTypes(values.filter((t: any) => t.name !== 'Employment'));
+    }, [
       { name: "Permanent" }, { name: "Probation" }
     ]);
 

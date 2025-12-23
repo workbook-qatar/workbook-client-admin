@@ -106,6 +106,7 @@ const mockStaffData = {
   jobsCompleted: 156,
   earnings: "5890 QAR",
   hours: "42.5h/week",
+  roleType: "field", // Default
 };
 
 // Updated dates to be relevant for 2025 testing
@@ -451,39 +452,57 @@ export default function StaffDetails() {
           </CardContent>
         </Card>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-           {[
-               { label: "Total Orders", value: staff.jobsCompleted, icon: BarChart3, color: "text-purple-600", bg: "bg-purple-50" },
-               { label: "Hrs Worked", value: "42.5", icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
-               { label: "Earnings", value: "5,890", sub: "QAR", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
-               { label: "Completion", value: "98%", icon: CheckCircle, color: "text-indigo-600", bg: "bg-indigo-50" },
-           ].map((stat, i) => (
-             <Card key={i} className="shadow-sm border-gray-100 bg-white/60 hover:bg-white transition-colors">
-               <CardContent className="p-4 flex items-center justify-between">
-                 <div className="flex flex-col gap-1">
-                   <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.label}</span>
-                   <div className="flex items-baseline gap-1">
-                      <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
-                      {stat.sub && <span className="text-xs font-medium text-gray-500">{stat.sub}</span>}
-                   </div>
-                 </div>
-                 <div className={`h-10 w-10 rounded-full ${stat.bg} flex items-center justify-center`}>
+        {/* Stats Row - Conditional for Field Staff */}
+        {staff.roleType !== 'office' && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+                { label: "Total Orders", value: staff.jobsCompleted, icon: BarChart3, color: "text-purple-600", bg: "bg-purple-50" },
+                { label: "Hrs Worked", value: "42.5", icon: Clock, color: "text-blue-600", bg: "bg-blue-50" },
+                { label: "Earnings", value: "5,890", sub: "QAR", icon: Wallet, color: "text-emerald-600", bg: "bg-emerald-50" },
+                { label: "Completion", value: "98%", icon: CheckCircle, color: "text-indigo-600", bg: "bg-indigo-50" },
+            ].map((stat, i) => (
+                <Card key={i} className="shadow-sm border-gray-100 bg-white/60 hover:bg-white transition-colors">
+                <CardContent className="p-4 flex items-center justify-between">
+                    <div className="flex flex-col gap-1">
+                    <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{stat.label}</span>
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-2xl font-bold text-gray-900">{stat.value}</span>
+                        {stat.sub && <span className="text-xs font-medium text-gray-500">{stat.sub}</span>}
+                    </div>
+                    </div>
+                    <div className={`h-10 w-10 rounded-full ${stat.bg} flex items-center justify-center`}>
                     <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                 </div>
-               </CardContent>
-             </Card>
-           ))}
-        </div>
+                    </div>
+                </CardContent>
+                </Card>
+            ))}
+            </div>
+        )}
 
         {/* Tabs */}
         <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="w-full grid grid-cols-5 bg-muted/50 p-1 backdrop-blur-md rounded-xl mb-6">
+          <TabsList className="w-full justify-start overflow-x-auto bg-muted/50 p-1 backdrop-blur-md rounded-xl mb-6">
             <TabsTrigger value="profile">Profile</TabsTrigger>
-            <TabsTrigger value="schedule">Schedule</TabsTrigger>
-            <TabsTrigger value="availability">Availability</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="payouts">Payouts</TabsTrigger>
+            
+            {/* Field Staff Tabs */}
+            {staff.roleType !== 'office' && (
+                <>
+                    <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                    {(staff.position === 'Driver' || staff.roleType === 'driver') && <TabsTrigger value="trips">Trips & Route</TabsTrigger>}
+                    <TabsTrigger value="availability">Availability</TabsTrigger>
+                    <TabsTrigger value="documents">Documents</TabsTrigger>
+                    <TabsTrigger value="payouts">Payouts</TabsTrigger>
+                </>
+            )}
+
+            {/* Internal Staff Tabs */}
+            {staff.roleType === 'office' && (
+                <>
+                    <TabsTrigger value="roles">Role & Permissions</TabsTrigger>
+                    <TabsTrigger value="activity">Activity Log</TabsTrigger>
+                    <TabsTrigger value="security">Security</TabsTrigger>
+                </>
+            )}
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
@@ -492,32 +511,48 @@ export default function StaffDetails() {
                     <CardHeader><SectionHeader icon={User} title="Personal Information" /></CardHeader>
                     <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Full Name</Label><div className="font-medium">{staff.name}</div></div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Nickname</Label>{isEditing ? <Input value={formData.nickname} onChange={e => setFormData({...formData, nickname: e.target.value})} className="h-9"/> : <div className="font-medium">{staff.nickname}</div>}</div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">QID Number</Label><div className="font-medium">{staff.qid}</div></div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Nationality</Label><div className="font-medium">{staff.nationality}</div></div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Gender</Label><div className="font-medium">{staff.gender}</div></div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Marital Status</Label>{isEditing ? <Select value={formData.maritalStatus} onValueChange={v => setFormData({...formData, maritalStatus: v})}><SelectTrigger className="h-9"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Single">Single</SelectItem><SelectItem value="Married">Married</SelectItem></SelectContent></Select> : <div className="font-medium">{staff.maritalStatus}</div>}</div>
+                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Nickname</Label>{isEditing ? <Input value={formData.nickname} onChange={e => setFormData({...formData, nickname: e.target.value})} className="h-9"/> : <div className="font-medium">{staff.nickname || '-'}</div>}</div>
+                        
+                        {/* Hide QID/Nationality for internal if not typically used, but MVP says Identity so keeping basic */}
+                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Email</Label><div className="font-medium">{staff.email}</div></div>
+                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Phone</Label><div className="font-medium">{staff.phone}</div></div>
+                        
+                        {staff.roleType !== 'office' && (
+                            <>
+                                <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">QID Number</Label><div className="font-medium">{staff.qid}</div></div>
+                                <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Nationality</Label><div className="font-medium">{staff.nationality}</div></div>
+                            </>
+                        )}
+                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Department</Label><div className="font-medium">{staff.department || 'General'}</div></div>
                     </CardContent>
                 </Card>
 
+                {/* Employment / Role Info */}
                 <Card>
-                    <CardHeader><SectionHeader icon={Phone} title="Contact Details" /></CardHeader>
+                    <CardHeader><SectionHeader icon={Briefcase} title="Employment Details" /></CardHeader>
                     <CardContent className="space-y-4">
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Mobile</Label>{isEditing ? <Input value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-9"/> : <div className="font-medium">{staff.phone}</div>}</div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Email</Label>{isEditing ? <Input value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="h-9"/> : <div className="font-medium truncate">{staff.email}</div>}</div>
-                         <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Emergency Contact</Label>{isEditing ? <Input value={formData.emergencyContact} onChange={e => setFormData({...formData, emergencyContact: e.target.value})} className="h-9"/> : <div className="font-medium">{staff.emergencyContact}</div>}</div>
+                         <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Position</Label><div className="font-medium">{staff.position}</div></div>
+                         <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Employment Status</Label>
+                            <Badge variant={staff.employmentStatus === 'Active' ? 'default' : 'secondary'} className={staff.employmentStatus === 'Active' ? 'bg-green-100 text-green-700 hover:bg-green-200' : ''}>
+                                {staff.employmentStatus}
+                            </Badge>
+                         </div>
+                         <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Joining Date</Label><div className="font-medium">{staff.joiningDate || 'Not set'}</div></div>
                     </CardContent>
                 </Card>
 
-                <Card className="md:col-span-3">
-                    <CardHeader><SectionHeader icon={Briefcase} title="Employment Information" /></CardHeader>
-                    <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Position</Label>{isEditing ? <Select value={formData.position} onValueChange={v => setFormData({...formData, position: v})}><SelectTrigger className="h-9"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Cleaner">Cleaner</SelectItem><SelectItem value="Senior Technician">Senior Technician</SelectItem><SelectItem value="Driver">Driver</SelectItem></SelectContent></Select> : <div className="font-medium">{staff.position}</div>}</div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Department</Label>{isEditing ? <Select value={formData.department} onValueChange={v => setFormData({...formData, department: v})}><SelectTrigger className="h-9"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Operations">Operations</SelectItem><SelectItem value="HR">HR</SelectItem><SelectItem value="Sales">Sales</SelectItem></SelectContent></Select> : <div className="font-medium">{staff.department}</div>}</div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Joining Date</Label><div className="font-medium">{staff.joiningDate}</div></div>
-                        <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Salary Type</Label><div className="font-medium capitalize">{staff.salaryType.replace('-', ' ')}</div></div>
-                    </CardContent>
-                </Card>
+                {/* Driver Specific: Vehicle & License */}
+                {(staff.position === 'Driver' || staff.roleType === 'driver') && (
+                    <Card className="md:col-span-3 border-orange-200 bg-orange-50/30">
+                        <CardHeader><SectionHeader icon={TrendingUp} title="Operations & Vehicle" /></CardHeader>
+                         <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Assigned Vehicle</Label><div className="font-bold flex items-center gap-2">Toyota Hilux <span className="text-xs font-normal text-gray-500">(12345)</span></div></div>
+                            <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">License Category</Label><div className="font-medium">Light Vehicle</div></div>
+                            <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">License Number</Label><div className="font-medium">DL-99887766</div></div>
+                            <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Expiry</Label><div className="font-medium text-amber-700">2026-05-15</div></div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
           </TabsContent>
 
@@ -542,6 +577,63 @@ export default function StaffDetails() {
              </Card>
           </TabsContent>
 
+          {/* Driver Trips Content */}
+          <TabsContent value="trips" className="mt-6 animate-in fade-in slide-in-from-bottom-2">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                 {/* Current Trip Card */}
+                 <Card className="border-blue-200 bg-blue-50/50">
+                     <CardHeader className="py-3 items-start"><CardTitle className="text-sm text-blue-700 flex items-center gap-2"><MapPin className="h-4 w-4" /> Current Trip</CardTitle></CardHeader>
+                     <CardContent>
+                         <h3 className="font-bold text-lg">TR-2938</h3>
+                         <div className="text-sm text-gray-600 mt-1">To: Pearl Qatar, Tower 4</div>
+                         <div className="mt-4 flex items-center gap-2">
+                             <Badge>In Transit</Badge>
+                             <span className="text-xs text-muted-foreground">ETA: 15 mins</span>
+                         </div>
+                     </CardContent>
+                 </Card>
+                  {/* Trip Stats */}
+                 <Card>
+                     <CardHeader className="py-3"><CardTitle className="text-sm text-gray-500">Trip Performance (30 Days)</CardTitle></CardHeader>
+                     <CardContent>
+                         <div className="text-3xl font-bold">142</div>
+                         <p className="text-xs text-muted-foreground mt-1">Completed Trips</p>
+                     </CardContent>
+                 </Card>
+                 <Card>
+                     <CardHeader className="py-3"><CardTitle className="text-sm text-gray-500">On-Time Rate</CardTitle></CardHeader>
+                     <CardContent>
+                         <div className="text-3xl font-bold text-green-600">98.5%</div>
+                         <p className="text-xs text-muted-foreground mt-1">Target: &gt;95%</p>
+                     </CardContent>
+                 </Card>
+             </div>
+
+             <Card>
+                 <CardHeader className="py-4"><CardTitle className="text-base font-semibold">Trip History</CardTitle></CardHeader>
+                 <CardContent>
+                     <Table>
+                        <TableHeader><TableRow><TableHead>Trip ID</TableHead><TableHead>Route</TableHead><TableHead>Time</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="font-medium">TR-2930</TableCell>
+                                <TableCell>Warehouse &rarr; West Bay (Delivery)</TableCell>
+                                <TableCell>10:00 AM</TableCell>
+                                <TableCell><Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">Completed</Badge></TableCell>
+                            </TableRow>
+                             <TableRow>
+                                <TableCell className="font-medium">TR-2928</TableCell>
+                                <TableCell>Staff Pickup &rarr; Lusail</TableCell>
+                                <TableCell>07:30 AM</TableCell>
+                                <TableCell><Badge variant="outline" className="border-green-200 text-green-700 bg-green-50">Completed</Badge></TableCell>
+                            </TableRow>
+                        </TableBody>
+                     </Table>
+                 </CardContent>
+             </Card>
+          </TabsContent>
+
+
           <TabsContent value="availability" className="mt-6"><div className="p-10 text-center text-muted-foreground bg-gray-50 rounded-lg border border-dashed">Availability Component Ready</div></TabsContent>
           <TabsContent value="documents" className="mt-6">
             <Card>
@@ -562,6 +654,103 @@ export default function StaffDetails() {
                          <TableHeader><TableRow><TableHead>ID</TableHead><TableHead>Amount</TableHead><TableHead>Status</TableHead></TableRow></TableHeader>
                          <TableBody>{mockPayouts.map(pay => (<TableRow key={pay.id}><TableCell>{pay.id}</TableCell><TableCell className="font-bold">{pay.amount}</TableCell><TableCell><Badge variant="outline" className="text-green-600 bg-green-50">{pay.status}</Badge></TableCell></TableRow>))}</TableBody>
                      </Table>
+                 </CardContent>
+             </Card>
+          </TabsContent>
+
+          {/* --- NEW TABS FOR INTERNAL STAFF --- */}
+          <TabsContent value="roles" className="mt-6 animate-in fade-in slide-in-from-bottom-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Card>
+                    <CardHeader><SectionHeader icon={ShieldCheck} title="Assigned Role" /></CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center gap-4 bg-purple-50 p-4 rounded-lg border border-purple-100">
+                            <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 font-bold text-xl">
+                                {(staff.position || 'ST').substring(0,2).toUpperCase()}
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg text-purple-900">{staff.position || 'Staff'}</h3>
+                                <p className="text-sm text-purple-600">Full Access Scope</p>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                             <div className="text-sm font-medium text-gray-500 uppercase">Permissions</div>
+                             <ul className="space-y-1 text-sm">
+                                 <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> Manage Workforce</li>
+                                 <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> View Financials</li>
+                                 <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-500" /> Edit System Settings</li>
+                             </ul>
+                        </div>
+                    </CardContent>
+                </Card>
+                 <Card>
+                    <CardHeader><SectionHeader icon={Lock} title="Access Settings" /></CardHeader>
+                    <CardContent className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="font-medium">Dashboard Access</div>
+                                <div className="text-sm text-muted-foreground">User can log in to admin panel</div>
+                            </div>
+                            <Switch checked={true} />
+                        </div>
+                         <div className="flex items-center justify-between">
+                            <div>
+                                <div className="font-medium">Two-Factor Auth</div>
+                                <div className="text-sm text-muted-foreground">Require 2FA for login</div>
+                            </div>
+                            <Switch checked={false} />
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="activity" className="mt-6 animate-in fade-in slide-in-from-bottom-2">
+             <Card>
+                 <CardHeader className="py-4"><CardTitle className="text-base font-semibold">Audit Log</CardTitle></CardHeader>
+                 <CardContent>
+                     <Table>
+                         <TableHeader><TableRow><TableHead>Timestamp</TableHead><TableHead>Action</TableHead><TableHead>Details</TableHead></TableRow></TableHeader>
+                         <TableBody>
+                             <TableRow>
+                                 <TableCell className="text-gray-500">2025-12-23 09:15 AM</TableCell>
+                                 <TableCell className="font-medium">Login</TableCell>
+                                 <TableCell>Successful login from IP 192.168.1.1</TableCell>
+                             </TableRow>
+                             <TableRow>
+                                 <TableCell className="text-gray-500">2025-12-22 04:30 PM</TableCell>
+                                 <TableCell className="font-medium">Updated Staff</TableCell>
+                                 <TableCell>Modified #WB-0042 details</TableCell>
+                             </TableRow>
+                             <TableRow>
+                                 <TableCell className="text-gray-500">2025-12-20 02:00 PM</TableCell>
+                                 <TableCell className="font-medium">Export Data</TableCell>
+                                 <TableCell>Exported Monthly Report</TableCell>
+                             </TableRow>
+                         </TableBody>
+                     </Table>
+                 </CardContent>
+             </Card>
+          </TabsContent>
+
+          <TabsContent value="security" className="mt-6 animate-in fade-in slide-in-from-bottom-2">
+             <Card className="border-red-100">
+                 <CardHeader><SectionHeader icon={ShieldCheck} title="Security Actions" /></CardHeader>
+                 <CardContent className="space-y-4">
+                     <div className="flex items-center justify-between p-4 border rounded bg-gray-50">
+                         <div>
+                             <div className="font-bold text-gray-900">Reset Password</div>
+                             <div className="text-sm text-gray-500">Send a password reset email to {staff.email}</div>
+                         </div>
+                         <Button variant="outline">Reset Password</Button>
+                     </div>
+                     <div className="flex items-center justify-between p-4 border rounded bg-red-50 border-red-100">
+                         <div>
+                             <div className="font-bold text-red-900">Revoke Access</div>
+                             <div className="text-sm text-red-600">Force logout and prevent new logins</div>
+                         </div>
+                         <Button variant="destructive">Revoke Access</Button>
+                     </div>
                  </CardContent>
              </Card>
           </TabsContent>

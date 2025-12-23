@@ -19,22 +19,33 @@ import {
   Clock,
   Search,
   List,
-  Grid3x3,
   LayoutGrid,
   SlidersHorizontal,
   Eye,
-  ChevronLeft,
-  ChevronRight,
   Plus,
   AlertTriangle,
-  MapPin,
   Mail,
   Phone,
-  Archive
+  MoreHorizontal,
+  RefreshCw,
+  XCircle,
+  Pencil,
+  CheckCircle2,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 // Staff Member Interface
 export interface StaffMember {
@@ -46,8 +57,23 @@ export interface StaffMember {
   email: string;
   phone: string;
   location: string;
-  status: "available" | "on-job" | "on-leave" | "offline"; // Work Status
-  employmentStatus: "Active" | "On Leave" | "Suspended" | "Inactive"; // Lifecycle Status
+
+  // Operational Status
+  status: "available" | "on-job" | "on-leave" | "offline";
+  employmentStatus: "Active" | "On Leave" | "Suspended" | "Inactive";
+
+  // Membership / Invite Status
+  membershipStatus:
+    | "active"
+    | "draft"
+    | "pending"
+    | "rejected"
+    | "expired"
+    | "cancelled";
+  inviteSentAt?: string;
+  emailVerified?: boolean;
+  phoneVerified?: boolean; // via Staff App OTP
+
   avatar: string;
   avatarColor: string;
   // Enhanced fields
@@ -72,13 +98,21 @@ const SAMPLE_STAFF: StaffMember[] = [
     location: "India",
     status: "available",
     employmentStatus: "Active",
+    membershipStatus: "active",
+    emailVerified: true,
+    phoneVerified: true,
     avatar: "NK",
     avatarColor: "bg-purple-600",
     availabilityHours: 24,
     activeJobs: 3,
     rating: 4.9,
     jobsCompleted: 156,
-    skills: ["Deep Cleaning", "AC Cleaning", "Carpet Cleaning", "Window Cleaning"],
+    skills: [
+      "Deep Cleaning",
+      "AC Cleaning",
+      "Carpet Cleaning",
+      "Window Cleaning",
+    ],
   },
   {
     id: "2",
@@ -91,6 +125,9 @@ const SAMPLE_STAFF: StaffMember[] = [
     location: "Vietnam",
     status: "available",
     employmentStatus: "Active",
+    membershipStatus: "active",
+    emailVerified: true,
+    phoneVerified: true,
     avatar: "FG",
     avatarColor: "bg-green-600",
     availabilityHours: 28,
@@ -102,7 +139,7 @@ const SAMPLE_STAFF: StaffMember[] = [
   {
     id: "3",
     staffId: "WB3",
-    name: "FAIS KAPPIKKUNNUMMAL KAPPIKKUNNUMMAL",
+    name: "FAIS KAPPIKKUNNUMMAL",
     role: "Cleaner",
     roleType: "office",
     email: "fais@gmail.com",
@@ -110,6 +147,9 @@ const SAMPLE_STAFF: StaffMember[] = [
     location: "India",
     status: "available",
     employmentStatus: "Active",
+    membershipStatus: "active",
+    emailVerified: true,
+    phoneVerified: true,
     avatar: "FK",
     avatarColor: "bg-teal-600",
     documentExpiring: true,
@@ -117,67 +157,68 @@ const SAMPLE_STAFF: StaffMember[] = [
     activeJobs: 5,
     rating: 4.7,
     jobsCompleted: 138,
-    skills: ["Office Cleaning", "Desk Organization", "Waste Management", "Restroom Cleaning"],
+    skills: ["Office Cleaning", "Desk Organization"],
   },
+  // Pending Invites Examples
   {
-    id: "4",
-    staffId: "WB4",
-    name: "zdfascad",
-    role: "Cleaner",
-    roleType: "office",
-    email: "fbcxb@fdf.csf",
-    phone: "+974454657657",
-    location: "Vietnam",
-    status: "offline",
-    employmentStatus: "Inactive", // Inactive Example
-    avatar: "ZD",
-    avatarColor: "bg-indigo-600",
-    availabilityHours: 0,
-    activeJobs: 0,
-    rating: 4.6,
-    jobsCompleted: 125,
-    skills: ["Kitchen Cleaning", "Bathroom Cleaning"],
-  },
-  {
-    id: "5",
-    staffId: "WB5",
-    name: "Rashid",
+    id: "p1",
+    staffId: "",
+    name: "New Recruit 1",
     role: "Driver",
     roleType: "driver",
-    email: "xx@xx.xx",
-    phone: "+97455678543",
+    email: "driver.new@example.com",
+    phone: "+97466778899",
     location: "Qatar",
-    status: "available",
+    status: "offline",
+    employmentStatus: "Active", // Will become active once verified
+    membershipStatus: "pending",
+    inviteSentAt: "2025-12-23T10:00:00",
+    emailVerified: false,
+    phoneVerified: true, // Only email pending
+    avatar: "NR",
+    avatarColor: "bg-gray-400",
+  },
+  {
+    id: "p2",
+    staffId: "",
+    name: "Pending Staff 2",
+    role: "Field Technician",
+    roleType: "field",
+    email: "tech.pending@example.com",
+    phone: "+97455443322",
+    location: "Qatar",
+    status: "offline",
     employmentStatus: "Active",
-    avatar: "RA",
-    avatarColor: "bg-blue-600",
-    availabilityHours: 8,
-    activeJobs: 1,
-    rating: 4.9,
-    jobsCompleted: 201,
-    skills: ["Safe Driving", "Route Navigation", "Vehicle Maintenance"],
+    membershipStatus: "expired",
+    inviteSentAt: "2025-12-15T09:00:00",
+    emailVerified: false,
+    phoneVerified: false,
+    avatar: "PS",
+    avatarColor: "bg-gray-400",
   },
 ];
 
 export default function Workforce() {
   const [, setLocation] = useLocation();
   const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [viewMode, setViewMode] = useState<"list" | "cards" | "grid">("list");
+  const [viewMode, setViewMode] = useState<"list" | "cards">("list");
+  const [activeTab, setActiveTab] = useState("active");
+
+  // Filters
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedRole, setSelectedRole] = useState("all");
   const [showInactive, setShowInactive] = useState(false);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     const stored = localStorage.getItem("vendor_staff");
     if (stored) {
       let parsedStaff = JSON.parse(stored);
-      // Migrate old data if employmentStatus is missing
+      // Migration: Ensure membershipStatus exists
       parsedStaff = parsedStaff.map((s: any) => ({
-          ...s,
-          employmentStatus: s.employmentStatus || 'Active'
+        ...s,
+        membershipStatus: s.membershipStatus || "active", // Default legacy to active
+        employmentStatus: s.employmentStatus || "Active",
       }));
       setStaff(parsedStaff);
     } else {
@@ -186,52 +227,136 @@ export default function Workforce() {
     }
   }, []);
 
-  // Filter staff
-  const filteredStaff = staff.filter((s) => {
+  const saveStaff = (newStaff: StaffMember[]) => {
+    setStaff(newStaff);
+    localStorage.setItem("vendor_staff", JSON.stringify(newStaff));
+  };
+
+  // ------------------------------------------------------------------
+  // Actions
+  // ------------------------------------------------------------------
+  const handleResendInvite = (id: string) => {
+    const updated = staff.map(s => {
+      if (s.id === id) {
+        return {
+          ...s,
+          inviteSentAt: new Date().toISOString(),
+          membershipStatus: "pending" as const,
+        };
+      }
+      return s;
+    });
+    saveStaff(updated);
+    toast.success("Invite resent successfully");
+  };
+
+  const handleCancelInvite = (id: string) => {
+    const updated = staff.map(s => {
+      if (s.id === id) {
+        return { ...s, membershipStatus: "cancelled" as const }; // Or just delete? User asked for cancel.
+      }
+      return s;
+    });
+    saveStaff(updated);
+    toast.info("Invite cancelled");
+  };
+
+  const handleDelete = (id: string) => {
+    const updated = staff.filter(s => s.id !== id);
+    saveStaff(updated);
+    toast.success("Removed from list");
+  };
+
+  // ------------------------------------------------------------------
+  // View Logic
+  // ------------------------------------------------------------------
+
+  // Active Workforce List
+  const activeWorkforce = staff.filter(s => s.membershipStatus === "active");
+  const filteredActiveStaff = activeWorkforce.filter(s => {
     const matchesSearch =
       s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.phone.includes(searchQuery);
-    
+
     const matchesWorkStatus =
       selectedStatus === "all" || s.status === selectedStatus;
-      
-    const matchesRole =
-      selectedRole === "all" || s.roleType === selectedRole;
 
-    const matchesInactive = showInactive ? true : s.employmentStatus !== 'Inactive';
+    const matchesRole = selectedRole === "all" || s.roleType === selectedRole;
+
+    const matchesInactive = showInactive
+      ? true
+      : s.employmentStatus !== "Inactive";
 
     return matchesSearch && matchesWorkStatus && matchesRole && matchesInactive;
   });
 
-  // Statistics (Count only Active/Non-Inactive for stats unless clarified otherwise, but typically stats show active fleet)
-  const activeStaffList = staff.filter(s => s.employmentStatus !== 'Inactive');
+  // Pending Invites List
+  const pendingInvites = staff.filter(s =>
+    ["pending", "draft", "expired", "rejected"].includes(s.membershipStatus)
+  );
+  // Optional: Add search for pending as well?
+  const filteredPendingInvites = pendingInvites.filter(
+    s =>
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      s.email.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Stats
   const stats = {
-    total: activeStaffList.length,
-    field: activeStaffList.filter((s) => s.roleType === "field").length,
-    office: activeStaffList.filter((s) => s.roleType === "office").length,
-    drivers: activeStaffList.filter((s) => s.roleType === "driver").length,
-    partTime: activeStaffList.filter((s) => s.roleType === "part-time").length,
+    total: activeWorkforce.length,
+    field: activeWorkforce.filter(s => s.roleType === "field").length,
+    office: activeWorkforce.filter(s => s.roleType === "office").length,
+    drivers: activeWorkforce.filter(s => s.roleType === "driver").length,
+    pending: pendingInvites.filter(s => s.membershipStatus === "pending")
+      .length,
   };
 
-  // Status badge styling
+  // Helpers
   const getStatusBadge = (workStatus: string, empStatus: string) => {
-    if (empStatus === 'Inactive') return "bg-gray-100 text-gray-500 border-gray-200 line-through";
-    if (empStatus === 'Suspended') return "bg-red-50 text-red-700 border-red-200";
-    if (empStatus === 'On Leave') return "bg-amber-100 text-amber-700 border-amber-200";
-    
-    // Default Work Status colors for Active staff
+    if (empStatus === "Inactive")
+      return "bg-gray-100 text-gray-500 border-gray-200 line-through";
+    if (empStatus === "Suspended")
+      return "bg-red-50 text-red-700 border-red-200";
+    if (empStatus === "On Leave")
+      return "bg-amber-100 text-amber-700 border-amber-200";
+
     const styles = {
       available: "bg-green-100 text-green-700 border-green-200",
       "on-job": "bg-blue-100 text-blue-700 border-blue-200",
-      "on-leave": "bg-amber-100 text-amber-700 border-amber-200", // Fallback
+      "on-leave": "bg-amber-100 text-amber-700 border-amber-200",
       offline: "bg-gray-100 text-gray-700 border-gray-200",
     };
     return styles[workStatus as keyof typeof styles] || styles.available;
   };
 
-  const handleRowClick = (staffId: string) => {
-     setLocation(`/staff/${staffId}`); 
+  const getInviteStatusBadge = (status: string) => {
+    switch (status) {
+      case "pending":
+        return (
+          <Badge
+            variant="secondary"
+            className="bg-amber-100 text-amber-700 hover:bg-amber-100"
+          >
+            Pending
+          </Badge>
+        );
+      case "draft":
+        return <Badge variant="outline">Draft</Badge>;
+      case "expired":
+        return (
+          <Badge
+            variant="destructive"
+            className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200"
+          >
+            Expired
+          </Badge>
+        );
+      case "rejected":
+        return <Badge variant="destructive">Rejected</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
   return (
@@ -242,7 +367,7 @@ export default function Workforce() {
           <div>
             <h1 className="text-2xl font-bold">Workforce Management</h1>
             <p className="text-sm text-muted-foreground">
-              Manage and track all your workforce members
+              Manage workforce, track invites, and monitor status
             </p>
           </div>
           <Button onClick={() => setLocation("/workforce/add")}>
@@ -251,204 +376,452 @@ export default function Workforce() {
           </Button>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-lg border shadow-sm">
-          <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="Work Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="available">Available</SelectItem>
-              <SelectItem value="on-job">On Job</SelectItem>
-              <SelectItem value="on-leave">On Leave</SelectItem>
-              <SelectItem value="offline">Offline</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedRole} onValueChange={setSelectedRole}>
-            <SelectTrigger className="w-[140px]">
-              <SelectValue placeholder="All Roles" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="field">Field Staff</SelectItem>
-              <SelectItem value="office">Office Staff</SelectItem>
-              <SelectItem value="driver">Drivers</SelectItem>
-              <SelectItem value="part-time">Part-time</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="h-8 w-px bg-gray-200 mx-2"></div>
-          
-          <div className="flex items-center space-x-2">
-            <Switch 
-                id="show-inactive" 
-                checked={showInactive} 
-                onCheckedChange={setShowInactive} 
-            />
-            <Label htmlFor="show-inactive" className="text-sm cursor-pointer">
-                Show Inactive
-            </Label>
-          </div>
-
-          <Button variant="outline" size="sm">
-            <SlidersHorizontal className="h-4 w-4" />
-          </Button>
-        </div>
-
-        {/* View Mode Switcher */}
-        <div className="flex items-center justify-between">
-             <div className="flex items-center gap-2">
-              <Button
-                variant={viewMode === "list" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-4 w-4 mr-2" />
-                List
-              </Button>
-              <Button
-                variant={viewMode === "cards" ? "default" : "outline"}
-                size="sm"
-                onClick={() => setViewMode("cards")}
-              >
-                <LayoutGrid className="h-4 w-4 mr-2" />
-                Cards
-              </Button>
-            </div>
-            <div className="text-sm text-muted-foreground">
-                Showing {filteredStaff.length} members
-            </div>
-        </div>
-
-        {/* Statistics Cards */}
-        <div className="grid grid-cols-5 gap-4">
-          {[
-              { label: "Total Active", value: stats.total, icon: Users, color: "text-blue-600" },
-              { label: "Field Staff", value: stats.field, icon: UserCheck, color: "text-green-600" },
-              { label: "Office Staff", value: stats.office, icon: Briefcase, color: "text-purple-600" },
-              { label: "Drivers", value: stats.drivers, icon: Truck, color: "text-orange-600" },
-              { label: "Part-time", value: stats.partTime, icon: Clock, color: "text-blue-600" },
-          ].map((stat, i) => (
-             <Card key={i} className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer group">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{stat.label}</p>
-                    <p className="text-2xl font-bold font-heading mt-1">{stat.value}</p>
-                  </div>
-                  <stat.icon className={`h-8 w-8 ${stat.color} opacity-80 group-hover:scale-110 transition-transform`} />
-                </div>
-              </Card>
-          ))}
-        </div>
-
-        {/* List View */}
-        {viewMode === "list" && (
-          <Card>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="border-b bg-muted/50">
-                  <tr>
-                    <th className="p-3 text-left w-12"><Checkbox /></th>
-                    <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Staff Member</th>
-                    <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Contact</th>
-                    <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Role</th>
-                    <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
-                    <th className="p-3 text-left text-xs font-medium text-muted-foreground uppercase">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredStaff.map((staff) => (
-                    <tr
-                      key={staff.id}
-                      className={`border-b hover:bg-muted/50 cursor-pointer transition-colors ${staff.employmentStatus === 'Inactive' ? 'bg-gray-50/50' : ''}`}
-                      onClick={() => handleRowClick(staff.id)}
-                    >
-                      <td className="p-3" onClick={(e) => e.stopPropagation()}><Checkbox /></td>
-                      <td className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-semibold text-sm ${staff.employmentStatus === 'Inactive' ? 'grayscale opacity-50' : ''}`}>
-                            {staff.avatar}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className={`font-medium ${staff.employmentStatus === 'Inactive' ? 'text-muted-foreground line-through' : ''}`}>{staff.name}</p>
-                              {staff.documentExpiring && staff.employmentStatus === 'Active' && (
-                                <span className="flex items-center gap-1 text-xs text-amber-600"><AlertTriangle className="h-3 w-3" /> Expiring</span>
-                              )}
-                              {staff.employmentStatus === 'Inactive' && <span className="text-xs border border-gray-200 bg-gray-100 px-1.5 rounded text-gray-500">Inactive</span>}
-                            </div>
-                            <p className="text-sm text-muted-foreground">ID: {staff.staffId}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div className="space-y-1 text-sm">
-                          <div className="flex items-center gap-2"><Mail className="h-3 w-3 text-muted-foreground" /> {staff.email}</div>
-                          <div className="flex items-center gap-2"><Phone className="h-3 w-3 text-muted-foreground" /> {staff.phone}</div>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <div>
-                          <p className="font-medium">{staff.role}</p>
-                          <p className="text-sm text-muted-foreground capitalize">{staff.roleType}</p>
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border ${getStatusBadge(staff.status, staff.employmentStatus)}`}>
-                          {staff.employmentStatus === 'Active' ? staff.status : staff.employmentStatus}
-                        </span>
-                      </td>
-                      <td className="p-3" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" onClick={() => handleRowClick(staff.id)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
+            <p className="text-xs font-medium text-muted-foreground uppercase">
+              Total Active
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-2xl font-bold font-heading">{stats.total}</p>
+              <Users className="h-8 w-8 text-blue-600 opacity-80" />
             </div>
           </Card>
-        )}
 
-        {/* Cards View */}
-        {viewMode === "cards" && (
-          <div className="grid grid-cols-4 gap-4">
-            {filteredStaff.map((staff) => (
-              <Card
-                key={staff.id}
-                className={`p-4 relative cursor-pointer hover:shadow-md transition-shadow ${staff.employmentStatus === 'Inactive' ? 'bg-gray-50 opacity-75' : ''}`}
-                onClick={() => handleRowClick(staff.id)}
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className={`w-16 h-16 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-bold text-xl mb-3 ${staff.employmentStatus === 'Inactive' ? 'grayscale' : ''}`}>
-                    {staff.avatar}
-                  </div>
-                  <h3 className="font-semibold mb-1">{staff.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">{staff.role}</p>
-                  
-                  <span className={`inline-flex px-2 py-1 rounded-full text-xs font-medium border mb-3 ${getStatusBadge(staff.status, staff.employmentStatus)}`}>
-                    {staff.employmentStatus === 'Active' ? staff.status : staff.employmentStatus}
-                  </span>
-                  
-                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="icon"><Eye className="h-4 w-4" /></Button>
-                  </div>
+          <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
+            <p className="text-xs font-medium text-muted-foreground uppercase">
+              Pending Invites
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-2xl font-bold font-heading">{stats.pending}</p>
+              <Mail className="h-8 w-8 text-amber-500 opacity-80" />
+            </div>
+          </Card>
+
+          <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
+            <p className="text-xs font-medium text-muted-foreground uppercase">
+              Field Staff
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-2xl font-bold font-heading">{stats.field}</p>
+              <UserCheck className="h-8 w-8 text-green-600 opacity-80" />
+            </div>
+          </Card>
+
+          <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
+            <p className="text-xs font-medium text-muted-foreground uppercase">
+              Drivers
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-2xl font-bold font-heading">{stats.drivers}</p>
+              <Truck className="h-8 w-8 text-orange-600 opacity-80" />
+            </div>
+          </Card>
+
+          <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
+            <p className="text-xs font-medium text-muted-foreground uppercase">
+              Office
+            </p>
+            <div className="flex items-center justify-between mt-1">
+              <p className="text-2xl font-bold font-heading">{stats.office}</p>
+              <Briefcase className="h-8 w-8 text-purple-600 opacity-80" />
+            </div>
+          </Card>
+        </div>
+
+        {/* Main Tabs */}
+        <Tabs
+          defaultValue="active"
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <TabsList>
+              <TabsTrigger value="active">Active Workforce</TabsTrigger>
+              <TabsTrigger value="pending">Pending Invites</TabsTrigger>
+            </TabsList>
+
+            <div className="relative flex-1 max-w-xs ml-auto">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search name, phone..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                className="pl-10 h-9"
+              />
+            </div>
+          </div>
+
+          {/* Active Workforce Tab */}
+          <TabsContent value="active" className="space-y-4">
+            {/* Filters */}
+            <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-lg border shadow-sm">
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="Work Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="on-job">On Job</SelectItem>
+                  <SelectItem value="on-leave">On Leave</SelectItem>
+                  <SelectItem value="offline">Offline</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger className="w-[140px] h-8 text-xs">
+                  <SelectValue placeholder="All Roles" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="field">Field Staff</SelectItem>
+                  <SelectItem value="office">Office Staff</SelectItem>
+                  <SelectItem value="driver">Drivers</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <div className="h-6 w-px bg-gray-200 mx-2"></div>
+
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="show-inactive"
+                  checked={showInactive}
+                  onCheckedChange={setShowInactive}
+                />
+                <Label
+                  htmlFor="show-inactive"
+                  className="text-xs cursor-pointer"
+                >
+                  Show Inactive
+                </Label>
+              </div>
+
+              <div className="ml-auto flex gap-2">
+                <Button
+                  variant={viewMode === "list" ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setViewMode("list")}
+                >
+                  <List className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant={viewMode === "cards" ? "default" : "outline"}
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setViewMode("cards")}
+                >
+                  <LayoutGrid className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+
+            {viewMode === "list" && (
+              <Card>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="border-b bg-muted/50">
+                      <tr>
+                        <th className="p-3 text-left w-12">
+                          <Checkbox />
+                        </th>
+                        <th className="p-3 text-left font-medium text-muted-foreground">
+                          Staff Member
+                        </th>
+                        <th className="p-3 text-left font-medium text-muted-foreground">
+                          Contact
+                        </th>
+                        <th className="p-3 text-left font-medium text-muted-foreground">
+                          Role
+                        </th>
+                        <th className="p-3 text-left font-medium text-muted-foreground">
+                          Status
+                        </th>
+                        <th className="p-3 text-left font-medium text-muted-foreground">
+                          Actions
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredActiveStaff.map(staff => (
+                        <tr
+                          key={staff.id}
+                          className={`border-b hover:bg-muted/50 cursor-pointer transition-colors ${staff.employmentStatus === "Inactive" ? "bg-gray-50/50" : ""}`}
+                          onClick={() => setLocation(`/staff/${staff.id}`)}
+                        >
+                          <td
+                            className="p-3"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <Checkbox />
+                          </td>
+                          <td className="p-3">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-9 h-9 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-semibold text-xs`}
+                              >
+                                {staff.avatar}
+                              </div>
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p
+                                    className={`font-medium ${staff.employmentStatus === "Inactive" ? "text-muted-foreground line-through" : ""}`}
+                                  >
+                                    {staff.name}
+                                  </p>
+                                </div>
+                                <p className="text-muted-foreground text-xs">
+                                  ID: {staff.staffId}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-xs">
+                                <Mail className="h-3 w-3 text-muted-foreground" />{" "}
+                                {staff.email}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <Phone className="h-3 w-3 text-muted-foreground" />{" "}
+                                {staff.phone}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <p className="font-medium">{staff.role}</p>
+                            <p className="text-xs text-muted-foreground capitalize">
+                              {staff.roleType}
+                            </p>
+                          </td>
+                          <td className="p-3">
+                            <span
+                              className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusBadge(staff.status, staff.employmentStatus)}`}
+                            >
+                              {staff.employmentStatus === "Active"
+                                ? staff.status
+                                : staff.employmentStatus}
+                            </span>
+                          </td>
+                          <td
+                            className="p-3"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </Card>
-            ))}
-          </div>
-        )}
+            )}
+
+            {viewMode === "cards" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {filteredActiveStaff.map(staff => (
+                  <Card
+                    key={staff.id}
+                    className="p-4 relative hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() => setLocation(`/staff/${staff.id}`)}
+                  >
+                    <div className="flex items-start justify-between mb-4">
+                      <div
+                        className={`w-10 h-10 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-bold`}
+                      >
+                        {staff.avatar}
+                      </div>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(staff.status, staff.employmentStatus)}`}
+                      >
+                        {staff.status}
+                      </span>
+                    </div>
+                    <h3 className="font-semibold truncate">{staff.name}</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      {staff.role}
+                    </p>
+                    <div className="text-xs space-y-1 text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-3 w-3" /> {staff.email}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-3 w-3" /> {staff.phone}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          {/* Pending Invites Tab */}
+          <TabsContent value="pending" className="space-y-4">
+            <Card>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="border-b bg-muted/50">
+                    <tr>
+                      <th className="p-3 text-left font-medium text-muted-foreground">
+                        Pending Staff
+                      </th>
+                      <th className="p-3 text-left font-medium text-muted-foreground">
+                        Contact
+                      </th>
+                      <th className="p-3 text-left font-medium text-muted-foreground">
+                        Verification
+                      </th>
+                      <th className="p-3 text-left font-medium text-muted-foreground">
+                        Invite Status
+                      </th>
+                      <th className="p-3 text-left font-medium text-muted-foreground">
+                        Sent At
+                      </th>
+                      <th className="p-3 text-right font-medium text-muted-foreground">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredPendingInvites.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={6}
+                          className="p-8 text-center text-muted-foreground"
+                        >
+                          No pending invites found.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredPendingInvites.map(staff => (
+                        <tr
+                          key={staff.id}
+                          className="border-b hover:bg-muted/50"
+                        >
+                          <td className="p-3">
+                            <div className="flex items-center gap-3">
+                              <div
+                                className={`w-8 h-8 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-semibold text-xs`}
+                              >
+                                {staff.avatar}
+                              </div>
+                              <div>
+                                <p className="font-medium">{staff.name}</p>
+                                <p className="text-muted-foreground text-xs">
+                                  {staff.role} • {staff.roleType}
+                                </p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="space-y-1">
+                              <div className="flex items-center gap-2 text-xs">
+                                <Mail className="h-3 w-3 text-muted-foreground" />{" "}
+                                {staff.email}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <Phone className="h-3 w-3 text-muted-foreground" />{" "}
+                                {staff.phone}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <div className="flex flex-col gap-1">
+                              <div className="flex items-center gap-2 text-xs">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${staff.phoneVerified ? "bg-green-500" : "bg-amber-400"}`}
+                                ></div>
+                                <span>
+                                  Phone:{" "}
+                                  {staff.phoneVerified ? "Verified" : "Pending"}
+                                </span>
+                                {!staff.phoneVerified && (
+                                  <span className="text-[10px] text-muted-foreground">
+                                    (App OTP)
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-xs">
+                                <div
+                                  className={`w-2 h-2 rounded-full ${staff.emailVerified ? "bg-green-500" : "bg-amber-400"}`}
+                                ></div>
+                                <span>
+                                  Email:{" "}
+                                  {staff.emailVerified ? "Verified" : "Pending"}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            {getInviteStatusBadge(staff.membershipStatus)}
+                          </td>
+                          <td className="p-3 text-xs text-muted-foreground">
+                            {staff.inviteSentAt
+                              ? new Date(
+                                  staff.inviteSentAt
+                                ).toLocaleDateString()
+                              : "Not Sent"}
+                          </td>
+                          <td className="p-3 text-right">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleResendInvite(staff.id)}
+                                >
+                                  <RefreshCw className="h-4 w-4 mr-2" /> Resend
+                                  Invite
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    toast.info("Edit contact logic needed")
+                                  }
+                                >
+                                  <Pencil className="h-4 w-4 mr-2" /> Edit
+                                  Contact
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleCancelInvite(staff.id)}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" /> Cancel
+                                  Invite
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => handleDelete(staff.id)}
+                                >
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );
