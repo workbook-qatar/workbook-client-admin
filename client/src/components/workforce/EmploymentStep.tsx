@@ -33,7 +33,6 @@ export default function EmploymentStep({
   const [jobTitles, setJobTitles] = useState<any[]>([]);
   const [departments, setDepartments] = useState<any[]>([]);
   const [employmentTypes, setEmploymentTypes] = useState<any[]>([]);
-  const [contractTypes, setContractTypes] = useState<any[]>([]);
   const [salaryStructures, setSalaryStructures] = useState<any[]>([]);
 
   // Load Configuration
@@ -57,13 +56,6 @@ export default function EmploymentStep({
 
     loadConfig("vendor_employment_types", setEmploymentTypes, [
       { name: "Full Time" }, { name: "Part Time" }, { name: "Contract" }
-    ]);
-
-    loadConfig("vendor_contract_types", (values) => {
-        // Ensure 'Employment' is not in the list (User Request)
-        setContractTypes(values.filter((t: any) => t.name !== 'Employment'));
-    }, [
-      { name: "Permanent" }, { name: "Probation" }
     ]);
 
     loadConfig("vendor_salary_structures", setSalaryStructures, [
@@ -93,7 +85,7 @@ export default function EmploymentStep({
 
   const canContinue = () => {
     // Basic fields validation
-    if (!data.position || !data.department || !data.employmentType || !data.startDate || !data.salaryType || !data.contractType) {
+    if (!data.position || !data.department || !data.employmentType || !data.startDate || !data.salaryType) {
       return false;
     }
 
@@ -199,27 +191,7 @@ export default function EmploymentStep({
           </div>
         </div>
 
-        {/* Row 3: Contract Type */}
-        <div className="grid grid-cols-2 gap-6">
-          <div>
-             <Label htmlFor="contractType">
-              Contract Type <span className="text-red-500">*</span>
-            </Label>
-            <Select
-              value={data.contractType || ""}
-              onValueChange={(value) => handleChange("contractType", value)}
-            >
-              <SelectTrigger className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
-                <SelectValue placeholder="Select contract type" />
-              </SelectTrigger>
-              <SelectContent>
-                {contractTypes.map((type: any) => (
-                  <SelectItem key={type.name} value={type.name}>{type.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
+
 
         {/* Row 3: Salary Type */}
         <div>

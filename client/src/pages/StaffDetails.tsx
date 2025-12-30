@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useMemo } from "react";
-import { useRoute, Link, useLocation } from "wouter";
+import { useState, useEffect, useMemo } from "react";
+import { useRoute, Link } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -56,15 +56,20 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress"; // Attempting to use if available, or just mock it.
+// Assuming Progress is available or I can make a simple one. If not, I'll make a div. 
+// I'll stick to simple div for progress for now.
 
 // --- Types & Enums ---
 type EmploymentStatus = 'Active' | 'On Leave' | 'Suspended' | 'Inactive';
 type WorkStatus = 'Available' | 'Assigned' | 'On Job' | 'Offline';
+type MembershipStatus = 'active' | 'draft' | 'pending' | 'rejected' | 'expired' | 'cancelled';
 
 // --- Mock Data ---
 // Expanded Mock Data conforming to WorkforceMemberData structure
 const mockStaffData = {
   id: 1,
+  staffId: "WB-001",
   name: "Mohammed Hassan",
   nickname: "Nisar",
   role: "Senior Technician", 
@@ -107,6 +112,7 @@ const mockStaffData = {
   earnings: "5890 QAR",
   hours: "42.5h/week",
   roleType: "field", // Default
+  membershipStatus: "active" as MembershipStatus,
 };
 
 // Updated dates to be relevant for 2025 testing
@@ -140,16 +146,15 @@ function getWorkStatusColor(status: WorkStatus) {
 
 export default function StaffDetails() {
   const [, params] = useRoute("/staff/:id");
-  const [, setLocation] = useLocation();
   
   // State
   const [staff, setStaff] = useState(mockStaffData);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(mockStaffData);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Status Change Dialog State
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
+  const [activationDialogOpen, setActivationDialogOpen] = useState(false);
   const [pendingEmploymentStatus, setPendingEmploymentStatus] = useState<EmploymentStatus | null>(null);
   const [leaveDates, setLeaveDates] = useState({ start: '', end: '' });
   const [impactAnalysis, setImpactAnalysis] = useState<{
@@ -168,8 +173,11 @@ export default function StaffDetails() {
         const found = parsedStaff.find((s: any) => s.id === params.id || s.id === parseInt(params.id));
         if (found) {
           // Merge found data with mock for missing fields if any (like employmentStatus default)
-          setStaff(prev => ({ ...prev, ...found, employmentStatus: found.employmentStatus || "Active" }));
-          setFormData(prev => ({ ...prev, ...found, employmentStatus: found.employmentStatus || "Active" }));
+          const merged = { ...mockStaffData, ...found, employmentStatus: found.employmentStatus || "Active" };
+          // Ensure membershipStatus is set if missing (legacy data)
+          if (!merged.membershipStatus) merged.membershipStatus = "active";
+          setStaff(merged);
+          setFormData(merged);
         }
       } catch (e) { console.error(e); }
     }
@@ -291,20 +299,42 @@ export default function StaffDetails() {
   };
 
 
-  // --- Section Header Helper ---
+
   const SectionHeader = ({ icon: Icon, title }: { icon: any, title: string }) => (
       <div className="flex items-center justify-between">
           <CardTitle className="text-lg font-semibold flex items-center gap-2">
               <Icon className="h-5 w-5 text-gray-500" />
               {title}
           </CardTitle>
-          {!isEditing && (
+          {!isEditing && staff.membershipStatus === 'active' && (
               <Button variant="ghost" size="sm" onClick={handleEditToggle} className="h-8 w-8 p-0 rounded-full hover:bg-gray-100 text-gray-400 hover:text-primary">
                   <PenSquare className="h-4 w-4" />
               </Button>
           )}
       </div>
   );
+  
+  // Activation Logic
+  const checkRequirements = () => {
+    return {
+        personal: !!(staff.name && staff.qid && staff.phone),
+        employment: !!(staff.position && staff.department && staff.startDate),
+        skills: (staff.skills?.length || 0) > 0,
+        docs: (mockDocuments.length > 0) || (staff.nationality), // loose check
+    };
+  };
+  
+  const handleActivate = () => {
+      const updated = { ...staff, membershipStatus: 'active' as const, employmentStatus: 'Active' as const };
+      setStaff(updated);
+      setFormData(updated);
+      updateLocalStorage(updated);
+      toast.success("Staff member activated successfully");
+      setActivationDialogOpen(false);
+  };
+
+  const reqs = checkRequirements();
+  const canActivate = reqs.personal && reqs.employment && reqs.skills;
 
   return (
     <DashboardLayout>
@@ -319,6 +349,7 @@ export default function StaffDetails() {
           </Link>
         </div>
 
+        {/* ACTIVATION BANNER - Removed in favor of Verification Tab default */}
         {/* Main Header Card */}
         <Card className="border-none shadow-sm bg-white/50 backdrop-blur-sm overflow-visible">
           <CardContent className="p-6">
@@ -358,7 +389,8 @@ export default function StaffDetails() {
                     </h1>
                     <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 text-sm text-muted-foreground">
                        <span className="font-medium bg-gray-100 px-2 py-0.5 rounded">{staff.position}</span>
-                       <span>ID: WB-{staff.id.toString().padStart(4, '0')}</span>
+                       <span>ID: {staff.staffId || staff.id.toString().padStart(4, '0')}</span>
+                       {staff.membershipStatus !== 'active' && <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50 capitalize">{staff.membershipStatus}</Badge>}
                     </div>
                   </div>
 
@@ -480,18 +512,32 @@ export default function StaffDetails() {
         )}
 
         {/* Tabs */}
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="w-full justify-start overflow-x-auto bg-muted/50 p-1 backdrop-blur-md rounded-xl mb-6">
+          <Tabs defaultValue={staff.membershipStatus === 'active' ? "profile" : "verification"} className="w-full">
+            <TabsList className="w-full justify-start overflow-x-auto bg-muted/50 p-1 backdrop-blur-md rounded-xl mb-6">
+            
+            {/* Verification Tab - Visible only if not active */}
+            {staff.membershipStatus !== 'active' && (
+                 <TabsTrigger value="verification" className="data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900">
+                    <ShieldCheck className="h-4 w-4 mr-2" />
+                    Verification & Activation
+                 </TabsTrigger>
+            )}
+
             <TabsTrigger value="profile">Profile</TabsTrigger>
             
             {/* Field Staff Tabs */}
             {staff.roleType !== 'office' && (
                 <>
-                    <TabsTrigger value="schedule">Schedule</TabsTrigger>
-                    {(staff.position === 'Driver' || staff.roleType === 'driver') && <TabsTrigger value="trips">Trips & Route</TabsTrigger>}
-                    <TabsTrigger value="availability">Availability</TabsTrigger>
-                    <TabsTrigger value="documents">Documents</TabsTrigger>
-                    <TabsTrigger value="payouts">Payouts</TabsTrigger>
+                    {staff.membershipStatus === 'active' && (
+                        <>
+                            <TabsTrigger value="schedule">Schedule</TabsTrigger>
+                            {(staff.position === 'Driver' || staff.roleType === 'driver') && <TabsTrigger value="trips">Trips & Route</TabsTrigger>}
+                            <TabsTrigger value="availability">Availability</TabsTrigger>
+                            <TabsTrigger value="documents">Documents</TabsTrigger>
+                            <TabsTrigger value="payouts">Payouts</TabsTrigger>
+                        </>
+                    )}
+                    {/* Allow Documents tab for drafts too? Maybe keep it simple and putting doc upload in verification */}
                 </>
             )}
 
@@ -656,6 +702,121 @@ export default function StaffDetails() {
                      </Table>
                  </CardContent>
              </Card>
+          </TabsContent>
+
+
+          <TabsContent value="verification" className="space-y-6">
+             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                {/* 1. Requirements Checklist */}
+                <Card className="md:col-span-2">
+                    <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                            <ShieldCheck className="h-5 w-5 text-amber-600" />
+                            Activation Requirements
+                        </CardTitle>
+                        <CardDescription>Complete the following steps to activate this staff member.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        {/* Requirement Item: Personal Info */}
+                        <div className="flex items-start justify-between p-4 bg-gray-50 border rounded-lg">
+                            <div className="flex items-start gap-4">
+                                <div className={`mt-0.5 p-1 rounded-full ${reqs.personal ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                                    <CheckCircle className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Basic Information</h4>
+                                    <p className="text-sm text-gray-500">Name, Contact, QID details.</p>
+                                </div>
+                            </div>
+                            <Button variant="ghost" size="sm" onClick={() => {/* Navigate to profile or edit */ handleEditToggle()}}>
+                                {reqs.personal ? 'Review' : 'Edit'}
+                            </Button>
+                        </div>
+
+                         {/* Requirement Item: Employment Details */}
+                        <div className="flex items-start justify-between p-4 bg-gray-50 border rounded-lg">
+                            <div className="flex items-start gap-4">
+                                <div className={`mt-0.5 p-1 rounded-full ${reqs.employment ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                                    <CheckCircle className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Employment Details</h4>
+                                    <p className="text-sm text-gray-500">Position, Department, Joining Date.</p>
+                                </div>
+                            </div>
+                             {!reqs.employment && (
+                                <Button size="sm" onClick={handleEditToggle} variant="outline" className="border-blue-200 text-blue-700 hover:bg-blue-50">
+                                    <Plus className="h-4 w-4 mr-1" /> Add Details
+                                </Button>
+                             )}
+                        </div>
+
+                         {/* Requirement Item: Documents */}
+                         <div className="flex items-start justify-between p-4 bg-gray-50 border rounded-lg">
+                            <div className="flex items-start gap-4">
+                                <div className={`mt-0.5 p-1 rounded-full ${reqs.docs ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                                    <CheckCircle className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Documents</h4>
+                                    <p className="text-sm text-gray-500">Upload QID, Visa, employment contract.</p>
+                                </div>
+                            </div>
+                             <Button size="sm" variant="outline" onClick={() => document.getElementById("doc-upload-hidden")?.click()}>
+                                <Upload className="h-4 w-4 mr-1" /> Upload
+                             </Button>
+                             <input type="hidden" id="doc-upload-hidden" /> 
+                        </div>
+
+                         {/* Requirement Item: Skills */}
+                         <div className="flex items-start justify-between p-4 bg-gray-50 border rounded-lg">
+                            <div className="flex items-start gap-4">
+                                <div className={`mt-0.5 p-1 rounded-full ${reqs.skills ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-500'}`}>
+                                    <CheckCircle className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-semibold text-gray-900">Skills & Qualifications</h4>
+                                    <p className="text-sm text-gray-500">Assign relevant skills for job assignment.</p>
+                                </div>
+                            </div>
+                            <Button size="sm" variant="outline">Manage Skills</Button>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* 2. Activation Action Card */}
+                <Card className="bg-gradient-to-br from-white to-amber-50/50 border-amber-200 shadow-sm h-fit">
+                    <CardHeader>
+                        <CardTitle className="text-amber-800">Ready to Activate?</CardTitle>
+                        <CardDescription>
+                            Once activated, this staff member will be:
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        <ul className="space-y-2 text-sm text-amber-900">
+                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-600" /> Visible for dispatch</li>
+                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-600" /> Able to access Mobile App</li>
+                            <li className="flex items-center gap-2"><CheckCircle className="h-4 w-4 text-green-600" /> Included in payroll</li>
+                        </ul>
+
+                        <div className="pt-4 border-t border-amber-200/60">
+                            {canActivate ? (
+                                <Button className="w-full bg-green-600 hover:bg-green-700 shadow-md text-base h-12" onClick={handleActivate}>
+                                    Confirm Activation
+                                </Button>
+                            ) : (
+                                <Button className="w-full bg-gray-300 text-gray-500 cursor-not-allowed" disabled>
+                                    Complete All Steps
+                                </Button>
+                            )}
+                            <div className="text-xs text-center text-gray-400 mt-2">
+                                {Object.values(reqs).filter(Boolean).length} of 4 steps completed
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+             </div>
           </TabsContent>
 
           {/* --- NEW TABS FOR INTERNAL STAFF --- */}
@@ -826,6 +987,74 @@ export default function StaffDetails() {
                     onClick={confirmStatusChange}
                 >
                     {impactAnalysis.totalImpact > 0 ? `Unassign Jobs & set ${pendingEmploymentStatus}` : `Confirm ${pendingEmploymentStatus}`}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* ACTIVATION DIALOG */}
+       <Dialog open={activationDialogOpen} onOpenChange={setActivationDialogOpen}>
+        <DialogContent className="max-w-md">
+            <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5 text-green-600" />
+                    Activate Staff Member
+                </DialogTitle>
+                <DialogDescription>
+                    Review the requirements before activating <strong>{staff.name}</strong>.
+                </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+                 <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                        <div className="flex items-center gap-3">
+                             <div className={`p-1 rounded-full ${reqs.personal ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                 {reqs.personal ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                             </div>
+                             <span className="text-sm font-medium">Personal Information</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                         <div className="flex items-center gap-3">
+                             <div className={`p-1 rounded-full ${reqs.employment ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                 {reqs.employment ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                             </div>
+                             <span className="text-sm font-medium">Employment Details</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                         <div className="flex items-center gap-3">
+                             <div className={`p-1 rounded-full ${reqs.skills ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                 {reqs.skills ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                             </div>
+                             <span className="text-sm font-medium">Skills & Qualifications</span>
+                        </div>
+                    </div>
+                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+                         <div className="flex items-center gap-3">
+                             <div className={`p-1 rounded-full ${reqs.docs ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                                 {reqs.docs ? <CheckCircle className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                             </div>
+                             <span className="text-sm font-medium">Documents (Mocked)</span>
+                        </div>
+                    </div>
+                 </div>
+                 
+                 <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-800 text-sm rounded border border-blue-100">
+                     <Info className="h-4 w-4" />
+                     Staff will become visible in dispatch and assignable.
+                 </div>
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0">
+                <Button variant="outline" onClick={() => setActivationDialogOpen(false)}>Cancel</Button>
+                <Button 
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={handleActivate}
+                    disabled={!canActivate}
+                >
+                    Confirm Activation
                 </Button>
             </DialogFooter>
         </DialogContent>

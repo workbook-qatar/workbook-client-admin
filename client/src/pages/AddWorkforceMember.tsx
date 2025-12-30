@@ -12,6 +12,7 @@ import QIDSearchStep from "@/components/workforce/QIDSearchStep";
 import BasicInfoStep from "@/components/workforce/BasicInfoStep";
 import EmploymentStep from "@/components/workforce/EmploymentStep";
 import AdditionalInfoStep from "@/components/workforce/AdditionalInfoStep";
+import ActivationStep from "@/components/workforce/ActivationStep";
 
 export interface WorkforceMemberData {
   // Staff Type
@@ -114,13 +115,18 @@ export default function AddWorkforceMember() {
                 { id: 4, name: "Review", icon: "✅" },
             ];
         }
-        // Default / Field Service (Legacy)
+        if (type === 'field-service') {
+            return [
+                { id: 1, name: "Staff Type", icon: "👥" },
+                { id: 2, name: "QID & Search", icon: "🔍" },
+                { id: 3, name: "Basic Info", icon: "👤" },
+            ];
+        }
+        // Fallback
         return [
             { id: 1, name: "Staff Type", icon: "👥" },
             { id: 2, name: "QID & Search", icon: "🔍" },
             { id: 3, name: "Basic Info", icon: "👤" },
-            { id: 4, name: "Employment", icon: "💼" },
-            { id: 5, name: "Additional", icon: "📋" },
         ];
     };
 
@@ -133,6 +139,11 @@ export default function AddWorkforceMember() {
     const handleNext = () => {
       if (currentStep < steps.length) {
         setCurrentStep(currentStep + 1);
+      } else {
+        // Final Step for Field Service (Step 3)
+        if (formData.staffType === 'field-service' || !formData.staffType) {
+            saveStaffMember("draft");
+        }
       }
     };
   
@@ -144,11 +155,7 @@ export default function AddWorkforceMember() {
       }
     };
   
-    const handleSaveDraft = () => {
-      toast.info("Draft saved (mock)");
-    };
-  
-    const handleSubmit = () => {
+    const saveStaffMember = (status: "draft" | "active" | "pending") => {
       setIsSubmitting(true);
       // Simulate API call
       setTimeout(() => {
@@ -159,7 +166,6 @@ export default function AddWorkforceMember() {
   
           // Generate ID
           const newId = (Date.now()).toString();
-          const staffId = `WB${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`;
           
           // Initials
           const initials = formData.fullName 
@@ -175,7 +181,7 @@ export default function AddWorkforceMember() {
           
           const newStaff = {
               id: newId,
-              staffId: "", // Empty until verified
+              staffId: status === 'active' ? `WB${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}` : "", 
               name: formData.fullName || formData.name || "Unknown", 
               role: formData.position || "Staff",
               roleType: (formData.staffType && roleTypeMap[formData.staffType]) ? roleTypeMap[formData.staffType] : "part-time", 
@@ -184,14 +190,14 @@ export default function AddWorkforceMember() {
               location: formData.city || "Qatar",
               
               // Status Model
-              status: "offline", 
+              status: status === 'active' ? "offline" : "offline", 
               employmentStatus: formData.employmentStatus || "Active", 
               
               // Membership / Invite Status
-              membershipStatus: "pending",
-              inviteSentAt: new Date().toISOString(),
-              emailVerified: false,
-              phoneVerified: false,
+              membershipStatus: status,
+              inviteSentAt: status !== 'draft' ? new Date().toISOString() : null,
+              emailVerified: status === 'active' ? true : false,
+              phoneVerified: status === 'active' ? true : false,
               
               avatar: initials,
               avatarColor: "bg-blue-600",
@@ -208,7 +214,14 @@ export default function AddWorkforceMember() {
           staffList.push(newStaff);
           localStorage.setItem("vendor_staff", JSON.stringify(staffList));
           
-          toast.success("Invite sent to staff member");
+          if (status === 'active') {
+             toast.success("Staff member activated successfully");
+          } else if (status === 'draft') {
+             toast.info("Draft saved successfully");
+          } else {
+             toast.success("Invite sent successfully");
+          }
+          
           // Route to pending list
           setLocation(`/workforce`);
           
@@ -218,6 +231,19 @@ export default function AddWorkforceMember() {
           setIsSubmitting(false);
           }
       }, 1500);
+    };
+
+    const handleSaveDraft = () => {
+        saveStaffMember("draft");
+    };
+  
+    const handleSubmit = () => {
+        // Legacy or wrapper
+        saveStaffMember("pending");
+    };
+
+    const handleActivate = () => {
+        saveStaffMember("active");
     };
   
     // Calculate progress: Granular based on field completion
@@ -325,9 +351,7 @@ export default function AddWorkforceMember() {
             {formData.staffType === 'field-service' && (
                 <>
                     {currentStep === 2 && <QIDSearchStep data={formData} onUpdate={updateFormData} onNext={handleNext} onBack={handleBack} />}
-                    {currentStep === 3 && <BasicInfoStep data={formData} onUpdate={updateFormData} onNext={handleNext} onBack={handleBack} />}
-                    {currentStep === 4 && <EmploymentStep data={formData} onChange={updateFormData} onContinue={handleNext} onBack={handleBack} />}
-                    {currentStep === 5 && <AdditionalInfoStep data={formData} onUpdate={updateFormData} onSubmit={handleSubmit} onBack={handleBack} isSubmitting={isSubmitting} />}
+                    {currentStep === 3 && <BasicInfoStep data={formData} onUpdate={updateFormData} onNext={handleNext} onBack={handleBack} isLastStep={true} isLoading={isSubmitting} />}
                 </>
             )}
 

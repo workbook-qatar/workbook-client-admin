@@ -17,6 +17,8 @@ interface BasicInfoStepProps {
   onUpdate: (data: Partial<WorkforceMemberData>) => void;
   onNext: () => void;
   onBack: () => void;
+  isLastStep?: boolean;
+  isLoading?: boolean;
 }
 
 // Uniform field classes for consistency
@@ -25,7 +27,7 @@ const UNIFORM_SELECT_TRIGGER_CLASSES = "w-full h-10 px-3 py-2 border border-gray
 const UNIFORM_SELECT_CONTENT_CLASSES = "border border-gray-200 rounded-lg shadow-lg bg-white";
 const UNIFORM_SELECT_ITEM_CLASSES = "px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 cursor-pointer";
 
-export default function BasicInfoStep({ data, onUpdate, onNext, onBack }: BasicInfoStepProps) {
+export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastStep, isLoading }: BasicInfoStepProps) {
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const handleChange = (field: keyof WorkforceMemberData, value: string) => {
@@ -247,10 +249,10 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack }: BasicI
         </Button>
         <Button 
           onClick={onNext} 
-          disabled={!canContinue}
+          disabled={!canContinue || isLoading}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          Continue to Employment
+          {isLoading ? 'Creating Status...' : isLastStep ? 'Create Draft Profile' : 'Continue to Employment'}
         </Button>
       </div>
     </div>

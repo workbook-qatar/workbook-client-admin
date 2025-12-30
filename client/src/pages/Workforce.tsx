@@ -702,7 +702,8 @@ export default function Workforce() {
                       filteredPendingInvites.map(staff => (
                         <tr
                           key={staff.id}
-                          className="border-b hover:bg-muted/50"
+                          className="border-b hover:bg-muted/50 cursor-pointer"
+                          onClick={() => setLocation(`/staff/${staff.id}`)}
                         >
                           <td className="p-3">
                             <div className="flex items-center gap-3">

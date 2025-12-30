@@ -15,14 +15,14 @@ import { WorkforceMemberData } from "@/pages/AddWorkforceMember";
 interface AdditionalInfoStepProps {
   data: WorkforceMemberData;
   onUpdate: (data: Partial<WorkforceMemberData>) => void;
-  onSubmit: () => void;
+  onNext: () => void;
   onBack: () => void;
   isSubmitting?: boolean;
 }
 
 const availableLanguages = ["English", "Hindi", "Arabic", "Urdu", "Bengali", "Tagalog", "Tamil", "Malayalam"];
 
-export default function AdditionalInfoStep({ data, onUpdate, onSubmit, onBack, isSubmitting = false }: AdditionalInfoStepProps) {
+export default function AdditionalInfoStep({ data, onUpdate, onNext, onBack, isSubmitting = false }: AdditionalInfoStepProps) {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false);
   const [showSkillDropdown, setShowSkillDropdown] = useState(false);
   const [showCertificateForm, setShowCertificateForm] = useState(false);
@@ -451,18 +451,11 @@ export default function AdditionalInfoStep({ data, onUpdate, onSubmit, onBack, i
           ← Back
         </Button>
         <Button 
-          onClick={onSubmit} 
-          disabled={!canSubmit || isSubmitting}
-          className="bg-green-600 hover:bg-green-700 min-w-[200px]"
+          onClick={onNext} 
+          disabled={!canSubmit}
+          className="bg-blue-600 hover:bg-blue-700 min-w-[200px]"
         >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating...
-            </>
-          ) : (
-            "Create Workforce Member"
-          )}
+          Continue to Activation
         </Button>
       </div>
     </div>
