@@ -76,9 +76,11 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
         {/* Logo Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border/50">
           {!sidebarCollapsed && (
-            <div className="flex items-center gap-3">
-              <img src={APP_LOGO} alt={APP_TITLE} className="h-8 w-8" />
-              <span className="font-heading font-bold text-lg text-sidebar-foreground">{APP_TITLE}</span>
+            <div className="flex items-center gap-3 overflow-hidden">
+              <img src="/tartoos-logo.jpg" alt="Tartoos" className="h-8 w-8 object-contain flex-shrink-0" />
+              <span className="font-heading font-bold text-sm text-sidebar-foreground truncate" title="Tartoos Contracting and Cleaning Services">
+                Tartoos Contracting and Cleaning Services
+              </span>
             </div>
           )}
           <Button
@@ -163,13 +165,13 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
                 }`}
               >
                 <Avatar className="h-8 w-8 ring-2 ring-sidebar-border">
-                  <AvatarImage src="https://api.dicebear.com/7.x/avataaars/svg?seed=Admin" />
-                  <AvatarFallback>AD</AvatarFallback>
+                  <AvatarImage src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150&h=150" />
+                  <AvatarFallback>MA</AvatarFallback>
                 </Avatar>
                 {!sidebarCollapsed && (
-                  <div className="ml-3 text-left flex-1">
-                    <p className="text-sm font-bold font-heading">Admin User</p>
-                    <p className="text-xs text-sidebar-foreground/60">admin@workbook.com</p>
+                  <div className="ml-3 text-left flex-1 overflow-hidden">
+                    <p className="text-sm font-bold font-heading truncate">Muhammed Ali</p>
+                    <p className="text-xs text-sidebar-foreground/60 truncate" title="muhammed.ali@tartoos.com">muhammed.ali@tartoos.com</p>
                   </div>
                 )}
               </Button>

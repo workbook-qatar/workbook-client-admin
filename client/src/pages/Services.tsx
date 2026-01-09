@@ -264,6 +264,15 @@ export default function Services() {
 
   }, [activeTab]);
 
+  // Simulate Initial Server Load
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        setIsInitialLoading(false);
+    }, 1200);
+
+    return () => clearTimeout(timer);
+  }, []);
+
 
   // Filter Logic
   const filteredPackages = activeTab === "own" 
