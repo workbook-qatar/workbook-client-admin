@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { 
     Plus, Edit, Trash2, Clock, Search, AlertCircle, 
-    CheckCircle2, Cloud, Pencil, MapPin, Filter, Layers, Zap
+    CheckCircle2, Cloud, Pencil, MapPin, Filter, Layers, Zap,
+    Users, User, Sparkles, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight
 } from "lucide-react";
 import {
   Table,
@@ -108,7 +109,7 @@ export default function Services() {
         status: "active", 
         desc: "Regular cleaning including dusting and mopping", 
         staffReq: 1,
-        materials: false,
+        skills: ["General Cleaning"],
         serviceAreas: [
             { id: "sa-1", name: "Doha Central", price: 200 },
             { id: "sa-2", name: "West Bay", price: 250 }
@@ -123,17 +124,73 @@ export default function Services() {
         status: "inactive", 
         desc: "Comprehensive deep cleaning for empty properties", 
         staffReq: 2,
-        materials: true,
+        skills: ["Deep Cleaning", "Sanitization"],
         serviceAreas: [] 
-    }
+    },
+    { 
+        id: 103, 
+        code: "SVC-003", 
+        name: "Party Helper & Server", 
+        categoryId: 1, 
+        duration: "5 hours", 
+        status: "active", 
+        // No description for test
+        staffReq: 1,
+        skills: ["Serving", "English Speaker"],
+        gender: "Female",
+        serviceAreas: [
+             { id: "sa-1", name: "Doha Central", price: 150 }
+        ]
+    },
+    // --- NEW MOCK DATA (15 Items) ---
+    { id: 104, code: "SVC-004", name: "AC Regular Service (Split)", categoryId: 2, duration: "1 hour", status: "active", desc: "Basic filter cleaning and gas check for split units", staffReq: 1, skills: ["AC Maintenance"], serviceAreas: [{id: "sa-1", name: "Doha", price: 120}] },
+    { id: 105, code: "SVC-005", name: "AC Deep Chemical Wash", categoryId: 2, duration: "2 hours", status: "active", desc: "Full chemical wash for indoor and outdoor units", staffReq: 2, skills: ["AC Tech", "Deep Cleaning"], serviceAreas: [{id: "sa-1", name: "Doha", price: 250}] },
+    { id: 106, code: "SVC-006", name: "Leaking Tap Repair", categoryId: 3, duration: "1 hour", status: "active", desc: "Fixing dripping or leaking taps in kitchen/bath", staffReq: 1, skills: ["Plumbing"], serviceAreas: [{id: "sa-1", name: "Doha", price: 80}] },
+    { id: 107, code: "SVC-007", name: "Water Heater Installation", categoryId: 3, duration: "2 hours", status: "active", desc: "Installation of vertical or horizontal water heaters", staffReq: 1, skills: ["Plumbing", "electrical"], serviceAreas: [{id: "sa-1", name: "Doha", price: 150}] },
+    { id: 108, code: "SVC-008", name: "Sofa Shampooing (2 Seater)", categoryId: 1, duration: "1.5 hours", status: "active", desc: "Deep extraction shampooing for fabric sofas", staffReq: 1, skills: ["Upholstery Cleaning"], serviceAreas: [{id: "sa-1", name: "Doha", price: 100}] },
+    { id: 109, code: "SVC-009", name: "Sofa Shampooing (L-Shape)", categoryId: 1, duration: "2.5 hours", status: "active", desc: "Complete cleaning for large L-shaped sofas", staffReq: 2, skills: ["Upholstery Cleaning"], serviceAreas: [{id: "sa-1", name: "Doha", price: 200}] },
+    { id: 110, code: "SVC-010", name: "Carpet Cleaning (Large)", categoryId: 1, duration: "2 hours", status: "active", desc: "Machine shampooing for large carpets (>3x4m)", staffReq: 1, skills: ["Carpet Cleaning"], serviceAreas: [{id: "sa-1", name: "Doha", price: 180}] },
+    { id: 111, code: "SVC-011", name: "Drain Unblocking", categoryId: 3, duration: "1 hour", status: "active", desc: "Unblocking of sinks, showers or floor drains", staffReq: 1, skills: ["Plumbing"], serviceAreas: [{id: "sa-1", name: "Doha", price: 120}] },
+    { id: 112, code: "SVC-012", name: "Babysitting (Evening)", categoryId: 1, duration: "4 hours", status: "inactive", desc: "Certified babysitter for evening shifts", staffReq: 1, gender: "Female", skills: ["Child Care", "CPR Certified"], serviceAreas: [] },
+    { id: 113, code: "SVC-013", name: "Elderly Care Assistance", categoryId: 1, duration: "8 hours", status: "inactive", desc: "Daily assistance for elderly family members", staffReq: 1, gender: "Female", skills: ["Nursing", "Patient Care"], serviceAreas: [] },
+    { id: 114, code: "SVC-014", name: "Window Cleaning (Villa)", categoryId: 1, duration: "5 hours", status: "active", desc: "External and internal window cleaning for villas", staffReq: 3, gender: "Male", skills: ["Window Cleaning", "Safety Height"], serviceAreas: [{id: "sa-2", name: "West Bay", price: 500}] },
+    { id: 115, code: "SVC-015", name: "Office Deep Clean", categoryId: 1, duration: "6 hours", status: "active", desc: "Complete office sanitization and cleaning", staffReq: 4, skills: ["Commercial Cleaning"], serviceAreas: [{id: "sa-1", name: "Doha", price: 600}] },
+    { id: 116, code: "SVC-016", name: "Curtain Steam Cleaning", categoryId: 1, duration: "2 hours", status: "active", desc: "Steam cleaning for hanging curtains (per set)", staffReq: 1, skills: ["Steam Cleaning"], serviceAreas: [{id: "sa-1", name: "Doha", price: 150}] },
+    { id: 117, code: "SVC-017", name: "Gas Refill (AC)", categoryId: 2, duration: "1 hour", status: "active", desc: "Top-up of R22 or R410 gas for AC units", staffReq: 1, skills: ["AC Tech"], serviceAreas: [{id: "sa-1", name: "Doha", price: 100}] },
+    { id: 118, code: "SVC-018", name: "Toilet Installation", categoryId: 3, duration: "3 hours", status: "active", desc: "Installation of new WC set including sealing", staffReq: 2, skills: ["Plumbing"], serviceAreas: [{id: "sa-1", name: "Doha", price: 250}] }
   ];
+
+  // Generate more items for pagination demo
+  const GENERATED_ITEMS = Array.from({ length: 45 }).map((_, i) => ({
+      id: 200 + i,
+      code: `SVC-${200 + i}`,
+      name: `Standard Service Package ${i + 1}`,
+      categoryId: (i % 3) + 1,
+      duration: `${(i % 4) + 1} hours`,
+      status: i % 5 === 0 ? "inactive" : "active",
+      desc: i % 2 === 0 ? "Standard service description for demonstration purposes" : "",
+      staffReq: (i % 2) + 1,
+      skills: i % 3 === 0 ? ["General"] : ["Specialized", "Technical"],
+      serviceAreas: [{id: "sa-1", name: "Doha", price: 100 + (i * 10)}]
+  }));
+  
+  // Combine all
+  const ALL_MOCK_PACKAGES = [...INITIAL_OWN_PACKAGES_MOCK, ...GENERATED_ITEMS];
 
   // State
   const [ownPackages, setOwnPackages] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [onlinePackages, setOnlinePackages] = useState(INITIAL_ONLINE_PACKAGES);
   const [managingPackage, setManagingPackage] = useState<any | null>(null);
+
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
   
+  // Loading States
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // Full page skeleton
+  const [isTableLoading, setIsTableLoading] = useState(false);   // Table rows skeleton
+
   // Delete Dialog State
   const [deleteId, setDeleteId] = useState<string | number | null>(null);
   const [deleteType, setDeleteType] = useState<"package" | "category" | null>(null);
@@ -142,7 +199,8 @@ export default function Services() {
   useEffect(() => {
     // Combine mock data + stored data
     const storedPackages = loadPackagesFromStorage();
-    const allPackages = [...INITIAL_OWN_PACKAGES_MOCK, ...storedPackages];
+    // Use ALL_MOCK_PACKAGES here instead of INITIAL
+    const allPackages = [...ALL_MOCK_PACKAGES, ...storedPackages];
     
     // Deduplicate by ID just in case
     const uniquePackages = Array.from(new Map(allPackages.map(item => [item.id, item])).values());
@@ -220,8 +278,41 @@ export default function Services() {
         const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
         return matchesCategory && matchesSearch;
     });
+    
+    const paginatedPackages = activeTab === "own" 
+        ? filteredPackages.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE)
+        : onlinePackages.filter(p => { // Online tab logic kept separate/simple for now
+            const matchesCategory = selectedCategory ? p.categoryId === selectedCategory : true;
+            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
+
+    // Reset pagination when filters change
+    useEffect(() => {
+        if (!isInitialLoading) {
+            handlePageChange(1);
+        }
+    }, [selectedCategory, searchQuery, selectedAreaFilter, activeTab]);
+
+    const totalPages = Math.ceil(filteredPackages.length / ITEMS_PER_PAGE);
+
+    // Initial Loading Skeleton View
+    if (isInitialLoading) {
+        return <ServicesSkeleton />;
+    }
 
   // Handlers
+  const handlePageChange = (newPage: number) => {
+      if (newPage === currentPage) return;
+      
+      setIsTableLoading(true);
+      // Simulate Network Delay for Pagination
+      setTimeout(() => {
+          setCurrentPage(newPage);
+          setIsTableLoading(false);
+      }, 600); // 600ms delay for premium feel
+  };
+
   const handleDelete = () => {
     if (deleteType === "package" && deleteId) {
         // Update state
@@ -340,11 +431,11 @@ export default function Services() {
                     </div>
 
                     {/* Content Area */}
-                    <div className="flex-1 min-h-0 flex gap-6">
+                    <div className="flex-1 min-h-0 flex gap-4">
                         
                         {/* LEFT PANEL: Categories */}
-                        <Card className={`w-[280px] flex flex-col flex-none ${STYLES.card} h-full`}>
-                            <div className="p-4 border-b flex items-center justify-between bg-gray-50/50">
+                        <Card className={`w-[260px] flex flex-col flex-none ${STYLES.card} h-full`}>
+                            <div className="p-3 border-b flex items-center justify-between bg-gray-50/50">
                                 <h3 className="font-semibold text-sm text-gray-900">Categories</h3>
                                 {activeTab === "own" && (
                                     <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-500" onClick={() => setLocation("/services/category/create")}>
@@ -411,7 +502,10 @@ export default function Services() {
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
-                                            {filteredPackages.map((pkg) => {
+                                            {isTableLoading ? (
+                                                <TableRowsSkeleton cols={6} rows={5} />
+                                            ) : (
+                                                paginatedPackages.map((pkg) => {
                                                 const hasPricing = 'serviceAreas' in pkg && pkg.serviceAreas && pkg.serviceAreas.length > 0;
                                                 const displayStatus = hasPricing ? ('status' in pkg ? pkg.status : 'active') : 'inactive';
                                                 
@@ -419,14 +513,44 @@ export default function Services() {
                                                 <TableRow key={pkg.id} className="group hover:bg-gray-50/50 border-b-gray-100">
                                                     <TableCell className="font-mono text-xs text-gray-500">{pkg.code}</TableCell>
                                                     <TableCell>
-                                                        <div>
-                                                            <div className="font-medium text-sm text-gray-900">{pkg.name}</div>
-                                                            <div className="text-xs text-gray-500 mt-0.5 truncate max-w-[200px]">{'desc' in pkg ? pkg.desc : ''}</div>
-                                                            {'materials' in pkg && (
-                                                                <div className="mt-1">
-                                                                    <Badge variant="secondary" className="text-[10px] h-4 px-1 bg-gray-100 text-gray-600 font-normal outline-none border-0">
-                                                                        {pkg.materials ? 'Includes Materials' : 'No Materials'}
-                                                                    </Badge>
+                                                        <div className="flex flex-col py-1.5 gap-1.5">
+                                                            {/* Name */}
+                                                            <div className="font-medium text-sm text-gray-900 leading-tight">{pkg.name}</div>
+                                                            
+                                                            {/* Attributes Labels */}
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                {/* Category - Name Only */}
+                                                                <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-[10px] font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                                                     {categories.find(c => c.id === pkg.categoryId)?.name || 'General'}
+                                                                </span>
+                                                                
+                                                                {/* Staff */}
+                                                                <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                                    <Users className="h-3 w-3 opacity-50" />
+                                                                    <span>{('staffReq' in pkg) ? pkg.staffReq : 1} Staff</span>
+                                                                </span>
+
+                                                                 {/* Gender */}
+                                                                 <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                                    <User className="h-3 w-3 opacity-50" />
+                                                                    <span>{('gender' in pkg && pkg.gender) ? pkg.gender : 'Any'}</span>
+                                                                </span>
+
+                                                                 {/* Skills */}
+                                                                 <span className="inline-flex items-center gap-1.5 rounded-md bg-gray-50 px-2 py-1 text-[10px] font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
+                                                                    <Sparkles className="h-3 w-3 opacity-50" />
+                                                                    <span className="max-w-[180px] truncate">
+                                                                        {('skills' in pkg && Array.isArray(pkg.skills)) 
+                                                                            ? pkg.skills.join(", ") 
+                                                                            : ('skills' in pkg ? pkg.skills : 'Standard')}
+                                                                    </span>
+                                                                </span>
+                                                            </div>
+
+                                                            {/* Description (Optional - At Bottom) */}
+                                                            {('desc' in pkg && pkg.desc) && (
+                                                                <div className="text-xs text-gray-400 mt-0.5 max-w-[450px] leading-relaxed">
+                                                                    {pkg.desc}
                                                                 </div>
                                                             )}
                                                         </div>
@@ -501,7 +625,7 @@ export default function Services() {
                                                         </div>
                                                     </TableCell>
                                                 </TableRow>
-                                            )})}
+                                            )}) )}
                                             {filteredPackages.length === 0 && (
                                                 <TableRow>
                                                     <TableCell colSpan={6} className="h-32 text-center text-gray-400">
@@ -511,6 +635,58 @@ export default function Services() {
                                             )}
                                         </TableBody>
                                     </Table>
+                                </div>
+                                
+                                {/* Pagination Footer */}
+                                <div className="border-t bg-gray-50/50 p-2.5 flex items-center justify-between shrink-0">
+                                    <div className="text-xs text-gray-500">
+                                        Showing <span className="font-medium">{Math.min(filteredPackages.length, (currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> to <span className="font-medium">{Math.min(filteredPackages.length, currentPage * ITEMS_PER_PAGE)}</span> of <span className="font-medium">{filteredPackages.length}</span> results
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => handlePageChange(1)}
+                                            disabled={currentPage === 1 || isTableLoading}
+                                        >
+                                            <ChevronsLeft className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
+                                            disabled={currentPage === 1 || isTableLoading}
+                                        >
+                                            <ChevronLeft className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <span className="text-xs font-medium px-2 min-w-[3rem] text-center">
+                                            {isTableLoading ? (
+                                                <span className="animate-pulse bg-gray-200 rounded h-4 w-8 inline-block align-middle"/>
+                                            ) : (
+                                                `${currentPage} / ${totalPages}`
+                                            )}
+                                        </span>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
+                                            disabled={currentPage === totalPages || isTableLoading}
+                                        >
+                                            <ChevronRight className="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className="h-7 w-7"
+                                            onClick={() => handlePageChange(totalPages)}
+                                            disabled={currentPage === totalPages || isTableLoading}
+                                        >
+                                            <ChevronsRight className="h-3.5 w-3.5" />
+                                        </Button>
+                                    </div>
                                 </div>
                              </TabsContent>
 
@@ -658,3 +834,116 @@ export default function Services() {
     </DashboardLayout>
   );
 }
+
+// --- SKELETON COMPONENTS ---
+
+const ServicesSkeleton = () => {
+    return (
+        <div className="flex bg-gray-50 min-h-screen">
+             {/* Simple Sidebar Skeleton Stub */}
+             <div className="w-[240px] border-r bg-white p-4 hidden lg:block">
+                <div className="h-8 w-32 bg-gray-200 rounded animate-pulse mb-8" />
+                <div className="space-y-4">
+                    {[1,2,3,4].map(i => <div key={i} className="h-4 w-full bg-gray-100 rounded animate-pulse" />)}
+                </div>
+             </div>
+             
+             <div className="flex-1 flex flex-col h-screen overflow-hidden">
+                {/* Header Skeleton */}
+                <header className="h-16 border-b bg-white flex items-center px-8 justify-between shrink-0">
+                    <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
+                    <div className="h-9 w-32 bg-gray-200 rounded animate-pulse" />
+                </header>
+
+                <div className="flex-1 overflow-hidden p-8 animate-pulse">
+                    <div className="max-w-[1600px] mx-auto h-full flex flex-col">
+                        {/* Tab/Filter Skeleton */}
+                        <div className="h-10 bg-gray-100/50 border rounded-md mb-6 w-full flex items-center justify-between p-1">
+                        <div className="flex gap-2">
+                            <div className="h-8 w-32 bg-gray-200 rounded" />
+                            <div className="h-8 w-32 bg-gray-200 rounded" />
+                        </div>
+                        <div className="flex gap-3">
+                                <div className="h-9 w-[180px] bg-gray-200 rounded" />
+                                <div className="h-9 w-[300px] bg-gray-200 rounded" />
+                        </div>
+                        </div>
+
+                        <div className="flex-1 min-h-0 flex gap-4">
+                            {/* Inner Sidebar Skeleton */}
+                            <Card className="w-[260px] flex flex-col flex-none h-full border-gray-200">
+                                <div className="p-3 border-b flex items-center justify-between">
+                                    <div className="h-4 w-20 bg-gray-200 rounded" />
+                                </div>
+                                <div className="p-2 space-y-2">
+                                    {[1, 2, 3, 4].map(i => (
+                                        <div key={i} className="h-9 w-full bg-gray-100 rounded" />
+                                    ))}
+                                </div>
+                            </Card>
+
+                            {/* Table Skeleton */}
+                            <Card className="flex-1 flex flex-col h-full overflow-hidden border-gray-200">
+                                <div className="flex-1 p-4">
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between border-b pb-2">
+                                            {[1, 2, 3, 4, 5, 6].map(i => (
+                                                <div key={i} className="h-4 w-24 bg-gray-200 rounded" />
+                                            ))}
+                                        </div>
+                                        {[1, 2, 3, 4, 5, 6, 7].map(row => (
+                                            <div key={row} className="flex justify-between py-3 border-b border-gray-50">
+                                                <div className="h-4 w-16 bg-gray-200 rounded" />
+                                                <div className="h-4 w-64 bg-gray-200 rounded" />
+                                                <div className="h-4 w-20 bg-gray-200 rounded" />
+                                                <div className="h-4 w-32 bg-gray-200 rounded" />
+                                                <div className="h-4 w-16 bg-gray-200 rounded" />
+                                                <div className="h-8 w-16 bg-gray-200 rounded" />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="h-12 border-t bg-gray-50/50" />
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const TableRowsSkeleton = ({ rows = 5, cols = 5 }) => {
+    return (
+        <>
+            {Array.from({ length: rows }).map((_, i) => (
+                <TableRow key={i} className="animate-pulse">
+                    <TableCell><div className="h-4 w-12 bg-gray-200 rounded" /></TableCell>
+                    <TableCell>
+                        <div className="space-y-2">
+                            <div className="h-4 w-48 bg-gray-200 rounded" />
+                            <div className="flex gap-2">
+                                <div className="h-5 w-16 bg-gray-100 rounded" />
+                                <div className="h-5 w-16 bg-gray-100 rounded" />
+                            </div>
+                        </div>
+                    </TableCell>
+                    <TableCell><div className="h-4 w-16 bg-gray-200 rounded" /></TableCell>
+                    <TableCell>
+                        <div className="space-y-1">
+                             <div className="h-4 w-24 bg-gray-200 rounded" />
+                             <div className="h-3 w-16 bg-gray-100 rounded" />
+                        </div>
+                    </TableCell>
+                    <TableCell><div className="h-5 w-14 bg-gray-200 rounded-full" /></TableCell>
+                    <TableCell className="text-end">
+                        <div className="flex justify-end gap-2">
+                            <div className="h-8 w-8 bg-gray-100 rounded" />
+                            <div className="h-8 w-8 bg-gray-100 rounded" />
+                        </div>
+                    </TableCell>
+                </TableRow>
+            ))}
+        </>
+    );
+};
