@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { Search, Plus, ArrowLeft, Building2, Users, Edit, Trash2 } from "lucide-react";
+import { Search, Plus, ArrowLeft, Building2, Users, Edit, Trash2, Briefcase } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -42,6 +42,15 @@ const DEFAULT_TEAMS: OrganizationItem[] = [
   { id: "t3", name: "Rapid Response", description: "Emergency callouts", status: "active" },
 ];
 
+const DEFAULT_JOB_TITLES: OrganizationItem[] = [
+    { id: "j1", name: "Cleaner", description: "General cleaning staff", status: "active" },
+    { id: "j2", name: "AC Technician", description: "HVAC specialist", status: "active" },
+    { id: "j3", name: "Electrician", description: "Electrical maintenance", status: "active" },
+    { id: "j4", name: "Plumber", description: "Plumbing maintenance", status: "active" },
+    { id: "j5", name: "Driver", description: "Vehicle operator", status: "active" },
+    { id: "j6", name: "Supervisor", description: "Team lead", status: "active" },
+];
+
 export default function OrganizationStructure() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("departments");
@@ -49,6 +58,7 @@ export default function OrganizationStructure() {
   // Data State
   const [departments, setDepartments] = useState<OrganizationItem[]>([]);
   const [teams, setTeams] = useState<OrganizationItem[]>([]);
+  const [jobTitles, setJobTitles] = useState<OrganizationItem[]>([]);
   
   // UI State
   const [searchQuery, setSearchQuery] = useState("");
@@ -60,6 +70,7 @@ export default function OrganizationStructure() {
   useEffect(() => {
     const storedDepts = localStorage.getItem("vendor_departments");
     const storedTeams = localStorage.getItem("vendor_teams");
+    const storedJobs = localStorage.getItem("vendor_job_titles");
 
     if (storedDepts) setDepartments(JSON.parse(storedDepts));
     else {
@@ -72,16 +83,22 @@ export default function OrganizationStructure() {
         setTeams(DEFAULT_TEAMS);
         localStorage.setItem("vendor_teams", JSON.stringify(DEFAULT_TEAMS));
     }
+
+    if (storedJobs) setJobTitles(JSON.parse(storedJobs));
+    else {
+        setJobTitles(DEFAULT_JOB_TITLES);
+        localStorage.setItem("vendor_job_titles", JSON.stringify(DEFAULT_JOB_TITLES));
+    }
   }, []);
 
   // CRUD Operations
   const handleSave = () => {
     if (!formData.name) return;
 
-    const currentList = activeTab === "departments" ? departments : teams;
-    const setList = activeTab === "departments" ? setDepartments : setTeams;
-    const storageKey = activeTab === "departments" ? "vendor_departments" : "vendor_teams";
-    const itemName = activeTab === "departments" ? "Department" : "Team";
+    const currentList = activeTab === "departments" ? departments : activeTab === "teams" ? teams : jobTitles;
+    const setList = activeTab === "departments" ? setDepartments : activeTab === "teams" ? setTeams : setJobTitles;
+    const storageKey = activeTab === "departments" ? "vendor_departments" : activeTab === "teams" ? "vendor_teams" : "vendor_job_titles";
+    const itemName = activeTab === "departments" ? "Department" : activeTab === "teams" ? "Team" : "Job Title";
 
     let newList = [...currentList];
     if (editingId) {
@@ -104,10 +121,10 @@ export default function OrganizationStructure() {
   };
 
   const handleDelete = (id: string) => {
-    const currentList = activeTab === "departments" ? departments : teams;
-    const setList = activeTab === "departments" ? setDepartments : setTeams;
-    const storageKey = activeTab === "departments" ? "vendor_departments" : "vendor_teams";
-    const itemName = activeTab === "departments" ? "Department" : "Team";
+    const currentList = activeTab === "departments" ? departments : activeTab === "teams" ? teams : jobTitles;
+    const setList = activeTab === "departments" ? setDepartments : activeTab === "teams" ? setTeams : setJobTitles;
+    const storageKey = activeTab === "departments" ? "vendor_departments" : activeTab === "teams" ? "vendor_teams" : "vendor_job_titles";
+    const itemName = activeTab === "departments" ? "Department" : activeTab === "teams" ? "Team" : "Job Title";
 
     const newList = currentList.filter(item => item.id !== id);
     setList(newList);
@@ -127,7 +144,7 @@ export default function OrganizationStructure() {
   };
 
   // Filter
-  const listToRender = activeTab === "departments" ? departments : teams;
+  const listToRender = activeTab === "departments" ? departments : activeTab === "teams" ? teams : jobTitles;
   const filteredList = listToRender.filter(item => 
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -144,8 +161,8 @@ export default function OrganizationStructure() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Organization Structure</h1>
-                    <p className="text-sm text-gray-500 mt-1">Manage your company's departments and team hierarchy.</p>
+                    <h1 className="text-2xl font-bold tracking-tight text-gray-900">Organization & Roles</h1>
+                    <p className="text-sm text-gray-500 mt-1">Manage departments, teams, and job titles.</p>
                 </div>
             </div>
         </div>
@@ -160,6 +177,9 @@ export default function OrganizationStructure() {
                         </TabsTrigger>
                         <TabsTrigger value="teams" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
                              Teams
+                        </TabsTrigger>
+                        <TabsTrigger value="job-titles" className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700">
+                             Job Titles
                         </TabsTrigger>
                     </TabsList>
 
@@ -177,20 +197,22 @@ export default function OrganizationStructure() {
                             <DialogTrigger asChild>
                                 <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-lg shadow-blue-600/20">
                                     <Plus className="h-4 w-4" />
-                                    Add {activeTab === "departments" ? "Department" : "Team"}
+                                    <Plus className="h-4 w-4" />
+                                    Add {activeTab === "departments" ? "Department" : activeTab === "teams" ? "Team" : "Job Title"}
                                 </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>{editingId ? "Edit" : "Add"} {activeTab === "departments" ? "Department" : "Team"}</DialogTitle>
+                                    <DialogTitle>{editingId ? "Edit" : "Add"} {activeTab === "departments" ? "Department" : activeTab === "teams" ? "Team" : "Job Title"}</DialogTitle>
                                     <DialogDescription>
-                                        Create a new {activeTab === "departments" ? "department" : "team"} unit in your organization.
+                                        Create a new {activeTab === "departments" ? "department" : activeTab === "teams" ? "team" : "job role"} unit.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className="space-y-4 py-4">
+
                                     <div className="space-y-2">
                                         <Label htmlFor="name">Name</Label>
-                                        <Input id="name" placeholder={`e.g. ${activeTab === "departments" ? "Marketing" : "Alpha Squad"}`} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                        <Input id="name" placeholder={`e.g. ${activeTab === "departments" ? "Marketing" : activeTab === "teams" ? "Alpha Squad" : "Senior Technician"}`} value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="desc">Description</Label>
@@ -239,6 +261,32 @@ export default function OrganizationStructure() {
                                 <div className="flex items-center gap-4">
                                     <div className="h-10 w-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-600">
                                         <Users className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-semibold text-gray-900 text-sm">{item.name}</h3>
+                                        {item.description && <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>}
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600" onClick={() => openEdit(item)}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600" onClick={() => handleDelete(item.id)}>
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </Card>
+                        ))}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="job-titles" className="mt-0">
+                    <div className="grid gap-3">
+                        {filteredList.map(item => (
+                            <Card key={item.id} className="p-4 flex items-center justify-between hover:border-blue-300 transition-all group bg-white">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-10 w-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600">
+                                        <Briefcase className="h-5 w-5" />
                                     </div>
                                     <div>
                                         <h3 className="font-semibold text-gray-900 text-sm">{item.name}</h3>

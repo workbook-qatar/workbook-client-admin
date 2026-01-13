@@ -367,17 +367,23 @@ export default function Workforce() {
           <div>
             <h1 className="text-2xl font-bold">Workforce Management</h1>
             <p className="text-sm text-muted-foreground">
-              Manage workforce, track invites, and monitor status
+              Manage active workforce members and assignments
             </p>
           </div>
-          <Button onClick={() => setLocation("/workforce/add")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Workforce Member
-          </Button>
+          <div className="flex gap-3">
+             <Button variant="outline" onClick={() => setLocation("/workforce/pending")}>
+                <Mail className="h-4 w-4 mr-2" />
+                Pending Invites ({stats.pending})
+             </Button>
+             <Button onClick={() => setLocation("/workforce/add")}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Member
+             </Button>
+          </div>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
             <p className="text-xs font-medium text-muted-foreground uppercase">
               Total Active
@@ -385,16 +391,6 @@ export default function Workforce() {
             <div className="flex items-center justify-between mt-1">
               <p className="text-2xl font-bold font-heading">{stats.total}</p>
               <Users className="h-8 w-8 text-blue-600 opacity-80" />
-            </div>
-          </Card>
-
-          <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
-            <p className="text-xs font-medium text-muted-foreground uppercase">
-              Pending Invites
-            </p>
-            <div className="flex items-center justify-between mt-1">
-              <p className="text-2xl font-bold font-heading">{stats.pending}</p>
-              <Mail className="h-8 w-8 text-amber-500 opacity-80" />
             </div>
           </Card>
 
@@ -429,400 +425,226 @@ export default function Workforce() {
           </Card>
         </div>
 
-        {/* Main Tabs */}
-        <Tabs
-          defaultValue="active"
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <TabsList>
-              <TabsTrigger value="active">Active Workforce</TabsTrigger>
-              <TabsTrigger value="pending">Pending Invites</TabsTrigger>
-            </TabsList>
-
-            <div className="relative flex-1 max-w-xs ml-auto">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search name, phone..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="pl-10 h-9"
-              />
-            </div>
-          </div>
-
-          {/* Active Workforce Tab */}
-          <TabsContent value="active" className="space-y-4">
-            {/* Filters */}
+        {/* Filters & List */}
+        <div className="space-y-4">
             <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-lg border shadow-sm">
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                
+                <div className="relative max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search name, phone..."
+                        value={searchQuery}
+                        onChange={e => setSearchQuery(e.target.value)}
+                        className="pl-10 h-9 w-[200px]"
+                    />
+                </div>
+                
+                <div className="h-6 w-px bg-gray-200 mx-2"></div>
+
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
-                  <SelectValue placeholder="Work Status" />
+                    <SelectValue placeholder="Work Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="available">Available</SelectItem>
-                  <SelectItem value="on-job">On Job</SelectItem>
-                  <SelectItem value="on-leave">On Leave</SelectItem>
-                  <SelectItem value="offline">Offline</SelectItem>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="available">Available</SelectItem>
+                    <SelectItem value="on-job">On Job</SelectItem>
+                    <SelectItem value="on-leave">On Leave</SelectItem>
+                    <SelectItem value="offline">Offline</SelectItem>
                 </SelectContent>
-              </Select>
-              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                </Select>
+                <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger className="w-[140px] h-8 text-xs">
-                  <SelectValue placeholder="All Roles" />
+                    <SelectValue placeholder="All Roles" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="field">Field Staff</SelectItem>
-                  <SelectItem value="office">Office Staff</SelectItem>
-                  <SelectItem value="driver">Drivers</SelectItem>
+                    <SelectItem value="all">All Roles</SelectItem>
+                    <SelectItem value="field">Field Staff</SelectItem>
+                    <SelectItem value="office">Office Staff</SelectItem>
+                    <SelectItem value="driver">Drivers</SelectItem>
                 </SelectContent>
-              </Select>
+                </Select>
 
-              <div className="h-6 w-px bg-gray-200 mx-2"></div>
+                <div className="h-6 w-px bg-gray-200 mx-2"></div>
 
-              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2">
                 <Switch
-                  id="show-inactive"
-                  checked={showInactive}
-                  onCheckedChange={setShowInactive}
+                    id="show-inactive"
+                    checked={showInactive}
+                    onCheckedChange={setShowInactive}
                 />
                 <Label
-                  htmlFor="show-inactive"
-                  className="text-xs cursor-pointer"
+                    htmlFor="show-inactive"
+                    className="text-xs cursor-pointer"
                 >
-                  Show Inactive
+                    Show Inactive
                 </Label>
-              </div>
+                </div>
 
-              <div className="ml-auto flex gap-2">
+                <div className="ml-auto flex gap-2">
                 <Button
-                  variant={viewMode === "list" ? "default" : "outline"}
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => setViewMode("list")}
+                    variant={viewMode === "list" ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setViewMode("list")}
                 >
-                  <List className="h-4 w-4" />
+                    <List className="h-4 w-4" />
                 </Button>
                 <Button
-                  variant={viewMode === "cards" ? "default" : "outline"}
-                  size="sm"
-                  className="h-8 w-8 p-0"
-                  onClick={() => setViewMode("cards")}
+                    variant={viewMode === "cards" ? "default" : "outline"}
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setViewMode("cards")}
                 >
-                  <LayoutGrid className="h-4 w-4" />
+                    <LayoutGrid className="h-4 w-4" />
                 </Button>
-              </div>
+                </div>
             </div>
 
             {viewMode === "list" && (
-              <Card>
+                <Card>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
+                    <table className="w-full text-sm">
                     <thead className="border-b bg-muted/50">
-                      <tr>
+                        <tr>
                         <th className="p-3 text-left w-12">
-                          <Checkbox />
+                            <Checkbox />
                         </th>
                         <th className="p-3 text-left font-medium text-muted-foreground">
-                          Staff Member
+                            Staff Member
                         </th>
                         <th className="p-3 text-left font-medium text-muted-foreground">
-                          Contact
+                            Contact
                         </th>
                         <th className="p-3 text-left font-medium text-muted-foreground">
-                          Role
+                            Role
                         </th>
                         <th className="p-3 text-left font-medium text-muted-foreground">
-                          Status
+                            Status
                         </th>
                         <th className="p-3 text-left font-medium text-muted-foreground">
-                          Actions
+                            Actions
                         </th>
-                      </tr>
+                        </tr>
                     </thead>
                     <tbody>
-                      {filteredActiveStaff.map(staff => (
+                        {filteredActiveStaff.map(staff => (
                         <tr
-                          key={staff.id}
-                          className={`border-b hover:bg-muted/50 cursor-pointer transition-colors ${staff.employmentStatus === "Inactive" ? "bg-gray-50/50" : ""}`}
-                          onClick={() => setLocation(`/staff/${staff.id}`)}
+                            key={staff.id}
+                            className={`border-b hover:bg-muted/50 cursor-pointer transition-colors ${staff.employmentStatus === "Inactive" ? "bg-gray-50/50" : ""}`}
+                            onClick={() => setLocation(`/staff/${staff.id}`)}
                         >
-                          <td
+                            <td
                             className="p-3"
                             onClick={e => e.stopPropagation()}
-                          >
+                            >
                             <Checkbox />
-                          </td>
-                          <td className="p-3">
+                            </td>
+                            <td className="p-3">
                             <div className="flex items-center gap-3">
-                              <div
+                                <div
                                 className={`w-9 h-9 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-semibold text-xs`}
-                              >
+                                >
                                 {staff.avatar}
-                              </div>
-                              <div>
+                                </div>
+                                <div>
                                 <div className="flex items-center gap-2">
-                                  <p
+                                    <p
                                     className={`font-medium ${staff.employmentStatus === "Inactive" ? "text-muted-foreground line-through" : ""}`}
-                                  >
+                                    >
                                     {staff.name}
-                                  </p>
+                                    </p>
                                 </div>
                                 <p className="text-muted-foreground text-xs">
-                                  ID: {staff.staffId}
+                                    ID: {staff.staffId}
                                 </p>
-                              </div>
+                                </div>
                             </div>
-                          </td>
-                          <td className="p-3">
+                            </td>
+                            <td className="p-3">
                             <div className="space-y-1">
-                              <div className="flex items-center gap-2 text-xs">
+                                <div className="flex items-center gap-2 text-xs">
                                 <Mail className="h-3 w-3 text-muted-foreground" />{" "}
                                 {staff.email}
-                              </div>
-                              <div className="flex items-center gap-2 text-xs">
+                                </div>
+                                <div className="flex items-center gap-2 text-xs">
                                 <Phone className="h-3 w-3 text-muted-foreground" />{" "}
                                 {staff.phone}
-                              </div>
+                                </div>
                             </div>
-                          </td>
-                          <td className="p-3">
+                            </td>
+                            <td className="p-3">
                             <p className="font-medium">{staff.role}</p>
                             <p className="text-xs text-muted-foreground capitalize">
-                              {staff.roleType}
+                                {staff.roleType}
                             </p>
-                          </td>
-                          <td className="p-3">
+                            </td>
+                            <td className="p-3">
                             <span
-                              className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusBadge(staff.status, staff.employmentStatus)}`}
+                                className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-medium border ${getStatusBadge(staff.status, staff.employmentStatus)}`}
                             >
-                              {staff.employmentStatus === "Active"
+                                {staff.employmentStatus === "Active"
                                 ? staff.status
                                 : staff.employmentStatus}
                             </span>
-                          </td>
-                          <td
+                            </td>
+                            <td
                             className="p-3"
                             onClick={e => e.stopPropagation()}
-                          >
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
                             >
-                              <Eye className="h-4 w-4" />
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                            >
+                                <Eye className="h-4 w-4" />
                             </Button>
-                          </td>
+                            </td>
                         </tr>
-                      ))}
+                        ))}
                     </tbody>
-                  </table>
+                    </table>
                 </div>
-              </Card>
+                </Card>
             )}
 
             {viewMode === "cards" && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {filteredActiveStaff.map(staff => (
-                  <Card
+                    <Card
                     key={staff.id}
                     className="p-4 relative hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() => setLocation(`/staff/${staff.id}`)}
-                  >
+                    >
                     <div className="flex items-start justify-between mb-4">
-                      <div
+                        <div
                         className={`w-10 h-10 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-bold`}
-                      >
+                        >
                         {staff.avatar}
-                      </div>
-                      <span
+                        </div>
+                        <span
                         className={`px-2 py-0.5 rounded-full text-xs font-medium border ${getStatusBadge(staff.status, staff.employmentStatus)}`}
-                      >
+                        >
                         {staff.status}
-                      </span>
+                        </span>
                     </div>
                     <h3 className="font-semibold truncate">{staff.name}</h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      {staff.role}
+                        {staff.role}
                     </p>
                     <div className="text-xs space-y-1 text-muted-foreground">
-                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2">
                         <Mail className="h-3 w-3" /> {staff.email}
-                      </div>
-                      <div className="flex items-center gap-2">
+                        </div>
+                        <div className="flex items-center gap-2">
                         <Phone className="h-3 w-3" /> {staff.phone}
-                      </div>
+                        </div>
                     </div>
-                  </Card>
+                    </Card>
                 ))}
               </div>
             )}
-          </TabsContent>
-
-          {/* Pending Invites Tab */}
-          <TabsContent value="pending" className="space-y-4">
-            <Card>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="border-b bg-muted/50">
-                    <tr>
-                      <th className="p-3 text-left font-medium text-muted-foreground">
-                        Pending Staff
-                      </th>
-                      <th className="p-3 text-left font-medium text-muted-foreground">
-                        Contact
-                      </th>
-                      <th className="p-3 text-left font-medium text-muted-foreground">
-                        Verification
-                      </th>
-                      <th className="p-3 text-left font-medium text-muted-foreground">
-                        Invite Status
-                      </th>
-                      <th className="p-3 text-left font-medium text-muted-foreground">
-                        Sent At
-                      </th>
-                      <th className="p-3 text-right font-medium text-muted-foreground">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredPendingInvites.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={6}
-                          className="p-8 text-center text-muted-foreground"
-                        >
-                          No pending invites found.
-                        </td>
-                      </tr>
-                    ) : (
-                      filteredPendingInvites.map(staff => (
-                        <tr
-                          key={staff.id}
-                          className="border-b hover:bg-muted/50 cursor-pointer"
-                          onClick={() => setLocation(`/staff/${staff.id}`)}
-                        >
-                          <td className="p-3">
-                            <div className="flex items-center gap-3">
-                              <div
-                                className={`w-8 h-8 rounded-full ${staff.avatarColor} flex items-center justify-center text-white font-semibold text-xs`}
-                              >
-                                {staff.avatar}
-                              </div>
-                              <div>
-                                <p className="font-medium">{staff.name}</p>
-                                <p className="text-muted-foreground text-xs">
-                                  {staff.role} • {staff.roleType}
-                                </p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <div className="space-y-1">
-                              <div className="flex items-center gap-2 text-xs">
-                                <Mail className="h-3 w-3 text-muted-foreground" />{" "}
-                                {staff.email}
-                              </div>
-                              <div className="flex items-center gap-2 text-xs">
-                                <Phone className="h-3 w-3 text-muted-foreground" />{" "}
-                                {staff.phone}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            <div className="flex flex-col gap-1">
-                              <div className="flex items-center gap-2 text-xs">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${staff.phoneVerified ? "bg-green-500" : "bg-amber-400"}`}
-                                ></div>
-                                <span>
-                                  Phone:{" "}
-                                  {staff.phoneVerified ? "Verified" : "Pending"}
-                                </span>
-                                {!staff.phoneVerified && (
-                                  <span className="text-[10px] text-muted-foreground">
-                                    (App OTP)
-                                  </span>
-                                )}
-                              </div>
-                              <div className="flex items-center gap-2 text-xs">
-                                <div
-                                  className={`w-2 h-2 rounded-full ${staff.emailVerified ? "bg-green-500" : "bg-amber-400"}`}
-                                ></div>
-                                <span>
-                                  Email:{" "}
-                                  {staff.emailVerified ? "Verified" : "Pending"}
-                                </span>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="p-3">
-                            {getInviteStatusBadge(staff.membershipStatus)}
-                          </td>
-                          <td className="p-3 text-xs text-muted-foreground">
-                            {staff.inviteSentAt
-                              ? new Date(
-                                  staff.inviteSentAt
-                                ).toLocaleDateString()
-                              : "Not Sent"}
-                          </td>
-                          <td className="p-3 text-right">
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  onClick={() => handleResendInvite(staff.id)}
-                                >
-                                  <RefreshCw className="h-4 w-4 mr-2" /> Resend
-                                  Invite
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    toast.info("Edit contact logic needed")
-                                  }
-                                >
-                                  <Pencil className="h-4 w-4 mr-2" /> Edit
-                                  Contact
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-red-600"
-                                  onClick={() => handleCancelInvite(staff.id)}
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" /> Cancel
-                                  Invite
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  className="text-red-600"
-                                  onClick={() => handleDelete(staff.id)}
-                                >
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        </div>
       </div>
     </DashboardLayout>
   );

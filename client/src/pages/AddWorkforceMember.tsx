@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Save, Users, Truck, CheckCircle2, User, ShieldCheck } from "lucide-react";
@@ -95,6 +95,21 @@ export default function AddWorkforceMember() {
       employmentStatus: "Active",
       workStatus: "Offline", // Default
     });
+    
+    // Load Settings
+    const [deptOptions, setDeptOptions] = useState<string[]>([]);
+    const [jobOptions, setJobOptions] = useState<string[]>([]);
+
+    useEffect(() => {
+        const d = localStorage.getItem("vendor_departments");
+        if (d) setDeptOptions(JSON.parse(d).map((x:any) => x.name));
+        else setDeptOptions(["Operations", "Finance", "HR", "Management", "IT"]);
+
+        const j = localStorage.getItem("vendor_job_titles");
+        if (j) setJobOptions(JSON.parse(j).map((x:any) => x.title));
+        // Fallback for job titles if not found is handled by keeping it empty or default? 
+        // We'll leave it empty to prompt user to add in settings if needed, or default list.
+    }, []);
   
     // Dynamic Styles & Steps based on Type
     const getSteps = () => {
@@ -170,7 +185,7 @@ export default function AddWorkforceMember() {
           // Initials
           const initials = formData.fullName 
               ? formData.fullName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-              : formData.name || "NA";
+              : "NA";
   
           // Map Role Type
           const roleTypeMap: Record<string, string> = {
@@ -182,7 +197,7 @@ export default function AddWorkforceMember() {
           const newStaff = {
               id: newId,
               staffId: status === 'active' ? `WB${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}` : "", 
-              name: formData.fullName || formData.name || "Unknown", 
+              name: formData.fullName || "Unknown", 
               role: formData.position || "Staff",
               roleType: (formData.staffType && roleTypeMap[formData.staffType]) ? roleTypeMap[formData.staffType] : "part-time", 
               email: formData.emailAddress || "",
@@ -577,18 +592,22 @@ export default function AddWorkforceMember() {
                                     <select className="w-full border rounded p-2 text-sm bg-white" 
                                         value={formData.department || ''} onChange={e => updateFormData({department: e.target.value})}>
                                         <option value="">Select Department</option>
-                                        <option value="Operations">Operations</option>
-                                        <option value="Finance">Finance</option>
-                                        <option value="HR">HR</option>
-                                        <option value="Management">Management</option>
-                                        <option value="IT">IT</option>
+                                        {deptOptions.map(d => <option key={d} value={d}>{d}</option>)}
                                     </select>
                                 </div>
                                 <div className="space-y-1">
                                     <Label className="text-xs font-semibold uppercase text-gray-500">Job Title</Label>
-                                    <input className="w-full border rounded p-2 text-sm" 
-                                        placeholder="E.g. Operations Manager" 
-                                        value={formData.position || ''} onChange={e => updateFormData({position: e.target.value})} />
+                                    {jobOptions.length > 0 ? (
+                                        <select className="w-full border rounded p-2 text-sm bg-white"
+                                            value={formData.position || ''} onChange={e => updateFormData({position: e.target.value})}>
+                                            <option value="">Select Job Title</option>
+                                            {jobOptions.map(j => <option key={j} value={j}>{j}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input className="w-full border rounded p-2 text-sm" 
+                                            placeholder="E.g. Operations Manager" 
+                                            value={formData.position || ''} onChange={e => updateFormData({position: e.target.value})} />
+                                    )}
                                 </div>
                                 <div className="space-y-1">
                                     <Label className="text-xs font-semibold uppercase text-gray-500">Employment Status</Label>

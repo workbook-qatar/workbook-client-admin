@@ -1,6 +1,5 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { 
   Settings as SettingsIcon, 
   User, 
@@ -9,10 +8,8 @@ import {
   CreditCard, 
   Map, 
   Building2, 
-  Briefcase, 
   FileText, 
-  Banknote, 
-  ScrollText 
+  ScrollText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -35,43 +32,46 @@ export default function Settings() {
         </div>
 
         <div className="space-y-8">
-          {/* Section: Workforce & HR */}
+          {/* Section: Workforce Configuration */}
           <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Workforce & HR configuration</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Workforce Configuration</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               
-                <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-blue-100 group" onClick={() => setLocation('/settings/organization')}>
+              {/* Organization & Roles (Merged) */}
+              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-blue-100 group" onClick={() => setLocation('/settings/organization')}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <div className="p-2 bg-blue-100/50 rounded-lg group-hover:bg-blue-600 transition-colors">
                       <Building2 className="h-5 w-5 text-blue-600 group-hover:text-white transition-colors" />
                     </div>
-                    Organization Structure
+                    Organization & Roles
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-gray-500 mb-4">
-                    Manage departments, teams, and reporting hierarchies
+                    Manage departments, teams, and job titles
                   </p>
                 </CardContent>
               </Card>
 
-              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-indigo-100 group" onClick={() => setLocation('/settings/jobs')}>
+              {/* Employment & Schedule (Merged) */}
+              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-teal-100 group" onClick={() => setLocation('/settings/employment')}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="p-2 bg-indigo-100/50 rounded-lg group-hover:bg-indigo-600 transition-colors">
-                      <Briefcase className="h-5 w-5 text-indigo-600 group-hover:text-white transition-colors" />
+                    <div className="p-2 bg-teal-100/50 rounded-lg group-hover:bg-teal-600 transition-colors">
+                      <FileText className="h-5 w-5 text-teal-600 group-hover:text-white transition-colors" />
                     </div>
-                    Job Setup
+                    Employment & Schedule
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-gray-500 mb-4">
-                    Define job titles, roles, and responsibilities
+                    Configure contracts, working hours, and shift templates
                   </p>
                 </CardContent>
               </Card>
 
+              {/* Skills & Competency */}
               <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-cyan-100 group" onClick={() => setLocation('/settings/skills')}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -88,38 +88,7 @@ export default function Settings() {
                 </CardContent>
               </Card>
 
-              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-teal-100 group" onClick={() => setLocation('/settings/employment')}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="p-2 bg-teal-100/50 rounded-lg group-hover:bg-teal-600 transition-colors">
-                      <FileText className="h-5 w-5 text-teal-600 group-hover:text-white transition-colors" />
-                    </div>
-                    Employment Rules
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Configure contract types, working hours, and shifts
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-emerald-100 group" onClick={() => setLocation('/settings/payroll')}>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <div className="p-2 bg-emerald-100/50 rounded-lg group-hover:bg-emerald-600 transition-colors">
-                      <Banknote className="h-5 w-5 text-emerald-600 group-hover:text-white transition-colors" />
-                    </div>
-                    Payroll Configuration
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-gray-500 mb-4">
-                    Set up salary components, currencies, and pay cycles
-                  </p>
-                </CardContent>
-              </Card>
-
+              {/* Documents & Compliance */}
               <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-rose-100 group" onClick={() => setLocation('/settings/documents')}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
@@ -135,14 +104,9 @@ export default function Settings() {
                   </p>
                 </CardContent>
               </Card>
-            </div>
-          </section>
 
-          {/* Section: Operations */}
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Operations</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-               <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-violet-100 group" onClick={() => setLocation('/settings/service-areas')}>
+              {/* Service Areas */}
+              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-violet-100 group" onClick={() => setLocation('/settings/service-areas')}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">
                     <div className="p-2 bg-violet-100/50 rounded-lg group-hover:bg-violet-600 transition-colors">
@@ -157,6 +121,7 @@ export default function Settings() {
                   </p>
                 </CardContent>
               </Card>
+
             </div>
           </section>
 

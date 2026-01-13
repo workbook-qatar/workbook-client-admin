@@ -12,6 +12,8 @@ import Workforce from "./pages/Workforce";
 import AddWorkforceMember from "./pages/AddWorkforceMember";
 import AddCustomer from "./pages/AddCustomer";
 import Services from "./pages/Services";
+import PendingInvites from "./pages/PendingInvites";
+import PendingInviteDetails from "./pages/PendingInviteDetails";
 import CreatePackage from "./pages/CreatePackage";
 import CreateCategory from "./pages/CreateCategory";
 import CreateServiceArea from "./pages/CreateServiceArea";
@@ -19,9 +21,7 @@ import ServiceAreasList from "./pages/settings/ServiceAreas";
 import ServiceDirectory from "./pages/ServiceDirectory";
 import SkillsSettings from "./pages/settings/Skills";
 import OrganizationStructure from "./pages/settings/OrganizationStructure";
-import JobSetup from "./pages/settings/JobSetup";
 import EmploymentRules from "./pages/settings/EmploymentRules";
-import PayrollConfiguration from "./pages/settings/PayrollConfiguration";
 import DocumentsCompliance from "./pages/settings/DocumentsCompliance";
 
 import Dispatch from "./pages/Dispatch";
@@ -45,6 +45,8 @@ function Router() {
       <Route path="/scheduling" component={Scheduling} />
 
       <Route path="/dispatch" component={Dispatch} />
+      <Route path="/workforce/pending" component={PendingInvites} />
+      <Route path="/workforce/pending/:id" component={PendingInviteDetails} />
       <Route path="/workforce" component={Workforce} />
       <Route path="/workforce/add" component={AddWorkforceMember} />
       <Route path="/staff/:id" component={StaffDetails} />
@@ -65,9 +67,7 @@ function Router() {
       <Route path="/settings/service-areas/create" component={CreateServiceArea} />
       <Route path="/settings/skills" component={SkillsSettings} />
       <Route path="/settings/organization" component={OrganizationStructure} />
-      <Route path="/settings/jobs" component={JobSetup} />
       <Route path="/settings/employment" component={EmploymentRules} />
-      <Route path="/settings/payroll" component={PayrollConfiguration} />
       <Route path="/settings/documents" component={DocumentsCompliance} />
 
       <Route path="/services/directory" component={ServiceDirectory} />
