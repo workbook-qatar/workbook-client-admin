@@ -49,6 +49,7 @@ const MOCK_ORGS: Organization[] = [
     createdAt: "2023-10-01",
     edition: "Enterprise",
     location: "Qatar",
+    logoUrl: "/tartoos-logo.jpg",
   },
   {
     id: "14920",
@@ -62,6 +63,7 @@ const MOCK_ORGS: Organization[] = [
     createdAt: "2024-03-15",
     edition: "Premium",
     location: "Qatar",
+    logoUrl: "/tartoos-logo.jpg",
   },
   {
     id: "15003",
@@ -75,6 +77,7 @@ const MOCK_ORGS: Organization[] = [
     createdAt: "2025-01-10",
     edition: "Standard",
     location: "UAE",
+    logoUrl: "/tartoos-logo.jpg",
   },
 ];
 
