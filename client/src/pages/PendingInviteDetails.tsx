@@ -153,6 +153,44 @@ export default function PendingInviteDetails() {
   const [enabledShiftSystems, setEnabledShiftSystems] = useState<string[]>([]);
   const [shiftTemplateOptions, setShiftTemplateOptions] = useState<any[]>([]);
 
+  // Dialog State for "Add Shift Block" -> "Create Template"
+  const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
+  const [newTemplateData, setNewTemplateData] = useState({ name: "", startTime: "", endTime: "" });
+
+  const handleSaveNewTemplate = () => {
+    if (!newTemplateData.name || !newTemplateData.startTime || !newTemplateData.endTime) {
+        toast.error("Please fill all fields");
+        return;
+    }
+    const newTemplate = {
+        id: `custom-${Date.now()}`,
+        name: newTemplateData.name,
+        startTime: newTemplateData.startTime,
+        endTime: newTemplateData.endTime
+    };
+    
+    // 1. Update List
+    const updated = [...shiftTemplateOptions, newTemplate];
+    setShiftTemplateOptions(updated);
+    localStorage.setItem("vendor_shift_templates", JSON.stringify(updated));
+    
+    // 2. Add to Current Day (since user clicked "Add Shift Block")
+    if (activeDayModal) {
+         const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
+         currentSlots.push({ start: newTemplate.startTime, end: newTemplate.endTime });
+          setFormData({
+             ...formData,
+             rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
+          });
+          toast.success("Template created and shift added");
+    } else {
+        toast.success("Shift template created");
+    }
+
+    setIsCreateTemplateOpen(false);
+    setNewTemplateData({ name: "", startTime: "", endTime: "" });
+  };
+
   // Load Data
   useEffect(() => {
     // 1. Load Skills
@@ -180,14 +218,14 @@ export default function PendingInviteDetails() {
 
     const storedJobs = localStorage.getItem("vendor_job_titles");
     if (storedJobs) {
-        setPositionOptions(JSON.parse(storedJobs).map((j: any) => j.title));
+        setPositionOptions(JSON.parse(storedJobs).map((j: any) => j.name || j.title));
     } else {
         setPositionOptions(["AC Technician", "Electrician", "Plumber", "Cleaner", "Supervisor", "Driver"]);
     }
 
     const storedEmpTypes = localStorage.getItem("vendor_employment_types");
     if (storedEmpTypes) {
-        setEmploymentTypeOptions(JSON.parse(storedEmpTypes).filter((e: any) => e.isActive).map((e: any) => e.name));
+        setEmploymentTypeOptions(JSON.parse(storedEmpTypes).filter((e: any) => e.isActive !== false).map((e: any) => e.name));
     } else {
         setEmploymentTypeOptions(["Full Time", "Part Time", "Contract"]);
     }
@@ -480,50 +518,26 @@ export default function PendingInviteDetails() {
                     </div>
 
                     {/* Profile Details List */}
-                    <div className="p-6 space-y-4 text-sm flex-1">
+                    <div className="p-6 space-y-4 text-sm flex-1 overflow-y-auto">
                         <div className="space-y-4">
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <Hash className="h-4 w-4" />
-                                    <span>QID Number</span>
+                            {[
+                                { icon: Hash, label: "QID Number", value: data.qid },
+                                { icon: Calendar, label: "Date of Birth", value: data.dob },
+                                { icon: Flag, label: "Nationality", value: data.nationality },
+                                { icon: User, label: "Gender", value: data.gender },
+                                { icon: Phone, label: "Mobile", value: data.phone },
+                                { icon: Mail, label: "Email", value: data.email, isMultiline: true }
+                            ].map((item, i) => (
+                                <div key={i} className="flex items-start justify-between group">
+                                    <div className="flex items-center gap-3 text-gray-500 shrink-0 mt-0.5">
+                                        <item.icon className="h-4 w-4" />
+                                        <span>{item.label}</span>
+                                    </div>
+                                    <span className={`font-medium text-gray-900 text-right ml-4 ${item.isMultiline ? 'break-all' : ''}`}>
+                                        {item.value || '---'}
+                                    </span>
                                 </div>
-                                <span className="font-medium text-gray-900">{data.qid}</span>
-                            </div>
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <Calendar className="h-4 w-4" />
-                                    <span>Date of Birth</span>
-                                </div>
-                                <span className="font-medium text-gray-900">{data.dob}</span>
-                            </div>
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <Flag className="h-4 w-4" />
-                                    <span>Nationality</span>
-                                </div>
-                                <span className="font-medium text-gray-900">{data.nationality}</span>
-                            </div>
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <User className="h-4 w-4" />
-                                    <span>Gender</span>
-                                </div>
-                                <span className="font-medium text-gray-900">{data.gender}</span>
-                            </div>
-                             <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <Phone className="h-4 w-4" />
-                                    <span>Mobile</span>
-                                </div>
-                                <span className="font-medium text-gray-900">{data.phone}</span>
-                            </div>
-                             <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <Mail className="h-4 w-4" />
-                                    <span>Email</span>
-                                </div>
-                                <span className="font-medium text-gray-900 truncate max-w-[120px]" title={data.email}>{data.email}</span>
-                            </div>
+                            ))}
                         </div>
                     </div>
                     
@@ -1503,27 +1517,7 @@ export default function PendingInviteDetails() {
                                         <div className="space-y-6 animate-in fade-in">
                                             
                                             {/* Template Selection */}
-                                            {shiftTemplateOptions.length > 0 && (
-                                                <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm space-y-3">
-                                                    <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Quick Apply Template</Label>
-                                                    <Select onValueChange={(val) => {
-                                                        const template = shiftTemplateOptions.find(t => t.id === val);
-                                                        if (template) {
-                                                            setFormData({ ...formData, rotationalSchedule: template.schedule });
-                                                            toast.success(`Applied template: ${template.name}`);
-                                                        }
-                                                    }}>
-                                                        <SelectTrigger className="bg-white w-full h-10 border-gray-200 text-sm">
-                                                            <SelectValue placeholder="Select a shift template..." />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {shiftTemplateOptions.map((t: any) => (
-                                                                <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-                                            )}
+
 
                                             {/* Summary Header */}
                                             <div className="flex items-center justify-between bg-green-50 p-4 rounded-lg border border-green-100">
@@ -1702,7 +1696,7 @@ export default function PendingInviteDetails() {
                                     Back to Operations
                                 </Button>
                                 <Button 
-                                   className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-xl shadow-green-200 text-lg font-bold tracking-wide transition-all transform hover:scale-[1.01]" 
+                                   className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-sm hover:shadow text-white font-semibold tracking-wide transition-all" 
                                    onClick={handleActivate}
                                 >
                                      Complete Activation
@@ -1732,6 +1726,91 @@ export default function PendingInviteDetails() {
 
                 {/* Modal Body */}
                 <div className="p-6 space-y-6">
+                    {/* Quick Apply Template (Day Specific) */}
+                    {/* Quick Apply Templates (Day Specific) */}
+                    {shiftTemplateOptions.length > 0 && (
+                        <div className="space-y-2">
+                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide block">Quick Apply Templates</Label>
+                             <div className="grid grid-cols-1 gap-2">
+                                {shiftTemplateOptions.map((template: any) => {
+                                    // Check if this template is already applied
+                                    const currentShifts = formData.rotationalSchedule?.[activeDayModal] || [];
+                                    const isApplied = currentShifts.some((s: any) => s.start === template.startTime && s.end === template.endTime);
+                                    
+                                    // Helper for formatting
+                                    const formatToAmPm = (time: string) => {
+                                        if (!time) return "";
+                                        const [h, m] = time.split(':');
+                                        const hour = parseInt(h);
+                                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                                        const hour12 = hour % 12 || 12;
+                                        return `${hour12}:${m} ${ampm}`;
+                                    };
+
+                                    return (
+                                        <div 
+                                            key={template.id}
+                                            onClick={() => {
+                                                const currentFuncShifts = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
+                                                
+                                                if (isApplied) {
+                                                    // Remove
+                                                    const filtered = currentFuncShifts.filter((s: any) => !(s.start === template.startTime && s.end === template.endTime));
+                                                    setFormData({
+                                                        ...formData,
+                                                        rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: filtered }
+                                                    });
+                                                } else {
+                                                    // Check Overlap
+                                                    const hasOverlap = currentFuncShifts.some((s: any) => {
+                                                        const startA = s.start;
+                                                        const endA = s.end;
+                                                        const startB = template.startTime;
+                                                        const endB = template.endTime;
+                                                        return (startA < endB && startB < endA);
+                                                    });
+
+                                                    if (hasOverlap) {
+                                                        toast.error("Cannot apply template: Overlaps with existing shift");
+                                                        return;
+                                                    }
+
+                                                    // Add
+                                                    currentFuncShifts.push({ start: template.startTime, end: template.endTime });
+                                                    setFormData({
+                                                        ...formData,
+                                                        rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentFuncShifts }
+                                                    });
+                                                    toast.success(`Applied ${template.name}`);
+                                                }
+                                            }}
+                                            className={`
+                                                flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all hover:bg-gray-50
+                                                ${isApplied 
+                                                    ? 'bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-100' 
+                                                    : 'bg-white border-gray-100 hover:border-gray-300'}
+                                            `}
+                                        >
+                                            <div className="flex flex-col">
+                                                <span className={`text-sm font-medium ${isApplied ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                    {template.name}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                 <span className={`text-xs font-mono font-medium px-2 py-1 rounded ${isApplied ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                    {formatToAmPm(template.startTime)} - {formatToAmPm(template.endTime)}
+                                                </span>
+                                                <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isApplied ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-300'}`}>
+                                                    {isApplied ? <CheckCircle className="w-3.5 h-3.5" /> : <div className="w-2 h-2 rounded-full bg-gray-300" />}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                             </div>
+                        </div>
+                    )}
+
                     {/* Existing Shifts List */}
                     <div className="space-y-3">
                         <Label className="text-xs font-semibold text-gray-500 uppercase">Time Slots</Label>
@@ -1800,15 +1879,7 @@ export default function PendingInviteDetails() {
                         variant="outline" 
                         size="sm" 
                         className="bg-white border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
-                        onClick={() => {
-                            const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
-                            // Add default 9-5 or add to end of last shift
-                            currentSlots.push({ start: "09:00", end: "17:00" });
-                            setFormData({
-                                ...formData,
-                                rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
-                            });
-                        }}
+                        onClick={() => setIsCreateTemplateOpen(true)}
                     >
                         <Plus className="w-4 h-4 mr-2" />
                         Add Shift Block
@@ -1846,21 +1917,26 @@ export default function PendingInviteDetails() {
       )}
 
         <Dialog open={isBasicInfoOpen} onOpenChange={setIsBasicInfoOpen}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Edit Basic Information</DialogTitle>
+            <DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
+                <DialogHeader className="p-6 pb-2 border-b border-gray-100 bg-gray-50/50">
+                    <DialogTitle className="text-lg font-bold text-gray-900">Edit Basic Information</DialogTitle>
+                    <p className="text-xs text-gray-500 mt-1">Update primary contact and display details.</p>
                 </DialogHeader>
                 {basicInfoForm && (
-                <div className="space-y-4 py-4">
-                     {/* Photo Upload */}
-                     <div className="flex flex-col items-center justify-center gap-3">
-                        <div className="relative">
-                            <Avatar className="h-24 w-24">
-                                <AvatarImage src={basicInfoForm.avatar} />
-                                <AvatarFallback>{basicInfoForm.nickname?.substring(0,2) || "NA"}</AvatarFallback>
-                            </Avatar>
-                             <label className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50">
-                                <Upload className="h-3 w-3 text-gray-500" />
+                <div className="p-6 space-y-8">
+                     {/* Photo Upload - Premium Style */}
+                     <div className="flex flex-col items-center">
+                        <div className="group relative">
+                            <div className="h-28 w-28 rounded-full p-1 bg-white border-2 border-dashed border-gray-200 group-hover:border-blue-400 transition-all shadow-sm">
+                                <Avatar className="h-full w-full">
+                                    <AvatarImage src={basicInfoForm.avatar} className="object-cover" />
+                                    <AvatarFallback className="bg-gray-100 text-gray-500 font-bold text-xl">
+                                        {basicInfoForm.nickname?.substring(0,2).toUpperCase() || "NA"}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                             <label className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2.5 shadow-lg cursor-pointer hover:bg-blue-700 hover:scale-105 transition-all text-white ring-4 ring-white">
+                                <Upload className="h-4 w-4" />
                                 <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                                     const file = e.target.files?.[0];
                                     if(file){
@@ -1871,40 +1947,107 @@ export default function PendingInviteDetails() {
                                 }}/>
                             </label>
                         </div>
-                        <span className="text-xs text-center text-gray-500">Tap icon to change photo</span>
+                        <span className="text-xs font-medium text-gray-400 mt-3 group-hover:text-blue-500 transition-colors">Tap camera icon to upload</span>
                      </div>
                      
-                     <div className="space-y-3 pt-2">
-                        <div className="space-y-1">
-                            <Label className="text-xs text-gray-500 uppercase">Nickname</Label>
-                            <Input value={basicInfoForm.nickname} onChange={e => setBasicInfoForm({...basicInfoForm, nickname: e.target.value})} />
+                     <div className="grid grid-cols-2 gap-x-5 gap-y-5">
+                        <div className="col-span-2 space-y-1.5">
+                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nickname</Label>
+                            <Input 
+                                value={basicInfoForm.nickname} 
+                                onChange={e => setBasicInfoForm({...basicInfoForm, nickname: e.target.value})} 
+                                className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                                placeholder="Preferred Name"
+                            />
                         </div>
-                        <div className="space-y-1">
-                            <Label className="text-xs text-gray-500 uppercase">Gender</Label>
-                            <Select value={basicInfoForm.gender} onValueChange={v => setBasicInfoForm({...basicInfoForm, gender: v as any})}>
-                                <SelectTrigger><SelectValue /></SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Male">Male</SelectItem>
-                                    <SelectItem value="Female">Female</SelectItem>
-                                </SelectContent>
-                            </Select>
+
+                        <div className="space-y-1.5">
+                             <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Gender</Label>
+                             <Select value={basicInfoForm.gender} onValueChange={v => setBasicInfoForm({...basicInfoForm, gender: v as any})}>
+                                 <SelectTrigger className="h-11 border-gray-200 hover:border-blue-300 transition-all"><SelectValue /></SelectTrigger>
+                                 <SelectContent>
+                                     <SelectItem value="Male">Male</SelectItem>
+                                     <SelectItem value="Female">Female</SelectItem>
+                                 </SelectContent>
+                             </Select>
+                         </div>
+                         
+                         <div className="space-y-1.5">
+                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobile Number</Label>
+                            <Input 
+                                value={basicInfoForm.mobile} 
+                                onChange={e => setBasicInfoForm({...basicInfoForm, mobile: e.target.value})} 
+                                className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                            />
                         </div>
-                        <div className="grid grid-cols-2 gap-3">
-                             <div className="space-y-1">
-                                <Label className="text-xs text-gray-500 uppercase">Mobile</Label>
-                                <Input value={basicInfoForm.mobile} onChange={e => setBasicInfoForm({...basicInfoForm, mobile: e.target.value})} />
-                            </div>
-                            <div className="space-y-1">
-                                <Label className="text-xs text-gray-500 uppercase">Email</Label>
-                                <Input value={basicInfoForm.email} onChange={e => setBasicInfoForm({...basicInfoForm, email: e.target.value})} />
+
+                        <div className="col-span-2 space-y-1.5">
+                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email Address</Label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                                <Input 
+                                    value={basicInfoForm.email} 
+                                    onChange={e => setBasicInfoForm({...basicInfoForm, email: e.target.value})} 
+                                    className="pl-9 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                                />
                             </div>
                         </div>
                      </div>
                 </div>
                 )}
+                <div className="p-6 pt-2 bg-gray-50/50 border-t border-gray-100 flex gap-3">
+                    <Button variant="outline" onClick={() => setIsBasicInfoOpen(false)} className="flex-1 h-11 border-gray-200 text-gray-700 hover:bg-white hover:text-gray-900">Cancel</Button>
+                    <Button onClick={handleSaveBasicInfo} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 shadow-sm text-base font-medium">Save Changes</Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        {/* Create Template Dialog (triggered from Manage Shifts) */}
+        <Dialog open={isCreateTemplateOpen} onOpenChange={setIsCreateTemplateOpen}>
+            <DialogContent className="sm:max-w-[425px] z-[60]">
+                <DialogHeader>
+                    <DialogTitle>Add Shift Template</DialogTitle>
+                     <p className="text-sm text-gray-500 mt-1.5">
+                        Define a standard shift block.
+                    </p>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="t-name">Template Name</Label>
+                        <Input 
+                            id="t-name"
+                            placeholder="e.g. Morning Shift A" 
+                            value={newTemplateData.name}
+                            onChange={(e) => setNewTemplateData({...newTemplateData, name: e.target.value})}
+                            className="border-blue-200 focus:border-blue-500"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                             <Label>Start Time</Label>
+                             <div className="relative">
+                                <Input 
+                                    type="time" 
+                                    value={newTemplateData.startTime}
+                                    onChange={(e) => setNewTemplateData({...newTemplateData, startTime: e.target.value})}
+                                />
+                             </div>
+                        </div>
+                         <div className="space-y-2">
+                             <Label>End Time</Label>
+                             <div className="relative">
+                                <Input 
+                                    type="time" 
+                                    value={newTemplateData.endTime}
+                                    onChange={(e) => setNewTemplateData({...newTemplateData, endTime: e.target.value})}
+                                />
+                             </div>
+                        </div>
+                    </div>
+                </div>
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsBasicInfoOpen(false)}>Cancel</Button>
-                    <Button onClick={handleSaveBasicInfo}>Save Changes</Button>
+                    <Button variant="outline" onClick={() => setIsCreateTemplateOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSaveNewTemplate} className="bg-blue-600 hover:bg-blue-700">Save Template</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

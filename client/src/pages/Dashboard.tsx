@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { GettingStartedTab } from "@/components/GettingStartedTab";
+import { RecentUpdatesTab } from "@/components/RecentUpdatesTab";
 import {
   Calendar,
   Clock,
@@ -1694,70 +1696,12 @@ export default function Dashboard() {
         </Tabs>
         </TabsContent>
 
-        <TabsContent value="getting-started" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="md:col-span-2 border-none shadow-md bg-white">
-                    <CardHeader>
-                        <CardTitle className="text-xl">Let's set up your workspace</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-4">
-                             {[
-                                { title: "Create Organization Profile", status: "completed" },
-                                { title: "Add Workforce Members", status: "pending" },
-                                { title: "Set up Service Catalog", status: "pending" },
-                                { title: "Configure Dispatch Rules", status: "pending" }
-                             ].map((step, i) => (
-                                <div key={i} className="flex items-center p-4 border rounded-lg gap-4 bg-gray-50/50">
-                                    <div className={`h-6 w-6 rounded-full flex items-center justify-center ${step.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-gray-200 text-gray-400'}`}>
-                                        {step.status === 'completed' ? <CheckCircle2 className="h-4 w-4" /> : <span className="text-xs font-bold">{i+1}</span>}
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className="font-medium text-gray-900">{step.title}</h4>
-                                        <p className="text-sm text-gray-500">Essential for your operations</p>
-                                    </div>
-                                    <Button variant={step.status === 'completed' ? "ghost" : "outline"} size="sm">
-                                        {step.status === 'completed' ? "Completed" : "Start"}
-                                    </Button>
-                                </div>
-                             ))}
-                        </div>
-                    </CardContent>
-                </Card>
-                <div className="space-y-6">
-                   <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-none">
-                       <CardContent className="pt-6">
-                           <h3 className="font-bold text-lg mb-2">Need Help?</h3>
-                           <p className="text-blue-100 text-sm mb-4">Book a free onboarding session with our experts.</p>
-                           <Button className="w-full bg-white text-blue-600 hover:bg-blue-50">Schedule Demo</Button>
-                       </CardContent>
-                   </Card>
-                </div>
-            </div>
+        <TabsContent value="getting-started" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <GettingStartedTab />
         </TabsContent>
 
-        <TabsContent value="recent-updates" className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-             <Card className="border-none shadow-sm">
-                 <CardHeader>
-                     <CardTitle>Platform Updates</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                     <div className="relative border-l border-gray-200 ml-3 space-y-8 pb-4">
-                        {[
-                            { date: "Just now", title: "New Dashboard Design", desc: "We've completely revamped the dashboard for better visibility.", type: "feature" },
-                            { date: "2 days ago", title: "Mobile App v2.1", desc: "Field staff can now work offline.", type: "release" },
-                            { date: "1 week ago", title: "System Maintenance", desc: "Scheduled maintenance completed successfully.", type: "system" }
-                        ].map((update, i) => (
-                           <div key={i} className="ml-6 relative">
-                               <span className="absolute -left-[31px] top-0 h-4 w-4 rounded-full bg-blue-100 border-2 border-blue-500"></span>
-                               <span className="text-xs text-gray-400 font-medium mb-1 block">{update.date}</span>
-                               <h4 className="text-md font-bold text-gray-800">{update.title}</h4>
-                               <p className="text-sm text-gray-600 mt-1">{update.desc}</p>
-                           </div>
-                        ))}
-                     </div>
-                 </CardContent>
-             </Card>
+        <TabsContent value="recent-updates" className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+             <RecentUpdatesTab />
         </TabsContent>
       </Tabs>
     </DashboardLayout>
