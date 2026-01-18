@@ -10,6 +10,7 @@ import {
   Building2, 
   FileText, 
   ScrollText,
+  Database,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -189,6 +190,23 @@ export default function Settings() {
                 <CardContent>
                   <p className="text-sm text-gray-500 mb-4">
                     View billing history and manage payment methods
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Data Backup & Lifecycle */}
+              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-blue-100 group" onClick={() => setLocation('/settings/data-backup')}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <div className="p-2 bg-blue-100/50 rounded-lg group-hover:bg-blue-600 transition-colors">
+                      <Database className="h-5 w-5 text-blue-600 group-hover:text-white transition-colors" />
+                    </div>
+                    Data Backup & Lifecycle
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 mb-4">
+                     Manage data retention, backups, and organization deletion
                   </p>
                 </CardContent>
               </Card>

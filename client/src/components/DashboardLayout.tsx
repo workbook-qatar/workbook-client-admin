@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { OrganizationSwitcher } from "@/components/OrganizationSwitcher";
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -43,7 +44,7 @@ interface DashboardLayoutProps {
 }
 
 const navigationItems = [
-  { icon: Home, label: "Dashboard", path: "/", comingSoon: false },
+  { icon: Home, label: "Home", path: "/", comingSoon: false },
   { icon: Users, label: "Customers", path: "/customers", comingSoon: false },
   { icon: Calendar, label: "Bookings", path: "/bookings", comingSoon: false },
   { icon: Truck, label: "Dispatch", path: "/dispatch", comingSoon: false },
@@ -74,20 +75,17 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
         }`}
       >
         {/* Logo Header */}
-        <div className="flex items-center justify-between h-16 px-4 border-b border-sidebar-border/50">
+        <div className="flex h-16 shrink-0 items-center justify-center border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           {!sidebarCollapsed && (
-            <div className="flex items-center gap-3 overflow-hidden">
-              <img src="/tartoos-logo.jpg" alt="Tartoos" className="h-8 w-8 object-contain flex-shrink-0" />
-              <span className="font-heading font-bold text-sm text-sidebar-foreground truncate" title="Tartoos Contracting and Cleaning Services">
-                Tartoos Contracting and Cleaning Services
-              </span>
-            </div>
+           <div className="flex items-center justify-start w-full px-5">
+             <img src="/workbook-logo.png" alt="workbook" className="h-6 w-auto object-contain" />
+           </div>
           )}
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            className="text-sidebar-foreground hover:bg-sidebar-accent"
+            className="text-sidebar-foreground hover:bg-sidebar-accent absolute right-2"
           >
             {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </Button>
@@ -209,6 +207,7 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
           </div>
 
           <div className="flex items-center gap-3">
+            <OrganizationSwitcher />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">

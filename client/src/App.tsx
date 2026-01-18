@@ -4,6 +4,9 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { OrganizationProvider } from "./contexts/OrganizationContext";
+import OrganizationHub from "./pages/OrganizationHub";
+import CreateOrganization from "./pages/CreateOrganization";
 import Dashboard from "./pages/Dashboard";
 import Bookings from "./pages/Bookings";
 import Customers from "./pages/Customers";
@@ -23,6 +26,7 @@ import SkillsSettings from "./pages/settings/Skills";
 import OrganizationStructure from "./pages/settings/OrganizationStructure";
 import EmploymentRules from "./pages/settings/EmploymentRules";
 import DocumentsCompliance from "./pages/settings/DocumentsCompliance";
+import DataBackup from "./pages/settings/DataBackup";
 
 import Dispatch from "./pages/Dispatch";
 import Reports from "./pages/Reports";
@@ -69,9 +73,14 @@ function Router() {
       <Route path="/settings/organization" component={OrganizationStructure} />
       <Route path="/settings/employment" component={EmploymentRules} />
       <Route path="/settings/documents" component={DocumentsCompliance} />
+      <Route path="/settings/data-backup" component={DataBackup} />
 
       <Route path="/services/directory" component={ServiceDirectory} />
       <Route path="/support" component={Support} />
+      
+      <Route path="/organizations" component={OrganizationHub} />
+      <Route path="/organizations/create" component={CreateOrganization} />
+
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
@@ -91,10 +100,12 @@ function App() {
         defaultTheme="light"
         // switchable
       >
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
+        <OrganizationProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </OrganizationProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
