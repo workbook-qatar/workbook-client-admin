@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLocation } from "wouter";
-import { Search, Plus, ArrowLeft, FileText, Clock, Edit, Trash2, Save, CheckCircle, Moon, Sun } from "lucide-react";
+import { Search, Plus, ArrowLeft, FileText, Clock, Edit, Trash2, Save, CheckCircle, Moon, Sun, Truck } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,8 @@ interface ConfigItem {
   name: string;
   description?: string;
   status: "active" | "inactive";
+  // Transport specific
+  category?: "company_driver" | "company_vehicle" | "self_vehicle" | "public" | "hybrid" | "other"; 
 }
 
 interface ShiftTemplate {
@@ -55,6 +57,14 @@ const DEFAULT_SHIFT_TEMPLATES: ShiftTemplate[] = [
   { id: "st3", name: "Night Shift", startTime: "22:00", endTime: "06:00" },
 ];
 
+const DEFAULT_TRANSPORTATION_TYPES: ConfigItem[] = [
+  { id: "tt1", name: "Company Provides Transportation (With Driver)", description: "Staff will be transported by company driver/route", status: "active", category: "company_driver" },
+  { id: "tt2", name: "Company Provides Vehicle (Staff Drives)", description: "Company assigned vehicle (Car/Van)", status: "active", category: "company_vehicle" },
+  { id: "tt3", name: "Self – Own Vehicle", description: "Employee uses personal vehicle", status: "active", category: "self_vehicle" },
+  { id: "tt4", name: "Public / Ride Transport", description: "Staff uses taxi/uber/public transport", status: "active", category: "public" },
+  { id: "tt5", name: "Hybrid / Flexible", description: "Varies by shift/day", status: "active", category: "hybrid" },
+];
+
 export default function EmploymentRules() {
   const [, setLocation] = useLocation();
   const [activeTab, setActiveTab] = useState("employment-types");
@@ -62,10 +72,12 @@ export default function EmploymentRules() {
   // --- Employment & Contracts State ---
   const [employmentTypes, setEmploymentTypes] = useState<ConfigItem[]>([]);
   const [contractTypes, setContractTypes] = useState<ConfigItem[]>([]);
+  const [transportationTypes, setTransportationTypes] = useState<ConfigItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+
+  const [formData, setFormData] = useState<Partial<ConfigItem>>({ name: "", description: "", category: "company_driver" });
 
   // --- Shifts State ---
   const [enabledShiftTypes, setEnabledShiftTypes] = useState({ fixed: true, rotational: true, flexible: false });
@@ -92,7 +104,23 @@ export default function EmploymentRules() {
         localStorage.setItem("vendor_contract_types", JSON.stringify(DEFAULT_CONTRACT_TYPES));
     }
 
-    // 3. Shift Settings
+    // 3. Transport Types
+    // 3. Transport Types
+    const storedTransportTypes = localStorage.getItem("vendor_transportation_types");
+    if (storedTransportTypes) {
+        let loaded = JSON.parse(storedTransportTypes);
+        // Auto-migrate if old default names are detected
+        if (loaded.length > 0 && loaded[0].name !== DEFAULT_TRANSPORTATION_TYPES[0].name) {
+            loaded = DEFAULT_TRANSPORTATION_TYPES;
+            localStorage.setItem("vendor_transportation_types", JSON.stringify(loaded));
+        }
+        setTransportationTypes(loaded);
+    } else {
+        setTransportationTypes(DEFAULT_TRANSPORTATION_TYPES);
+        localStorage.setItem("vendor_transportation_types", JSON.stringify(DEFAULT_TRANSPORTATION_TYPES));
+    }
+
+    // 4. Shift Settings
     const storedEnabled = localStorage.getItem("vendor_shift_types_enabled");
     if (storedEnabled) setEnabledShiftTypes(JSON.parse(storedEnabled));
     const storedHours = localStorage.getItem("vendor_business_hours");
@@ -113,21 +141,40 @@ export default function EmploymentRules() {
   const handleSaveConfig = () => {
     if (!formData.name) return;
     const isEmp = activeTab === "employment-types";
-    const currentList = isEmp ? employmentTypes : contractTypes;
-    const setList = isEmp ? setEmploymentTypes : setContractTypes;
-    const storageKey = isEmp ? "vendor_employment_types" : "vendor_contract_types";
-    const itemName = isEmp ? "Employment Type" : "Contract Type";
+    const isContract = activeTab === "contract-types";
+    const isTransport = activeTab === "transport-types";
+    
+    let currentList: ConfigItem[] = [];
+    if (isEmp) currentList = employmentTypes;
+    else if (isContract) currentList = contractTypes;
+    else if (isTransport) currentList = transportationTypes;
+
+    let storageKey = "";
+    if (isEmp) storageKey = "vendor_employment_types";
+    else if (isContract) storageKey = "vendor_contract_types";
+    else if (isTransport) storageKey = "vendor_transportation_types";
+
+    let itemName = "";
+    if (isEmp) itemName = "Employment Type";
+    else if (isContract) itemName = "Contract Type";
+    else if (isTransport) itemName = "Transport Type";
 
     let newList = [...currentList];
     if (editingId) {
         newList = newList.map(item => item.id === editingId ? { ...item, ...formData } : item);
         toast.success(`${itemName} updated`);
     } else {
-        const newItem = { id: `${isEmp ? 'e' : 'c'}-${Date.now()}`, ...formData, status: "active" as const };
+        // ID prefix: e=employment, c=contract, t=transport
+        const prefix = isEmp ? 'e' : (isContract ? 'c' : 't');
+        const newItem = { id: `${prefix}-${Date.now()}`, ...formData, name: formData.name!, status: "active" as const };
         newList.push(newItem);
         toast.success(`${itemName} created`);
     }
-    setList(newList);
+    
+    if (isEmp) setEmploymentTypes(newList);
+    else if (isContract) setContractTypes(newList);
+    else if (isTransport) setTransportationTypes(newList);
+
     localStorage.setItem(storageKey, JSON.stringify(newList));
     setIsDialogOpen(false);
     resetForm();
@@ -135,23 +182,38 @@ export default function EmploymentRules() {
 
   const handleDeleteConfig = (id: string) => {
     const isEmp = activeTab === "employment-types";
-    const currentList = isEmp ? employmentTypes : contractTypes;
-    const setList = isEmp ? setEmploymentTypes : setContractTypes;
+    const isContract = activeTab === "contract-types";
+    const isTransport = activeTab === "transport-types";
+
+    let currentList: ConfigItem[] = [];
+    if (isEmp) currentList = employmentTypes;
+    else if (isContract) currentList = contractTypes;
+    else if (isTransport) currentList = transportationTypes;
+
     const newList = currentList.filter(item => item.id !== id);
-    setList(newList);
-    localStorage.setItem(isEmp ? "vendor_employment_types" : "vendor_contract_types", JSON.stringify(newList));
+    
+    if (isEmp) setEmploymentTypes(newList);
+    else if (isContract) setContractTypes(newList);
+    else if (isTransport) setTransportationTypes(newList);
+
+    let storageKey = "";
+    if (isEmp) storageKey = "vendor_employment_types";
+    else if (isContract) storageKey = "vendor_contract_types";
+    else if (isTransport) storageKey = "vendor_transportation_types";
+
+    localStorage.setItem(storageKey, JSON.stringify(newList));
     toast.success("Item deleted");
   };
 
   const openEdit = (item: ConfigItem) => {
     setEditingId(item.id);
-    setFormData({ name: item.name, description: item.description || "" });
+    setFormData({ name: item.name, description: item.description || "", category: item.category });
     setIsDialogOpen(true);
   };
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "", description: "", category: "company_driver" });
   };
 
   // Shift Settings Save
@@ -189,8 +251,12 @@ export default function EmploymentRules() {
   };
 
   // --- Rendering Helpers ---
-  const listToRender = activeTab === "employment-types" ? employmentTypes : contractTypes;
-  const filteredList = listToRender.filter(item => 
+  let listToRender: ConfigItem[] = [];
+  if (activeTab === "employment-types") listToRender = employmentTypes;
+  else if (activeTab === "contract-types") listToRender = contractTypes;
+  else if (activeTab === "transport-types") listToRender = transportationTypes;
+
+  const filteredList = listToRender.filter(item =>  
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
     (item.description && item.description.toLowerCase().includes(searchQuery.toLowerCase()))
   );
@@ -228,6 +294,9 @@ export default function EmploymentRules() {
                     <TabsTrigger value="contract-types" className="data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 h-full px-4">
                          Contract Types
                     </TabsTrigger>
+                     <TabsTrigger value="transport-types" className="data-[state=active]:bg-teal-50 data-[state=active]:text-teal-700 h-full px-4">
+                         Transport Types
+                    </TabsTrigger>
                     <TabsTrigger value="shift-policies" className="data-[state=active]:bg-orange-50 data-[state=active]:text-orange-700 h-full px-4">
                          Shift Policies
                     </TabsTrigger>
@@ -236,8 +305,8 @@ export default function EmploymentRules() {
                     </TabsTrigger>
                 </TabsList>
 
-                {/* --- Tab: Employment Types & Contract Types (Shared UI List) --- */}
-                {(activeTab === "employment-types" || activeTab === "contract-types") && (
+                {/* --- Tab: Employment Types & Contract Types & Transport Types (Shared UI List) --- */}
+                {(activeTab === "employment-types" || activeTab === "contract-types" || activeTab === "transport-types") && (
                     <TabsContent value={activeTab} className="mt-0 space-y-4">
                          <div className="flex items-center justify-between">
                             <div className="relative">
@@ -253,26 +322,45 @@ export default function EmploymentRules() {
                                 <DialogTrigger asChild>
                                     <Button className="bg-teal-600 hover:bg-teal-700 text-white gap-2 shadow-lg shadow-teal-600/20">
                                         <Plus className="h-4 w-4" />
-                                        Add {activeTab === "employment-types" ? "Type" : "Contract"}
+                                        <Plus className="h-4 w-4" />
+                                        Add {activeTab.replace("-types", "").replace("-", " ")}
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <DialogHeader>
-                                        <DialogTitle>{editingId ? "Edit" : "Add"} {activeTab === "employment-types" ? "Employment Type" : "Contract Type"}</DialogTitle>
+                                        <DialogTitle>{editingId ? "Edit" : "Add"} {activeTab.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase()).slice(0, -1)}</DialogTitle>
                                         <DialogDescription>
                                             Define a classification for staff members.
                                         </DialogDescription>
                                     </DialogHeader>
-                                    <div className="space-y-4 py-4">
-                                        <div className="space-y-2">
-                                            <Label htmlFor="name">Name</Label>
-                                            <Input id="name" placeholder="e.g. Full Time" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                        <div className="space-y-4 py-4">
+                                            <div className="space-y-2">
+                                                <Label htmlFor="name">Name</Label>
+                                                <Input id="name" placeholder="e.g. Full Time" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} />
+                                            </div>
+                                            {activeTab === "transport-types" && (
+                                                <div className="space-y-2">
+                                                    <Label htmlFor="category">Logic Category</Label>
+                                                    <select 
+                                                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                                        value={formData.category} 
+                                                        onChange={e => setFormData({...formData, category: e.target.value as any})}
+                                                    >
+                                                        <option value="company_driver">Company Driver (No Fields)</option>
+                                                        <option value="company_vehicle">Company Vehicle (Asset Assign)</option>
+                                                        <option value="self_vehicle">Self Vehicle (Plate Info)</option>
+                                                        <option value="public">Public Transport</option>
+                                                        <option value="hybrid">Hybrid / Flexible</option>
+                                                        <option value="other">Other</option>
+                                                    </select>
+                                                    <p className="text-[10px] text-gray-500">Determines which fields are shown in the onboarding form.</p>
+                                                </div>
+                                            )}
+                                            <div className="space-y-2">
+                                                <Label htmlFor="desc">Description</Label>
+                                                <Input id="desc" placeholder="Optional description..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
+                                            </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="desc">Description</Label>
-                                            <Input id="desc" placeholder="Optional description..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
-                                        </div>
-                                    </div>
                                     <DialogFooter>
                                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
                                         <Button onClick={handleSaveConfig} disabled={!formData.name}>Save Changes</Button>
@@ -286,7 +374,7 @@ export default function EmploymentRules() {
                                 <Card key={item.id} className="p-4 flex items-center justify-between hover:border-teal-300 transition-all group bg-white">
                                     <div className="flex items-center gap-4">
                                         <div className="h-10 w-10 rounded-lg bg-teal-50 flex items-center justify-center text-teal-600">
-                                            {activeTab === "employment-types" ? <Clock className="h-5 w-5" /> : <FileText className="h-5 w-5" />}
+                                            {activeTab === "employment-types" ? <Clock className="h-5 w-5" /> : activeTab === "contract-types" ? <FileText className="h-5 w-5" /> : <Truck className="h-5 w-5" />}
                                         </div>
                                         <div>
                                             <h3 className="font-semibold text-gray-900 text-sm">{item.name}</h3>

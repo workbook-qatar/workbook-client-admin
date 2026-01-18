@@ -59,6 +59,20 @@ export default function CreateServiceArea() {
 
   const handleSave = () => {
     if (!isSaveEnabled) return;
+
+    // Persist to LocalStorage
+    const newArea = {
+        id: `sa-${Date.now()}`,
+        name: name,
+        zones: selectedZones,
+        zoneCount: selectedZones.length
+    };
+
+    const existing = localStorage.getItem("vendor_service_areas");
+    const list = existing ? JSON.parse(existing) : [];
+    list.push(newArea);
+    localStorage.setItem("vendor_service_areas", JSON.stringify(list));
+
     toast.success("Service Area Created", {
       description: `${name} with ${selectedZones.length} zones saved successfully.`
     });

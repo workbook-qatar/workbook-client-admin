@@ -9,10 +9,13 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { 
   ArrowLeft, CheckCircle, ShieldCheck, Mail, Phone, Calendar, 
-  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock 
+  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck 
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { StaffMember } from "./Workforce";
+import DriverPendingInviteDetails from "./DriverPendingInviteDetails";
 
 // Helper Functions for Time Grid
 const formatTimeLabel = (time: string) => {
@@ -67,7 +70,36 @@ interface ExtendedStaffMember extends StaffMember {
     workHoursStart?: string;
     workHoursEnd?: string;
     rotationalSchedule?: Record<string, { start: string; end: string }[]>;
+    // Transport
+    transportationType?: string;
+    primaryTransport?: string; // For Hybrid
+    transportVaries?: boolean; // For Hybrid
+    // Driver specific / Transport Logic
+    assignedVehicle?: string; 
+    vehicleType?: string; // For Self
+    plateNumber?: string; // For Self
+    licenseCategory?: string;
+    licenseNumber?: string;
+    licenseExpiry?: string;
+    // Operations
+    serviceScope?: 'all' | 'specific';
+    serviceAreas?: string[];
 }
+
+const MOCK_SERVICE_AREAS = [
+    { id: "sa-1", name: "Doha Central" },
+    { id: "sa-2", name: "West Bay" },
+    { id: "sa-3", name: "The Pearl" },
+    { id: "sa-4", name: "Al Rayyan" },
+    { id: "sa-5", name: "Al Wakrah" },
+    { id: "sa-6", name: "Lusail" },
+];
+
+const MOCK_COMPANY_VEHICLES = [
+    { id: "v1", name: "Toyota HiAce - V001" },
+    { id: "v2", name: "Nissan Urvan - V002" },
+    { id: "v3", name: "Mitsubishi Canter - T001" },
+];
 
 export default function PendingInviteDetails() {
   const [, params] = useRoute("/workforce/pending/:id");
@@ -85,6 +117,29 @@ export default function PendingInviteDetails() {
   
   // "Draft" Data (Form)
   const [formData, setFormData] = useState<ExtendedStaffMember | null>(null);
+  
+  // Basic Info Edit Components
+  const [isBasicInfoOpen, setIsBasicInfoOpen] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState<{
+      nickname: string;
+      mobile: string;
+      email: string;
+      gender: 'Male' | 'Female';
+      avatar?: string;
+  } | null>(null);
+
+  // Initialize basic info form when opening modal
+  useEffect(() => {
+      if (isBasicInfoOpen && data) {
+          setBasicInfoForm({
+              nickname: data.nickname || "",
+              mobile: data.phone || "",
+              email: data.email || "",
+              gender: data.gender || "Male",
+              avatar: data.avatar
+          });
+      }
+  }, [isBasicInfoOpen, data]);
 
   const [activeDayModal, setActiveDayModal] = useState<string | null>(null);
   
@@ -93,6 +148,8 @@ export default function PendingInviteDetails() {
   const [departmentOptions, setDepartmentOptions] = useState<string[]>([]);
   const [positionOptions, setPositionOptions] = useState<string[]>([]);
   const [employmentTypeOptions, setEmploymentTypeOptions] = useState<string[]>([]);
+  const [transportationConfigs, setTransportationConfigs] = useState<any[]>([]); // Store full config objects
+  const [serviceAreaConfigs, setServiceAreaConfigs] = useState<any[]>(MOCK_SERVICE_AREAS); // Default to mocks
   const [enabledShiftSystems, setEnabledShiftSystems] = useState<string[]>([]);
   const [shiftTemplateOptions, setShiftTemplateOptions] = useState<any[]>([]);
 
@@ -135,6 +192,28 @@ export default function PendingInviteDetails() {
         setEmploymentTypeOptions(["Full Time", "Part Time", "Contract"]);
     }
 
+    const storedTransport = localStorage.getItem("vendor_transportation_types");
+    const NEW_TRANSPORT_DEFAULTS = [
+      { id: "tt1", name: "Company Provides Transportation (With Driver)", description: "Staff will be transported by company driver/route", status: "active", category: "company_driver" },
+      { id: "tt2", name: "Company Provides Vehicle (Staff Drives)", description: "Company assigned vehicle (Car/Van)", status: "active", category: "company_vehicle" },
+      { id: "tt3", name: "Self – Own Vehicle", description: "Employee uses personal vehicle", status: "active", category: "self_vehicle" },
+      { id: "tt4", name: "Public / Ride Transport", description: "Staff uses taxi/uber/public transport", status: "active", category: "public" },
+      { id: "tt5", name: "Hybrid / Flexible", description: "Varies by shift/day", status: "active", category: "hybrid" },
+    ];
+
+    if (storedTransport) {
+        let loaded = JSON.parse(storedTransport);
+        // FORCE MIGRATION: Check if using old names
+        if (loaded.some((t: any) => t.name === "Company-Provided Transportation" || t.name === "Company Vehicle (Self Drive)")) {
+            loaded = NEW_TRANSPORT_DEFAULTS;
+            localStorage.setItem("vendor_transportation_types", JSON.stringify(loaded));
+        }
+        setTransportationConfigs(loaded.filter((t: any) => t.status === 'active'));
+    } else {
+        setTransportationConfigs(NEW_TRANSPORT_DEFAULTS);
+        localStorage.setItem("vendor_transportation_types", JSON.stringify(NEW_TRANSPORT_DEFAULTS));
+    }
+
     const storedShiftConfig = localStorage.getItem("vendor_shift_types_enabled");
     if (storedShiftConfig) {
         const config = JSON.parse(storedShiftConfig);
@@ -150,6 +229,12 @@ export default function PendingInviteDetails() {
     const storedTemplates = localStorage.getItem("vendor_shift_templates");
     if (storedTemplates) {
         setShiftTemplateOptions(JSON.parse(storedTemplates));
+    }
+
+    const storedAreas = localStorage.getItem("vendor_service_areas");
+    if (storedAreas) {
+        const areas = JSON.parse(storedAreas);
+        if (areas.length > 0) setServiceAreaConfigs(areas);
     }
 
 
@@ -183,7 +268,18 @@ export default function PendingInviteDetails() {
                 workingDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
                 workHoursStart: "08:00",
                 workHoursEnd: "17:00",
-                rotationalSchedule: {}
+                rotationalSchedule: {},
+                transportationType: found.transportationType || "",
+                assignedVehicle: found.assignedVehicle || "",
+                vehicleType: found.vehicleType || "",
+                plateNumber: found.plateNumber || "",
+                primaryTransport: found.primaryTransport || "",
+                transportVaries: found.transportVaries || false,
+                licenseCategory: found.licenseCategory || "",
+                licenseNumber: found.licenseNumber || "",
+                licenseExpiry: found.licenseExpiry || "",
+                serviceScope: found.serviceScope || "all", // Default to 'all'
+                serviceAreas: found.serviceAreas || []
             };
             
             // Check for Default Business Hours override if new/empty
@@ -203,6 +299,10 @@ export default function PendingInviteDetails() {
   }, [params?.id]);
 
   if (!data || !formData) return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+
+  if (data.role === 'Driver') {
+      return <DriverPendingInviteDetails initialData={data} />;
+  }
 
   // --- Logic Helpers ---
   const handleEditToggle = () => {
@@ -231,6 +331,34 @@ export default function PendingInviteDetails() {
       }
   };
 
+  const handleSaveBasicInfo = () => {
+        if (!basicInfoForm || !data) return;
+        
+        const updatedData = {
+            ...data,
+            nickname: basicInfoForm.nickname,
+            phone: basicInfoForm.mobile,
+            email: basicInfoForm.email,
+            gender: basicInfoForm.gender,
+            avatar: basicInfoForm.avatar || data.avatar
+        };
+
+        const stored = localStorage.getItem("vendor_staff");
+        if (stored) {
+            const list = JSON.parse(stored);
+            const index = list.findIndex((s: any) => s.id === data.id);
+            if (index !== -1) {
+                list[index] = updatedData;
+                localStorage.setItem("vendor_staff", JSON.stringify(list));
+                setData(updatedData as ExtendedStaffMember);
+                // Also update local formData to reflect changes immediately
+                setFormData(prev => prev ? { ...prev, ...updatedData } : null);
+                setIsBasicInfoOpen(false);
+                toast.success("Basic Info updated successfully");
+            }
+        }
+    };
+
   const handleAddCert = () => {
       if (!formData) return; // Basic check
       if (!tempCert.name) {
@@ -252,9 +380,11 @@ export default function PendingInviteDetails() {
   // Check Requirements matching the new 3 Steps
   const checkRequirements = () => {
     const d = data;
+    const opsValid = d.serviceScope === 'all' || (d.serviceScope === 'specific' && (d.serviceAreas?.length || 0) > 0);
+
     return {
         employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType),
-        skills: (d.skills?.length || 0) > 0, // Simplified check
+        skills: (d.skills?.length || 0) > 0 && !!d.transportationType && opsValid, 
         summary: true // Summary is always viewed
     };
   };
@@ -326,7 +456,14 @@ export default function PendingInviteDetails() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
                     
                     {/* Header: Photo & Name */}
-                    <div className="p-6 flex flex-col items-center text-center border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/50">
+                    <div className="p-6 flex flex-col items-center text-center border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/50 relative">
+                        {/* Edit Action */}
+                        <div className="absolute top-4 right-4">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-white/80 transition-all rounded-full" onClick={() => setIsBasicInfoOpen(true)}>
+                                <Edit2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+
                         <div className="relative mb-4">
                             <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
                                 <AvatarImage src={data.avatar} className="object-cover"/>
@@ -858,6 +995,340 @@ export default function PendingInviteDetails() {
                                  </div>
                              </div>
 
+
+
+                             {/* Section: Operations Config */}
+                             <div className="space-y-6 pt-4">
+                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                                     <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <Globe className="h-4 w-4" />
+                                     </div>
+                                     <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Operations Config</h3>
+                                        <p className="text-xs text-gray-500">Service areas and operational scope.</p>
+                                     </div>
+                                 </div>
+
+                                 <div className="space-y-4">
+                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Operational Scope <span className="text-red-500">*</span></Label>
+                                     
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                         <div 
+                                            onClick={() => isEditing && setFormData({ ...formData, serviceScope: 'all', serviceAreas: [] })}
+                                            className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${formData.serviceScope === 'all' 
+                                                    ? 'bg-blue-50/50 border-blue-600 shadow-sm' 
+                                                    : 'bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50'}
+                                                ${!isEditing && 'opacity-60 cursor-not-allowed'}
+                                            `}
+                                         >
+                                            <div className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === 'all' ? 'border-blue-600' : 'border-gray-300'}`}>
+                                                {formData.serviceScope === 'all' && <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                                                    <Globe className="h-4 w-4 text-blue-500" />
+                                                    All Service Areas
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                                    Staff member can be dispatched to any location within the operational territory.
+                                                </p>
+                                            </div>
+                                         </div>
+
+                                         <div 
+                                            onClick={() => isEditing && setFormData({ ...formData, serviceScope: 'specific' })}
+                                            className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${formData.serviceScope === 'specific' 
+                                                    ? 'bg-blue-50/50 border-blue-600 shadow-sm' 
+                                                    : 'bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50'}
+                                                ${!isEditing && 'opacity-60 cursor-not-allowed'}
+                                            `}
+                                         >
+                                            <div className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === 'specific' ? 'border-blue-600' : 'border-gray-300'}`}>
+                                                {formData.serviceScope === 'specific' && <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                                                    <MapPin className="h-4 w-4 text-orange-500" />
+                                                    Specific Service Areas
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                                    Restrict staff availability to specific zones or regions only.
+                                                </p>
+                                            </div>
+                                         </div>
+                                     </div>
+
+                                     {/* CONDITIONAL RENDER: Specific Areas Selector */}
+                                     {formData.serviceScope === 'specific' && (
+                                         <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
+                                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Selected Regions <span className="text-red-500">*</span></Label>
+                                             <Select 
+                                                 disabled={!isEditing} 
+                                                 value=""
+                                                 onValueChange={(val) => {
+                                                     const current = formData.serviceAreas || [];
+                                                     if (current.includes(val)) {
+                                                         setFormData({...formData, serviceAreas: current.filter(s => s !== val)});
+                                                     } else {
+                                                         setFormData({...formData, serviceAreas: [...current, val]});
+                                                     }
+                                                 }}
+                                             >
+                                                 <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                                                     <SelectValue placeholder="Select service areas..." />
+                                                 </SelectTrigger>
+                                                 <SelectContent>
+                                                     {serviceAreaConfigs.map(area => (
+                                                         <SelectItem key={area.id} value={area.name}>
+                                                             <div className="flex items-center gap-2">
+                                                                 {formData.serviceAreas?.includes(area.name) && <CheckCircle className="h-4 w-4 text-blue-600" />}
+                                                                 {area.name}
+                                                             </div>
+                                                         </SelectItem>
+                                                     ))}
+                                                 </SelectContent>
+                                             </Select>
+                                             
+                                             <div className="flex flex-wrap gap-2 min-h-[40px] content-start bg-blue-50/30 p-3 rounded-lg border border-blue-100/50">
+                                                 {formData.serviceAreas?.map(area => (
+                                                     <Badge key={area} variant="secondary" className="bg-white text-blue-700 border border-blue-100 py-1.5 px-3 gap-2 font-medium shadow-sm">
+                                                         <MapPin className="h-3 w-3 text-blue-500" />
+                                                         {area}
+                                                         {isEditing && (
+                                                             <X 
+                                                                 className="h-3.5 w-3.5 text-blue-400 hover:text-red-500 cursor-pointer" 
+                                                                 onClick={() => formData && setFormData({...formData, serviceAreas: formData.serviceAreas?.filter(s => s !== area)})}
+                                                             />
+                                                         )}
+                                                     </Badge>
+                                                 ))}
+                                                 {(!formData.serviceAreas || formData.serviceAreas.length === 0) && (
+                                                     <span className="text-sm text-gray-400 italic pt-1 text-red-400">Please select at least one area.</span>
+                                                 )}
+                                             </div>
+                                         </div>
+                                     )}
+                                 </div>
+                             </div>
+
+                             {/* Section: Logistics & Transport (Advanced) */}
+                             <div className="space-y-6 pt-4">
+                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                                     <div className="h-8 w-8 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center">
+                                        <Truck className="h-4 w-4" />
+                                     </div>
+                                     <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Logistics</h3>
+                                        <p className="text-xs text-gray-500">Transportation and commute arrangements.</p>
+                                     </div>
+                                 </div>
+
+                                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                     {/* Transport Type Selection */}
+                                     <div className="md:col-span-2 space-y-1.5">
+                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Type <span className="text-red-500">*</span></Label>
+                                         <Select 
+                                             disabled={!isEditing} 
+                                             value={formData.transportationType} 
+                                             onValueChange={v => {
+                                                 // Reset child fields on change
+                                                 setFormData({
+                                                     ...formData, 
+                                                     transportationType: v,
+                                                     assignedVehicle: "",
+                                                     vehicleType: "",
+                                                     plateNumber: "",
+                                                     primaryTransport: "",
+                                                     transportVaries: false
+                                                 })
+                                             }}
+                                         >
+                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm font-medium">
+                                                 <SelectValue placeholder="Select Method" />
+                                             </SelectTrigger>
+                                             <SelectContent>
+                                                 {transportationConfigs.map(t => (
+                                                     <SelectItem key={t.id} value={t.name}>
+                                                         <div className="flex flex-col items-start py-0.5">
+                                                             <span className="font-medium">{t.name}</span>
+                                                             {t.description && <span className="text-[10px] text-gray-500">{t.description}</span>}
+                                                         </div>
+                                                     </SelectItem>
+                                                 ))}
+                                             </SelectContent>
+                                         </Select>
+                                     </div>
+
+                                     {/* CONDITIONAL FIELDS RENDERING */}
+                                     {(() => {
+                                         const selectedConfig = transportationConfigs.find(c => c.name === formData.transportationType);
+                                         const category = selectedConfig?.category || "company_driver"; // Default fallback
+
+                                         // LOGIC BLOCKS
+                                         // 1. Company Driver (Transported by company)
+                                         if (category === "company_driver") {
+                                             return (
+                                                <div className="md:col-span-2 pt-2 animate-in fade-in">
+                                                    <p className="text-xs text-gray-500 italic flex items-center gap-2">
+                                                        <CheckCircle className="h-3 w-3 text-green-500" />
+                                                        Staff will be transported by company driver/route. No vehicle assignment required.
+                                                    </p>
+                                                </div>
+                                             );
+                                         }
+
+                                         // 2. Company Vehicle (Staff Drives) - REQUIRED
+                                         if (category === "company_vehicle") {
+                                             return (
+                                                 <div className="md:col-span-2 animate-in fade-in slide-in-from-top-1 space-y-4 pt-2">
+                                                     <div className="space-y-1.5">
+                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Assigned Vehicle <span className="text-red-500">*</span></Label>
+                                                         <Select 
+                                                             disabled={!isEditing} 
+                                                             value={formData.assignedVehicle} 
+                                                             onValueChange={v => setFormData({...formData, assignedVehicle: v})}
+                                                         >
+                                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 text-sm"><SelectValue placeholder="Select Vehicle Asset" /></SelectTrigger>
+                                                             <SelectContent>
+                                                                 {MOCK_COMPANY_VEHICLES.map(v => (
+                                                                     <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                                                                 ))}
+                                                             </SelectContent>
+                                                         </Select>
+                                                     </div>
+                                                     <div className="space-y-1.5">
+                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Notes (Optional)</Label>
+                                                         <Input 
+                                                             disabled={!isEditing}
+                                                             className="h-10 bg-white border-gray-200"
+                                                             placeholder="e.g. Fuel card number..."
+                                                         />
+                                                     </div>
+                                                 </div>
+                                             );
+                                         }
+
+                                         // 3. Self Vehicle (Own Transport) - ALL OPTIONAL
+                                         if (category === "self_vehicle") {
+                                             return (
+                                                 <div className="md:col-span-2 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 pt-2">
+                                                     <div className="space-y-1.5">
+                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle Type</Label>
+                                                         <Select 
+                                                             disabled={!isEditing} 
+                                                             value={formData.vehicleType} 
+                                                             onValueChange={v => setFormData({...formData, vehicleType: v})}
+                                                         >
+                                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 text-sm"><SelectValue placeholder="Car / Bike / Van" /></SelectTrigger>
+                                                             <SelectContent>
+                                                                 <SelectItem value="Sedan Car">Sedan Car</SelectItem>
+                                                                 <SelectItem value="SUV">SUV</SelectItem>
+                                                                 <SelectItem value="Motorbike">Motorbike</SelectItem>
+                                                                 <SelectItem value="Van">Van</SelectItem>
+                                                             </SelectContent>
+                                                         </Select>
+                                                     </div>
+                                                     <div className="space-y-1.5">
+                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Plate Number (Optional)</Label>
+                                                         <Input 
+                                                             disabled={!isEditing} 
+                                                             value={formData.plateNumber} 
+                                                             onChange={e => setFormData({...formData, plateNumber: e.target.value})}
+                                                             placeholder="e.g. 123456"
+                                                             className="h-11 bg-white border-gray-200"
+                                                         />
+                                                     </div>
+                                                 </div>
+                                             );
+                                         }
+
+                                         // 4. Public Transport
+                                         if (category === "public") {
+                                             return (
+                                                  <div className="md:col-span-2 pt-2 animate-in fade-in">
+                                                     <p className="text-xs text-gray-500 italic flex items-center gap-2">
+                                                         <AlertCircle className="h-3 w-3" />
+                                                         Staff uses taxi/uber/public transport. Service radius may be limited.
+                                                     </p>
+                                                  </div>
+                                             );
+                                         }
+
+                                         // 5. Hybrid / Flexible
+                                         if (category === "hybrid") {
+                                             return (
+                                                 <div className="md:col-span-2 space-y-4 pt-2 bg-white/50 rounded-lg border border-indigo-100 p-4 animate-in fade-in">
+                                                     
+                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                                                         <div className="space-y-1.5">
+                                                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Primary Mode</Label>
+                                                             <Select 
+                                                                 disabled={!isEditing} 
+                                                                 value={formData.primaryTransport} 
+                                                                 onValueChange={v => setFormData({...formData, primaryTransport: v})}
+                                                             >
+                                                                 <SelectTrigger className="bg-white w-full h-11 border-gray-200 text-sm"><SelectValue placeholder="Select Primary Mode" /></SelectTrigger>
+                                                                 <SelectContent>
+                                                                     <SelectItem value="Company Vehicle">Company Vehicle</SelectItem>
+                                                                     <SelectItem value="Self Vehicle">Self Vehicle</SelectItem>
+                                                                     <SelectItem value="Public Transport">Public Transport</SelectItem>
+                                                                 </SelectContent>
+                                                             </Select>
+                                                         </div>
+                                                         
+                                                         <div className="flex items-center gap-2 pb-3">
+                                                             <Switch 
+                                                                 checked={formData.transportVaries}
+                                                                 onCheckedChange={(c: boolean) => setFormData({...formData, transportVaries: c})}
+                                                             />
+                                                             <span className="text-sm text-gray-600 font-medium">Varies by shift/day</span>
+                                                         </div>
+                                                     </div>
+                                                     
+                                                     {/* Nested Logic for Hybrid Primary */}
+                                                     {formData.primaryTransport === "Company Vehicle" && (
+                                                         <div className="space-y-1.5 animate-in fade-in pt-2 border-t border-indigo-100 mt-2">
+                                                              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Assigned Vehicle <span className="text-red-500">*</span></Label>
+                                                              <Select value={formData.assignedVehicle} onValueChange={v => setFormData({...formData, assignedVehicle: v})}>
+                                                                 <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Assign Asset" /></SelectTrigger>
+                                                                 <SelectContent>
+                                                                     {MOCK_COMPANY_VEHICLES.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                                                                 </SelectContent>
+                                                              </Select>
+                                                         </div>
+                                                     )}
+                                                     {formData.primaryTransport === "Self Vehicle" && (
+                                                         <div className="space-y-1.5 animate-in fade-in pt-2 border-t border-indigo-100 mt-2">
+                                                              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle Info (Optional)</Label>
+                                                              <div className="grid grid-cols-2 gap-2">
+                                                                  <Select value={formData.vehicleType} onValueChange={v => setFormData({...formData, vehicleType: v})}>
+                                                                    <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Type" /></SelectTrigger>
+                                                                    <SelectContent>
+                                                                        <SelectItem value="Sedan Car">Sedan Car</SelectItem>
+                                                                        <SelectItem value="SUV">SUV</SelectItem>
+                                                                        <SelectItem value="Motorbike">Motorbike</SelectItem>
+                                                                        <SelectItem value="Van">Van</SelectItem>
+                                                                    </SelectContent>
+                                                                  </Select>
+                                                                  <Input placeholder="Plate #" value={formData.plateNumber} onChange={e => setFormData({...formData, plateNumber: e.target.value})} className="h-10 bg-white" />
+                                                              </div>
+                                                         </div>
+                                                     )}
+                                                 </div>
+                                             );
+                                         }
+
+                                         // Fallback
+                                         return null;
+
+                                     })()}
+                                 </div>
+                             </div>
+
                              {/* Section: Personal Background */}
                              <div className="space-y-6 pt-4">
                                  <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
@@ -1169,17 +1640,25 @@ export default function PendingInviteDetails() {
                                         <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center"><Briefcase className="h-4 w-4"/></div>
                                         <span className="font-bold text-sm text-gray-900">Operations</span>
                                     </div>
-                                   <div className="space-y-3 text-sm">
-                                        <div className="flex justify-between"><span className="text-gray-500">Department</span> <span className="font-medium text-gray-900">{formData.department}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">Type</span> <span className="font-medium text-gray-900">{formData.employmentType}</span></div>
-                                        <div>
-                                            <span className="text-gray-500 block mb-1">Languages</span>
-                                            <div className="flex flex-wrap gap-1">
-                                                {formData.languages?.map(l => <Badge key={l} variant="outline" className="text-xs bg-gray-50">{l}</Badge>)}
-                                                {(!formData.languages?.length) && <span className="text-gray-400 italic">None</span>}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <div className="space-y-3 text-sm">
+                                         <div className="flex justify-between"><span className="text-gray-500">Department</span> <span className="font-medium text-gray-900">{formData.department}</span></div>
+                                         <div className="flex justify-between"><span className="text-gray-500">Type</span> <span className="font-medium text-gray-900">{formData.employmentType}</span></div>
+                                         <div className="flex justify-between"><span className="text-gray-500">Transport</span> <span className="font-medium text-gray-900">{formData.transportationType}</span></div>
+                                         <div>
+                                             <span className="text-gray-500 block mb-1">Service Areas</span>
+                                             <div className="flex flex-wrap gap-1">
+                                                {formData.serviceAreas?.map((area: string) => <Badge key={area} variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100">{area}</Badge>)}
+                                                {(!formData.serviceAreas?.length) && <span className="text-gray-400 italic">None</span>}
+                                             </div>
+                                         </div>
+                                         <div>
+                                             <span className="text-gray-500 block mb-1">Languages</span>
+                                             <div className="flex flex-wrap gap-1">
+                                                 {formData.languages?.map((l: string) => <Badge key={l} variant="outline" className="text-xs bg-gray-50">{l}</Badge>)}
+                                                 {(!formData.languages?.length) && <span className="text-gray-400 italic">None</span>}
+                                             </div>
+                                         </div>
+                                     </div>
                                 </div>
                                 
                                 {/* COMPENSATION CARD */}
@@ -1365,6 +1844,70 @@ export default function PendingInviteDetails() {
             </div>
         </div>
       )}
+
+        <Dialog open={isBasicInfoOpen} onOpenChange={setIsBasicInfoOpen}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Edit Basic Information</DialogTitle>
+                </DialogHeader>
+                {basicInfoForm && (
+                <div className="space-y-4 py-4">
+                     {/* Photo Upload */}
+                     <div className="flex flex-col items-center justify-center gap-3">
+                        <div className="relative">
+                            <Avatar className="h-24 w-24">
+                                <AvatarImage src={basicInfoForm.avatar} />
+                                <AvatarFallback>{basicInfoForm.nickname?.substring(0,2) || "NA"}</AvatarFallback>
+                            </Avatar>
+                             <label className="absolute bottom-0 right-0 bg-white rounded-full p-1.5 shadow-sm border border-gray-200 cursor-pointer hover:bg-gray-50">
+                                <Upload className="h-3 w-3 text-gray-500" />
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if(file){
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => setBasicInfoForm({...basicInfoForm, avatar: reader.result as string});
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}/>
+                            </label>
+                        </div>
+                        <span className="text-xs text-center text-gray-500">Tap icon to change photo</span>
+                     </div>
+                     
+                     <div className="space-y-3 pt-2">
+                        <div className="space-y-1">
+                            <Label className="text-xs text-gray-500 uppercase">Nickname</Label>
+                            <Input value={basicInfoForm.nickname} onChange={e => setBasicInfoForm({...basicInfoForm, nickname: e.target.value})} />
+                        </div>
+                        <div className="space-y-1">
+                            <Label className="text-xs text-gray-500 uppercase">Gender</Label>
+                            <Select value={basicInfoForm.gender} onValueChange={v => setBasicInfoForm({...basicInfoForm, gender: v as any})}>
+                                <SelectTrigger><SelectValue /></SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Male">Male</SelectItem>
+                                    <SelectItem value="Female">Female</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                             <div className="space-y-1">
+                                <Label className="text-xs text-gray-500 uppercase">Mobile</Label>
+                                <Input value={basicInfoForm.mobile} onChange={e => setBasicInfoForm({...basicInfoForm, mobile: e.target.value})} />
+                            </div>
+                            <div className="space-y-1">
+                                <Label className="text-xs text-gray-500 uppercase">Email</Label>
+                                <Input value={basicInfoForm.email} onChange={e => setBasicInfoForm({...basicInfoForm, email: e.target.value})} />
+                            </div>
+                        </div>
+                     </div>
+                </div>
+                )}
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsBasicInfoOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSaveBasicInfo}>Save Changes</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </DashboardLayout>
   );
 }

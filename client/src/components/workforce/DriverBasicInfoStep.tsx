@@ -11,16 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WorkforceMemberData } from "@/pages/AddWorkforceMember";
-
-interface BasicInfoStepProps {
-  data: WorkforceMemberData;
-  onUpdate: (data: Partial<WorkforceMemberData>) => void;
-  onNext: () => void;
-  onBack: () => void;
-  isLastStep?: boolean;
-  isLoading?: boolean;
-}
-
 import { 
   UNIFORM_INPUT_CLASSES, 
   UNIFORM_SELECT_TRIGGER_CLASSES, 
@@ -28,8 +18,17 @@ import {
   UNIFORM_SELECT_ITEM_CLASSES 
 } from "@/components/workforce/form-styles";
 
-export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastStep, isLoading }: BasicInfoStepProps) {
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+interface DriverBasicInfoStepProps {
+  data: WorkforceMemberData;
+  onUpdate: (data: Partial<WorkforceMemberData>) => void;
+  onNext: () => void;
+  onBack: () => void;
+  isLastStep?: boolean; // Added like BasicInfoStep
+  isLoading?: boolean; // Added like BasicInfoStep
+}
+
+export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, isLastStep, isLoading }: DriverBasicInfoStepProps) {
+  const [photoPreview, setPhotoPreview] = useState<string | null>(data.photoUrl || null);
 
   const handleChange = (field: keyof WorkforceMemberData, value: string) => {
     onUpdate({ [field]: value });
@@ -62,15 +61,15 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <User className="h-5 w-5 text-gray-600" />
-          <h2 className="text-xl font-semibold text-gray-900">Personal Information</h2>
+          <h2 className="text-xl font-semibold text-gray-900">Driver Details</h2>
         </div>
-        <p className="text-gray-600">Review and complete the auto-filled information from QID</p>
+        <p className="text-gray-600">Review personal info and complete the draft profile.</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Staff Photo Upload */}
         <div>
-          <Label className="text-sm font-medium text-gray-700">Staff Photo</Label>
+          <Label className="text-sm font-medium text-gray-700">Driver Photo</Label>
           <p className="text-xs text-gray-500 mt-1 mb-3">Upload a professional photo (JPG, PNG, Max 5MB)</p>
           
           {!photoPreview ? (
@@ -88,7 +87,7 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
             <div className="relative inline-block">
               <img
                 src={photoPreview}
-                alt="Staff photo preview"
+                alt="Driver photo preview"
                 className="w-24 h-24 rounded-lg object-cover border border-gray-300"
               />
               <button
@@ -111,18 +110,18 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
               <Label className="text-sm font-medium text-gray-700">
                 Full Name <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from QID</p>
+              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License/QID</p>
               <Input
                 type="text"
                 value={data.fullName || ""}
                 onChange={(e) => handleChange("fullName", e.target.value)}
                 className={`${UNIFORM_INPUT_CLASSES} bg-gray-50`}
-                disabled
+                readOnly
               />
             </div>
             <div>
               <Label htmlFor="nickname" className="text-sm font-medium text-gray-700">Nickname</Label>
-              <div className="h-6"></div> {/* Spacer to align with Full Name */}
+              <div className="h-6"></div>
               <Input
                 id="nickname"
                 type="text"
@@ -140,60 +139,47 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
               <Label className="text-sm font-medium text-gray-700">
                 QID Number <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from QID</p>
+              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License</p>
               <Input
                 type="text"
                 value={data.qidNumber || ""}
-                onChange={(e) => handleChange("qidNumber", e.target.value)}
                 className={`${UNIFORM_INPUT_CLASSES} bg-gray-50`}
-                disabled
+                readOnly
               />
             </div>
             <div>
               <Label className="text-sm font-medium text-gray-700">
                 Date of Birth <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from QID</p>
+              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License</p>
               <Input
-                type="date"
-                value={data.dateOfBirth ? new Date(data.dateOfBirth.split('/').reverse().join('-')).toISOString().split('T')[0] : ""}
-                onChange={(e) => handleChange("dateOfBirth", e.target.value)}
+                type="text"
+                value={data.dateOfBirth || ""}
                 className={`${UNIFORM_INPUT_CLASSES} bg-gray-50`}
-                disabled
+                readOnly
               />
             </div>
           </div>
 
-          {/* Row 3: Nationality & Gender */}
-          <div className="grid grid-cols-2 gap-6 mb-4">
+           {/* Row 3: Nationality & Gender */}
+           <div className="grid grid-cols-2 gap-6 mb-4">
             <div>
               <Label className="text-sm font-medium text-gray-700">
                 Nationality <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from QID</p>
-              <Select
+               <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License</p>
+               <Input
+                type="text"
                 value={data.nationality || ""}
-                onValueChange={(value) => handleChange("nationality", value)}
-                disabled
-              >
-                <SelectTrigger className={`${UNIFORM_SELECT_TRIGGER_CLASSES} bg-gray-50`}>
-                  <SelectValue placeholder="Select nationality" />
-                </SelectTrigger>
-                <SelectContent className={UNIFORM_SELECT_CONTENT_CLASSES}>
-                  <SelectItem value="India" className={UNIFORM_SELECT_ITEM_CLASSES}>India</SelectItem>
-                  <SelectItem value="Pakistan" className={UNIFORM_SELECT_ITEM_CLASSES}>Pakistan</SelectItem>
-                  <SelectItem value="Bangladesh" className={UNIFORM_SELECT_ITEM_CLASSES}>Bangladesh</SelectItem>
-                  <SelectItem value="Philippines" className={UNIFORM_SELECT_ITEM_CLASSES}>Philippines</SelectItem>
-                  <SelectItem value="Nepal" className={UNIFORM_SELECT_ITEM_CLASSES}>Nepal</SelectItem>
-                  <SelectItem value="Sri Lanka" className={UNIFORM_SELECT_ITEM_CLASSES}>Sri Lanka</SelectItem>
-                </SelectContent>
-              </Select>
+                className={`${UNIFORM_INPUT_CLASSES} bg-gray-50`}
+                readOnly
+              />
             </div>
             <div>
               <Label htmlFor="gender" className="text-sm font-medium text-gray-700">
                 Gender <span className="text-red-500">*</span>
               </Label>
-              <div className="h-6"></div> {/* Spacer to align with Nationality */}
+              <div className="h-6"></div>
               <Select
                 value={data.gender || ""}
                 onValueChange={(value) => handleChange("gender", value)}
@@ -209,7 +195,7 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
             </div>
           </div>
 
-          {/* Row 4: Mobile Number */}
+          {/* Row 4: Mobile Number & Email */}
           <div className="grid grid-cols-2 gap-6 mb-4">
             <div>
               <Label htmlFor="mobileNumber" className="text-sm font-medium text-gray-700">
@@ -241,6 +227,7 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
             </div>
           </div>
         </div>
+
       </div>
 
       {/* Navigation */}
@@ -253,7 +240,7 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
           disabled={!canContinue || isLoading}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          {isLoading ? 'Creating Status...' : isLastStep ? 'Create Draft Profile' : 'Continue to Employment'}
+          {isLoading ? 'Processing...' : 'Create Draft Profile'}
         </Button>
       </div>
     </div>
