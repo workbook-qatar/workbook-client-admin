@@ -22,6 +22,7 @@ export interface Organization {
   createdAt: string;
   edition: string; // e.g., "Premium Trial", "Zoho One" equivalent
   location: string;
+  industry?: string; 
 }
 
 interface OrganizationContextType {

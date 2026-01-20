@@ -62,7 +62,7 @@ const navigationItems = [
 ];
 
 export default function DashboardLayout({ children, rightPanel }: DashboardLayoutProps) {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(!!rightPanel);
 
@@ -179,7 +179,7 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
                 <Settings className="mr-2 h-4 w-4" />
                 Profile Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive">
+              <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => setLocation("/login")}>
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>

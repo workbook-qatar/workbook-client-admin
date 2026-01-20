@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { 
   ArrowLeft, CheckCircle, ShieldCheck, Mail, Phone, Calendar, 
-  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck 
+  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck, Car, Bus, Layers 
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -1141,205 +1141,233 @@ export default function PendingInviteDetails() {
                                      </div>
                                  </div>
 
-                                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                     {/* Transport Type Selection */}
-                                     <div className="md:col-span-2 space-y-1.5">
-                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Type <span className="text-red-500">*</span></Label>
-                                         <Select 
-                                             disabled={!isEditing} 
-                                             value={formData.transportationType} 
-                                             onValueChange={v => {
-                                                 // Reset child fields on change
-                                                 setFormData({
-                                                     ...formData, 
-                                                     transportationType: v,
-                                                     assignedVehicle: "",
-                                                     vehicleType: "",
-                                                     plateNumber: "",
-                                                     primaryTransport: "",
-                                                     transportVaries: false
-                                                 })
-                                             }}
-                                         >
-                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm font-medium">
-                                                 <SelectValue placeholder="Select Method" />
-                                             </SelectTrigger>
-                                             <SelectContent>
-                                                 {transportationConfigs.map(t => (
-                                                     <SelectItem key={t.id} value={t.name}>
-                                                         <div className="flex flex-col items-start py-0.5">
-                                                             <span className="font-medium">{t.name}</span>
-                                                             {t.description && <span className="text-[10px] text-gray-500">{t.description}</span>}
-                                                         </div>
-                                                     </SelectItem>
-                                                 ))}
-                                             </SelectContent>
-                                         </Select>
+                                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-6">
+                                     <div className="space-y-1.5">
+                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Mode <span className="text-red-500">*</span></Label>
+                                         <div className="flex flex-wrap gap-2">
+                                             {transportationConfigs.map(t => {
+                                                 const isActive = formData.transportationType === t.name;
+                                                 let Icon = Layers;
+                                                 let shortLabel = t.name;
+
+                                                 // Mapping for Icon & Short Label
+                                                 if (t.category === 'company_driver') { Icon = Truck; shortLabel = "Company Bus/Driver"; }
+                                                 else if (t.category === 'company_vehicle') { Icon = Car; shortLabel = "Company Vehicle"; }
+                                                 else if (t.category === 'self_vehicle') { Icon = Car; shortLabel = "Personal Vehicle"; }
+                                                 else if (t.category === 'public') { Icon = Bus; shortLabel = "Public Transport"; }
+                                                 else if (t.category === 'hybrid') { Icon = Layers; shortLabel = "Hybrid / Flexible"; }
+
+                                                 return (
+                                                     <div 
+                                                         key={t.id}
+                                                         onClick={() => {
+                                                             if (!isEditing) return;
+                                                             setFormData({
+                                                                 ...formData, 
+                                                                 transportationType: t.name,
+                                                                 assignedVehicle: "",
+                                                                 vehicleType: "",
+                                                                 plateNumber: "",
+                                                                 primaryTransport: "",
+                                                                 transportVaries: false
+                                                             });
+                                                         }}
+                                                         className={`
+                                                             flex-1 min-w-[100px] flex flex-col items-center justify-center p-2 h-20 rounded-lg border cursor-pointer transition-all select-none
+                                                             ${isActive 
+                                                                 ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
+                                                                 : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50/50'}
+                                                         `}
+                                                     >
+                                                         <Icon className={`h-5 w-5 mb-1.5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
+                                                         <span className="text-[10px] font-bold text-center leading-tight">{shortLabel}</span>
+                                                     </div>
+                                                 );
+                                             })}
+                                         </div>
                                      </div>
 
-                                     {/* CONDITIONAL FIELDS RENDERING */}
-                                     {(() => {
-                                         const selectedConfig = transportationConfigs.find(c => c.name === formData.transportationType);
-                                         const category = selectedConfig?.category || "company_driver"; // Default fallback
+                                     {/* SMART FORM REVEAL AREA */}
+                                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                                         {(() => {
+                                             if (!formData.transportationType) return null;
+                                             
+                                             const selectedConfig = transportationConfigs.find(c => c.name === formData.transportationType);
+                                             const category = selectedConfig?.category || "company_driver";
 
-                                         // LOGIC BLOCKS
-                                         // 1. Company Driver (Transported by company)
-                                         if (category === "company_driver") {
-                                             return (
-                                                <div className="md:col-span-2 pt-2 animate-in fade-in">
-                                                    <p className="text-xs text-gray-500 italic flex items-center gap-2">
-                                                        <CheckCircle className="h-3 w-3 text-green-500" />
-                                                        Staff will be transported by company driver/route. No vehicle assignment required.
-                                                    </p>
-                                                </div>
-                                             );
-                                         }
-
-                                         // 2. Company Vehicle (Staff Drives) - REQUIRED
-                                         if (category === "company_vehicle") {
-                                             return (
-                                                 <div className="md:col-span-2 animate-in fade-in slide-in-from-top-1 space-y-4 pt-2">
-                                                     <div className="space-y-1.5">
-                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Assigned Vehicle <span className="text-red-500">*</span></Label>
-                                                         <Select 
-                                                             disabled={!isEditing} 
-                                                             value={formData.assignedVehicle} 
-                                                             onValueChange={v => setFormData({...formData, assignedVehicle: v})}
-                                                         >
-                                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 text-sm"><SelectValue placeholder="Select Vehicle Asset" /></SelectTrigger>
-                                                             <SelectContent>
-                                                                 {MOCK_COMPANY_VEHICLES.map(v => (
-                                                                     <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
-                                                                 ))}
-                                                             </SelectContent>
-                                                         </Select>
+                                             // 1. Company Driver
+                                             if (category === "company_driver") {
+                                                 return (
+                                                     <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-4 flex items-center gap-3">
+                                                         <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
+                                                         <p className="text-sm text-blue-800">
+                                                             <span className="font-semibold">All set!</span> Staff will be added to the company routing pool. No further vehicle assignment is required.
+                                                         </p>
                                                      </div>
-                                                     <div className="space-y-1.5">
-                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Notes (Optional)</Label>
-                                                         <Input 
-                                                             disabled={!isEditing}
-                                                             className="h-10 bg-white border-gray-200"
-                                                             placeholder="e.g. Fuel card number..."
-                                                         />
-                                                     </div>
-                                                 </div>
-                                             );
-                                         }
+                                                 );
+                                             }
 
-                                         // 3. Self Vehicle (Own Transport) - ALL OPTIONAL
-                                         if (category === "self_vehicle") {
-                                             return (
-                                                 <div className="md:col-span-2 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-1 pt-2">
-                                                     <div className="space-y-1.5">
-                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle Type</Label>
-                                                         <Select 
-                                                             disabled={!isEditing} 
-                                                             value={formData.vehicleType} 
-                                                             onValueChange={v => setFormData({...formData, vehicleType: v})}
-                                                         >
-                                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 text-sm"><SelectValue placeholder="Car / Bike / Van" /></SelectTrigger>
-                                                             <SelectContent>
-                                                                 <SelectItem value="Sedan Car">Sedan Car</SelectItem>
-                                                                 <SelectItem value="SUV">SUV</SelectItem>
-                                                                 <SelectItem value="Motorbike">Motorbike</SelectItem>
-                                                                 <SelectItem value="Van">Van</SelectItem>
-                                                             </SelectContent>
-                                                         </Select>
-                                                     </div>
-                                                     <div className="space-y-1.5">
-                                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Plate Number (Optional)</Label>
-                                                         <Input 
-                                                             disabled={!isEditing} 
-                                                             value={formData.plateNumber} 
-                                                             onChange={e => setFormData({...formData, plateNumber: e.target.value})}
-                                                             placeholder="e.g. 123456"
-                                                             className="h-11 bg-white border-gray-200"
-                                                         />
-                                                     </div>
-                                                 </div>
-                                             );
-                                         }
-
-                                         // 4. Public Transport
-                                         if (category === "public") {
-                                             return (
-                                                  <div className="md:col-span-2 pt-2 animate-in fade-in">
-                                                     <p className="text-xs text-gray-500 italic flex items-center gap-2">
-                                                         <AlertCircle className="h-3 w-3" />
-                                                         Staff uses taxi/uber/public transport. Service radius may be limited.
-                                                     </p>
-                                                  </div>
-                                             );
-                                         }
-
-                                         // 5. Hybrid / Flexible
-                                         if (category === "hybrid") {
-                                             return (
-                                                 <div className="md:col-span-2 space-y-4 pt-2 bg-white/50 rounded-lg border border-indigo-100 p-4 animate-in fade-in">
-                                                     
-                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                                                         <div className="space-y-1.5">
-                                                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Primary Mode</Label>
-                                                             <Select 
-                                                                 disabled={!isEditing} 
-                                                                 value={formData.primaryTransport} 
-                                                                 onValueChange={v => setFormData({...formData, primaryTransport: v})}
-                                                             >
-                                                                 <SelectTrigger className="bg-white w-full h-11 border-gray-200 text-sm"><SelectValue placeholder="Select Primary Mode" /></SelectTrigger>
-                                                                 <SelectContent>
-                                                                     <SelectItem value="Company Vehicle">Company Vehicle</SelectItem>
-                                                                     <SelectItem value="Self Vehicle">Self Vehicle</SelectItem>
-                                                                     <SelectItem value="Public Transport">Public Transport</SelectItem>
-                                                                 </SelectContent>
-                                                             </Select>
+                                             // 2. Company Vehicle
+                                             if (category === "company_vehicle") {
+                                                 return (
+                                                     <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-4 shadow-sm">
+                                                         <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
+                                                             <Car className="h-4 w-4 text-blue-500" />
+                                                             Vehicle Asset Assignment
+                                                         </h4>
+                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Select Vehicle <span className="text-red-500">*</span></Label>
+                                                                 <Select 
+                                                                     disabled={!isEditing} 
+                                                                     value={formData.assignedVehicle} 
+                                                                     onValueChange={v => setFormData({...formData, assignedVehicle: v})}
+                                                                 >
+                                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 text-sm"><SelectValue placeholder="Search Asset..." /></SelectTrigger>
+                                                                     <SelectContent>
+                                                                         {MOCK_COMPANY_VEHICLES.map(v => (
+                                                                             <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
+                                                                         ))}
+                                                                     </SelectContent>
+                                                                 </Select>
+                                                             </div>
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Fuel/Notes</Label>
+                                                                 <Input 
+                                                                     disabled={!isEditing}
+                                                                     className="h-10 bg-white border-gray-200"
+                                                                     placeholder="e.g. Fuel card #1234"
+                                                                 />
+                                                             </div>
                                                          </div>
+                                                     </div>
+                                                 );
+                                             }
+
+                                             // 3. Self Vehicle
+                                             if (category === "self_vehicle") {
+                                                 return (
+                                                     <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-4 shadow-sm">
+                                                         <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
+                                                             <User className="h-4 w-4 text-orange-500" />
+                                                             Personal Vehicle Details
+                                                         </h4>
+                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle Type</Label>
+                                                                 <Select 
+                                                                     disabled={!isEditing} 
+                                                                     value={formData.vehicleType} 
+                                                                     onValueChange={v => setFormData({...formData, vehicleType: v})}
+                                                                 >
+                                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 text-sm"><SelectValue placeholder="Select Type" /></SelectTrigger>
+                                                                     <SelectContent>
+                                                                         {["Sedan Car", "SUV", "Motorbike", "Van"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                                                     </SelectContent>
+                                                                 </Select>
+                                                             </div>
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Plate Number</Label>
+                                                                 <Input 
+                                                                     disabled={!isEditing} 
+                                                                     value={formData.plateNumber} 
+                                                                     onChange={e => setFormData({...formData, plateNumber: e.target.value})}
+                                                                     placeholder="e.g. 123-XYZ"
+                                                                     className="h-10 bg-white border-gray-200"
+                                                                 />
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 );
+                                             }
+
+                                             // 4. Public Transport
+                                             if (category === "public") {
+                                                 return (
+                                                     <div className="bg-yellow-50/50 border border-yellow-100 rounded-lg p-4 flex items-center gap-3">
+                                                         <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
+                                                         <p className="text-sm text-yellow-800">
+                                                             <span className="font-semibold">Note:</span> Staff relies on public transport. Ensure service radius assignments account for potential travel limitations.
+                                                         </p>
+                                                     </div>
+                                                 );
+                                             }
+
+                                             // 5. Hybrid
+                                             if (category === "hybrid") {
+                                                 return (
+                                                     <div className="bg-white rounded-lg border border-indigo-100 p-5 space-y-4 shadow-sm relative overflow-hidden">
+                                                         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-indigo-100 to-transparent rounded-bl-full opacity-50"></div>
+                                                         <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
+                                                             <Layers className="h-4 w-4 text-indigo-500" />
+                                                             Hybrid Arrangement
+                                                         </h4>
                                                          
-                                                         <div className="flex items-center gap-2 pb-3">
-                                                             <Switch 
-                                                                 checked={formData.transportVaries}
-                                                                 onCheckedChange={(c: boolean) => setFormData({...formData, transportVaries: c})}
-                                                             />
-                                                             <span className="text-sm text-gray-600 font-medium">Varies by shift/day</span>
+                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Primary Mode</Label>
+                                                                 <Select 
+                                                                     disabled={!isEditing} 
+                                                                     value={formData.primaryTransport} 
+                                                                     onValueChange={v => setFormData({...formData, primaryTransport: v})}
+                                                                 >
+                                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 text-sm"><SelectValue placeholder="Select Primary Mode" /></SelectTrigger>
+                                                                     <SelectContent>
+                                                                         <SelectItem value="Company Vehicle">Company Vehicle</SelectItem>
+                                                                         <SelectItem value="Self Vehicle">Self Vehicle</SelectItem>
+                                                                         <SelectItem value="Public Transport">Public Transport</SelectItem>
+                                                                     </SelectContent>
+                                                                 </Select>
+                                                             </div>
+                                                             
+                                                             <div className="flex items-center gap-2 pb-2">
+                                                                 <Switch 
+                                                                     checked={formData.transportVaries}
+                                                                     onCheckedChange={(c: boolean) => setFormData({...formData, transportVaries: c})}
+                                                                 />
+                                                                 <span className="text-sm text-gray-600 font-medium">Varies by shift/day</span>
+                                                             </div>
                                                          </div>
+
+                                                         {/* Nested Hybrid Fields */}
+                                                         {formData.primaryTransport === "Company Vehicle" && (
+                                                             <div className="pt-3 border-t border-dashed border-gray-200 animate-in fade-in">
+                                                                 <div className="space-y-1.5">
+                                                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Assigned Asset</Label>
+                                                                     <Select value={formData.assignedVehicle} onValueChange={v => setFormData({...formData, assignedVehicle: v})}>
+                                                                        <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Search Asset..." /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {MOCK_COMPANY_VEHICLES.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                     </Select>
+                                                                 </div>
+                                                             </div>
+                                                         )}
+                                                          {formData.primaryTransport === "Self Vehicle" && (
+                                                             <div className="pt-3 border-t border-dashed border-gray-200 animate-in fade-in grid grid-cols-2 gap-4">
+                                                                 <div className="space-y-1.5">
+                                                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Type</Label>
+                                                                     <Select value={formData.vehicleType} onValueChange={v => setFormData({...formData, vehicleType: v})}>
+                                                                        <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Select" /></SelectTrigger>
+                                                                        <SelectContent>
+                                                                            {["Sedan", "SUV", "Bike"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                                                                        </SelectContent>
+                                                                     </Select>
+                                                                 </div>
+                                                                 <div className="space-y-1.5">
+                                                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Plate #</Label>
+                                                                     <Input value={formData.plateNumber} onChange={e => setFormData({...formData, plateNumber: e.target.value})} className="h-10 bg-white" />
+                                                                 </div>
+                                                             </div>
+                                                         )}
+
                                                      </div>
-                                                     
-                                                     {/* Nested Logic for Hybrid Primary */}
-                                                     {formData.primaryTransport === "Company Vehicle" && (
-                                                         <div className="space-y-1.5 animate-in fade-in pt-2 border-t border-indigo-100 mt-2">
-                                                              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Assigned Vehicle <span className="text-red-500">*</span></Label>
-                                                              <Select value={formData.assignedVehicle} onValueChange={v => setFormData({...formData, assignedVehicle: v})}>
-                                                                 <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Assign Asset" /></SelectTrigger>
-                                                                 <SelectContent>
-                                                                     {MOCK_COMPANY_VEHICLES.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
-                                                                 </SelectContent>
-                                                              </Select>
-                                                         </div>
-                                                     )}
-                                                     {formData.primaryTransport === "Self Vehicle" && (
-                                                         <div className="space-y-1.5 animate-in fade-in pt-2 border-t border-indigo-100 mt-2">
-                                                              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle Info (Optional)</Label>
-                                                              <div className="grid grid-cols-2 gap-2">
-                                                                  <Select value={formData.vehicleType} onValueChange={v => setFormData({...formData, vehicleType: v})}>
-                                                                    <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Type" /></SelectTrigger>
-                                                                    <SelectContent>
-                                                                        <SelectItem value="Sedan Car">Sedan Car</SelectItem>
-                                                                        <SelectItem value="SUV">SUV</SelectItem>
-                                                                        <SelectItem value="Motorbike">Motorbike</SelectItem>
-                                                                        <SelectItem value="Van">Van</SelectItem>
-                                                                    </SelectContent>
-                                                                  </Select>
-                                                                  <Input placeholder="Plate #" value={formData.plateNumber} onChange={e => setFormData({...formData, plateNumber: e.target.value})} className="h-10 bg-white" />
-                                                              </div>
-                                                         </div>
-                                                     )}
-                                                 </div>
-                                             );
-                                         }
+                                                 );
+                                             }
 
-                                         // Fallback
-                                         return null;
-
-                                     })()}
+                                             return null;
+                                         })()}
+                                     </div>
                                  </div>
                              </div>
 

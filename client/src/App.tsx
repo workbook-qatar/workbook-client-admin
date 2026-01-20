@@ -8,7 +8,10 @@ import { OrganizationProvider } from "./contexts/OrganizationContext";
 import OrganizationHub from "./pages/OrganizationHub";
 import CreateOrganization from "./pages/CreateOrganization";
 import Dashboard from "./pages/Dashboard";
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Bookings from "./pages/Bookings";
+
 import Customers from "./pages/Customers";
 import StaffDetails from "./pages/StaffDetails";
 import Workforce from "./pages/Workforce";
@@ -42,7 +45,9 @@ import Support from "./pages/Support";
 function Router() {
   return (
     <Switch>
-      <Route path={"/"} component={Dashboard} />
+      <Route path="/login" component={Login} />
+      <Route path="/signup" component={Signup} />
+      <Route path="/" component={Dashboard} />
       <Route path="/customers" component={Customers} />
       <Route path="/customers/add" component={AddCustomer} />
       <Route path="/bookings" component={Bookings} />

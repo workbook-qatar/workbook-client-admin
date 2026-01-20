@@ -51,8 +51,14 @@ export default function CreateOrganization() {
   const [step, setStep] = useState<"welcome" | "details" | "success">("welcome");
   const [showAddress, setShowAddress] = useState(false);
 
+  // Helper to get query params
+  const getQueryParam = (param: string) => {
+    const searchParams = new URLSearchParams(window.location.search);
+    return searchParams.get(param) || "";
+  };
+
   const [formData, setFormData] = useState({
-    name: "",
+    name: getQueryParam("name"),
     location: "Qatar",
     state: "", 
     categories: [] as string[],
