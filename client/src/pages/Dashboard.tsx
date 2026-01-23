@@ -609,12 +609,12 @@ export default function Dashboard() {
                                   {job.timeSlot}
                                 </span>
                               </div>
-                              <p className="text-sm text-gray-600 mt-2 flex items-center gap-2">
+                              <div className="text-sm text-gray-600 mt-2 flex items-center gap-2">
                                 <div className="h-2 w-2 rounded-full bg-gray-300" />
                                 Staff: <span className="font-medium text-gray-900">{job.staff.name}</span>
                                 <span className="text-gray-400 mx-1">•</span>
                                 <span className="text-red-500 font-medium">{job.reason}</span>
-                              </p>
+                              </div>
                             </div>
                             <Button size="icon" variant="ghost" className="rounded-full hover:bg-gray-100 text-gray-400 hover:text-primary">
                               <Phone className="h-4 w-4" />

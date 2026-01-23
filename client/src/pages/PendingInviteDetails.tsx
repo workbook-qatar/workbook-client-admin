@@ -9,9 +9,23 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { 
   ArrowLeft, CheckCircle, ShieldCheck, Mail, Phone, Calendar, 
-  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck, Car, Bus, Layers 
+  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck, Car, Bus, Layers, Check, ChevronDown 
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { StaffMember } from "./Workforce";
@@ -285,15 +299,16 @@ export default function PendingInviteDetails() {
             const initialized: ExtendedStaffMember = { 
                 ...found, 
                 nickname: found.nickname || "N/A",
+                role: "", // Ensure role starts empty for manual selection
                 qid: found.qid || "28535638494",
                 dob: found.dob || "1995-04-12",
                 nationality: found.nationality || "Qatar",
                 gender: found.gender || "Male",
-                department: found.department || "Operations",
-                employmentType: found.employmentType || "Full Time",
-                startDate: found.startDate || new Date().toISOString().split('T')[0],
-                salaryType: found.salaryType || "Fixed Monthly",
-                salaryAmount: found.salaryAmount || "3500",
+                department: found.department || "",
+                employmentType: found.employmentType || "",
+                startDate: found.startDate || "",
+                salaryType: found.salaryType || "",
+                salaryAmount: found.salaryAmount || "",
                 commissionRate: found.commissionRate || "",
                 hourlyRate: found.hourlyRate || "",
                 languages: [],
@@ -302,10 +317,10 @@ export default function PendingInviteDetails() {
                 emergencyPhone: "",
                 skills: [], 
                 documents: found.documents || [],
-                shiftSystem: "Fixed",
-                workingDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-                workHoursStart: "08:00",
-                workHoursEnd: "17:00",
+                shiftSystem: "" as any,
+                workingDays: [],
+                workHoursStart: "",
+                workHoursEnd: "",
                 rotationalSchedule: {},
                 transportationType: found.transportationType || "",
                 assignedVehicle: found.assignedVehicle || "",
@@ -316,7 +331,7 @@ export default function PendingInviteDetails() {
                 licenseCategory: found.licenseCategory || "",
                 licenseNumber: found.licenseNumber || "",
                 licenseExpiry: found.licenseExpiry || "",
-                serviceScope: found.serviceScope || "all", // Default to 'all'
+                serviceScope: "" as any, // Start empty
                 serviceAreas: found.serviceAreas || []
             };
             
@@ -416,21 +431,24 @@ export default function PendingInviteDetails() {
   };
 
   // Check Requirements matching the new 3 Steps
+  // Check Requirements matching the new 3 Steps (Merged)
   const checkRequirements = () => {
-    const d = data;
+    const d = formData || data;
     const opsValid = d.serviceScope === 'all' || (d.serviceScope === 'specific' && (d.serviceAreas?.length || 0) > 0);
+    const scheduleValid = (d.workingDays?.length || 0) > 0;
 
     return {
-        employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType),
-        skills: (d.skills?.length || 0) > 0 && !!d.transportationType && opsValid, 
-        summary: true // Summary is always viewed
+        employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType && d.religion && d.maritalStatus),
+        // Combined validation
+        ops: (d.skills?.length || 0) > 0 && !!d.transportationType && (d.transportationType !== 'Flexible' || !!d.primaryTransport) && opsValid && scheduleValid, 
+        summary: true 
     };
   };
 
   const reqs = checkRequirements();
   const steps = [
-      { id: 'employment', label: 'Employment Details', completed: reqs.employment },
-      { id: 'ops', label: 'Operations & Skills', completed: reqs.skills },
+      { id: 'employment', label: 'Employment & Profile', completed: reqs.employment },
+      { id: 'ops', label: 'Operations & Skills', completed: reqs.ops },
       { id: 'summary', label: 'Summary & Activation', completed: currentStep === 2 },
   ];
   
@@ -740,13 +758,51 @@ export default function PendingInviteDetails() {
                                  </div>
                              </div>
 
+                             {/* Section: Personal Background */}
+                             <div className="space-y-6 pt-4">
+                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                                     <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <User className="h-4 w-4" />
+                                     </div>
+                                     <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Personal Background</h3>
+                                        <p className="text-xs text-gray-500">Additional personal details for HR records.</p>
+                                     </div>
+                                 </div>
+
+                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Religion <span className="text-red-500">*</span></Label>
+                                        <Select disabled={!isEditing} value={formData.religion} onValueChange={v => setFormData({...formData, religion: v})}>
+                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Religion" /></SelectTrigger>
+                                            <SelectContent>
+                                                {["Islam", "Christianity", "Hinduism", "Buddhism", "Other"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Marital Status <span className="text-red-500">*</span></Label>
+                                        <Select disabled={!isEditing} value={formData.maritalStatus} onValueChange={v => setFormData({...formData, maritalStatus: v})}>
+                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Status" /></SelectTrigger>
+                                            <SelectContent>
+                                                {["Single", "Married", "Divorced", "Widowed"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                 </div>
+                             </div>
+
                              <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
                                  <Button variant="outline" onClick={() => setLocation("/workforce/pending")} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
                                      Cancel
                                  </Button>
-                                 <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all" onClick={() => saveChanges(true)}>
-                                     Next: Operations & Skills <ArrowRight className="w-4 h-4 ml-2" />
-                                 </Button>
+                                     <Button 
+                                         className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                                         onClick={() => saveChanges(true)}
+                                         disabled={!reqs.employment}
+                                     >
+                                         Next: Operations & Skills <ArrowRight className="w-4 h-4 ml-2" />
+                                     </Button>
                              </div>
                          </div>
                      )}
@@ -771,99 +827,124 @@ export default function PendingInviteDetails() {
                                      
                                      {/* Languages Multi-Select */}
                                      {/* Toggle Logic implemented: Select again to remove */}
+                                     {/* Languages Multi-Select */}
+                                     {/* Popover-based Dropdown Pattern */}
                                      <div className="space-y-3">
                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Languages <span className="text-red-500">*</span></Label>
-                                        <Select 
-                                            disabled={!isEditing} 
-                                            value="" 
-                                            onValueChange={(val) => {
-                                                const current = formData.languages || [];
-                                                if (current.includes(val)) {
-                                                    setFormData({...formData, languages: current.filter(l => l !== val)});
-                                                } else {
-                                                    setFormData({...formData, languages: [...current, val]});
-                                                }
-                                            }}
-                                        >
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
-                                                <SelectValue placeholder="Select languages..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {["English", "Arabic", "Hindi", "Urdu", "Tagalog", "Bengali", "Malayalam"].map(l => (
-                                                    <SelectItem key={l} value={l}>
-                                                        <div className="flex items-center gap-2">
-                                                            {formData.languages?.includes(l) && <CheckCircle className="h-4 w-4 text-blue-600" />}
-                                                            {l}
+                                        <Popover>
+                                            <PopoverTrigger asChild disabled={!isEditing}>
+                                                <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                                                    {formData.languages && formData.languages.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {formData.languages.map(lang => (
+                                                                <Badge key={lang} variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200">
+                                                                    {lang}
+                                                                    {isEditing && (
+                                                                        <span className="ml-1 cursor-pointer hover:text-red-600 transition-colors" onClick={(e) => { 
+                                                                            e.stopPropagation(); 
+                                                                            setFormData({...formData, languages: formData.languages?.filter(l => l !== lang)}); 
+                                                                        }}>
+                                                                            <X className="h-3 w-3" />
+                                                                        </span>
+                                                                    )}
+                                                                </Badge>
+                                                            ))}
                                                         </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        
-                                        <div className="flex flex-wrap gap-2 min-h-[40px] content-start">
-                                            {formData.languages?.map(lang => (
-                                                <Badge key={lang} variant="secondary" className="bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium py-1.5 px-3 gap-2 transition-all border border-purple-100">
-                                                    {lang}
-                                                    {isEditing && (
-                                                        <X 
-                                                            className="h-3.5 w-3.5 text-purple-400 hover:text-red-600 cursor-pointer" 
-                                                            onClick={() => formData && setFormData({...formData, languages: formData.languages?.filter(l => l !== lang)})}
-                                                        />
-                                                    )}
-                                                </Badge>
-                                            ))}
-                                            {(!formData.languages || formData.languages.length === 0) && (
-                                                <span className="text-sm text-gray-400 italic pt-1">No languages selected</span>
-                                            )}
-                                        </div>
+                                                    ) : <span className="text-gray-400">Select languages...</span>}
+                                                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[400px] p-0" align="start">
+                                                <Command>
+                                                    <CommandInput placeholder="Search languages..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>No language found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {["English", "Arabic", "Hindi", "Urdu", "Tagalog", "Bengali", "Malayalam"].map((lang) => (
+                                                                <CommandItem 
+                                                                    key={lang} 
+                                                                    value={lang} 
+                                                                    onSelect={() => {
+                                                                        const current = formData.languages || [];
+                                                                        if (current.includes(lang)) {
+                                                                            setFormData({...formData, languages: current.filter(l => l !== lang)});
+                                                                        } else {
+                                                                            setFormData({...formData, languages: [...current, lang]});
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", formData.languages?.includes(lang) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}>
+                                                                        <Check className={cn("h-4 w-4")} />
+                                                                    </div>
+                                                                    {lang}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+
                                      </div>
 
                                      {/* Skills Multi-Select - Aligned to Column 2 */}
+                                     {/* Skills Multi-Select - Popover Pattern */}
                                      <div className="space-y-3">
                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Skills & Expertise <span className="text-red-500">*</span></Label>
-                                        <Select 
-                                            disabled={!isEditing} 
-                                            value=""
-                                            onValueChange={(val) => {
-                                                const current = formData.skills || [];
-                                                if (current.includes(val)) {
-                                                    setFormData({...formData, skills: current.filter(s => s !== val)});
-                                                } else {
-                                                    setFormData({...formData, skills: [...current, val]});
-                                                }
-                                            }}
-                                        >
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
-                                                <SelectValue placeholder="Select skills..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {availableSkills.map((s: any) => (
-                                                    <SelectItem key={s.name} value={s.name}>
-                                                        <div className="flex items-center gap-2">
-                                                            {formData.skills?.includes(s.name) && <CheckCircle className="h-4 w-4 text-blue-600" />}
-                                                            {s.name}
+                                        <Popover>
+                                            <PopoverTrigger asChild disabled={!isEditing}>
+                                                <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                                                    {formData.skills && formData.skills.length > 0 ? (
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {formData.skills.map(skill => (
+                                                                <Badge key={skill} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
+                                                                    {skill}
+                                                                    {isEditing && (
+                                                                        <span className="ml-1 cursor-pointer hover:text-red-600 transition-colors" onClick={(e) => { 
+                                                                            e.stopPropagation(); 
+                                                                            setFormData({...formData, skills: formData.skills?.filter(s => s !== skill)}); 
+                                                                        }}>
+                                                                            <X className="h-3 w-3" />
+                                                                        </span>
+                                                                    )}
+                                                                </Badge>
+                                                            ))}
                                                         </div>
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        
-                                        <div className="flex flex-wrap gap-2 min-h-[40px] content-start bg-gray-50/50 p-2 rounded-lg border border-gray-100 border-dashed">
-                                            {formData.skills?.map(skill => (
-                                                <Badge key={skill} className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 py-1.5 px-3 gap-2 font-medium shadow-sm transition-all">
-                                                    {skill}
-                                                    {isEditing && (
-                                                        <X 
-                                                            className="h-3.5 w-3.5 text-gray-400 hover:text-red-500 cursor-pointer" 
-                                                            onClick={() => formData && setFormData({...formData, skills: formData.skills?.filter(s => s !== skill)})}
-                                                        />
-                                                    )}
-                                                </Badge>
-                                            ))}
-                                            {(!formData.skills || formData.skills.length === 0) && (
-                                                <span className="text-sm text-gray-400 italic pt-1">No skills selected</span>
-                                            )}
-                                        </div>
+                                                    ) : <span className="text-gray-400">Select skills...</span>}
+                                                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-[400px] p-0" align="start">
+                                                <Command>
+                                                    <CommandInput placeholder="Search skills..." />
+                                                    <CommandList>
+                                                        <CommandEmpty>No skill found.</CommandEmpty>
+                                                        <CommandGroup>
+                                                            {availableSkills.map((skill) => (
+                                                                <CommandItem 
+                                                                    key={skill.name} 
+                                                                    value={skill.name} 
+                                                                    onSelect={() => {
+                                                                        const current = formData.skills || [];
+                                                                        if (current.includes(skill.name)) {
+                                                                            setFormData({...formData, skills: current.filter(s => s !== skill.name)});
+                                                                        } else {
+                                                                            setFormData({...formData, skills: [...current, skill.name]});
+                                                                        }
+                                                                    }}
+                                                                >
+                                                                    <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", formData.skills?.includes(skill.name) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}>
+                                                                        <Check className={cn("h-4 w-4")} />
+                                                                    </div>
+                                                                    {skill.name}
+                                                                </CommandItem>
+                                                            ))}
+                                                        </CommandGroup>
+                                                    </CommandList>
+                                                </Command>
+                                            </PopoverContent>
+                                        </Popover>
+
                                      </div>
 
                                      {/* MANDATORY CERTIFICATES LOGIC */}
@@ -1076,344 +1157,150 @@ export default function PendingInviteDetails() {
                                          </div>
                                      </div>
 
-                                     {/* CONDITIONAL RENDER: Specific Areas Selector */}
+                                     {/* CONDITIONAL RENDER: Specific Areas Selector - Refactored to match Languages/Skills Pattern */}
                                      {formData.serviceScope === 'specific' && (
                                          <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
                                              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Selected Regions <span className="text-red-500">*</span></Label>
-                                             <Select 
-                                                 disabled={!isEditing} 
-                                                 value=""
-                                                 onValueChange={(val) => {
-                                                     const current = formData.serviceAreas || [];
-                                                     if (current.includes(val)) {
-                                                         setFormData({...formData, serviceAreas: current.filter(s => s !== val)});
-                                                     } else {
-                                                         setFormData({...formData, serviceAreas: [...current, val]});
-                                                     }
-                                                 }}
-                                             >
-                                                 <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
-                                                     <SelectValue placeholder="Select service areas..." />
-                                                 </SelectTrigger>
-                                                 <SelectContent>
-                                                     {serviceAreaConfigs.map(area => (
-                                                         <SelectItem key={area.id} value={area.name}>
-                                                             <div className="flex items-center gap-2">
-                                                                 {formData.serviceAreas?.includes(area.name) && <CheckCircle className="h-4 w-4 text-blue-600" />}
-                                                                 {area.name}
+                                             <Popover>
+                                                 <PopoverTrigger asChild disabled={!isEditing}>
+                                                     <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                                                         {formData.serviceAreas && formData.serviceAreas.length > 0 ? (
+                                                             <div className="flex flex-wrap gap-1.5">
+                                                                 {formData.serviceAreas.map(area => (
+                                                                     <Badge key={area} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
+                                                                         {area}
+                                                                         {isEditing && (
+                                                                             <span className="ml-1 cursor-pointer hover:text-red-600 transition-colors" onClick={(e) => { 
+                                                                                 e.stopPropagation(); 
+                                                                                 setFormData({...formData, serviceAreas: formData.serviceAreas?.filter(s => s !== area)}); 
+                                                                             }}>
+                                                                                 <X className="h-3 w-3" />
+                                                                             </span>
+                                                                         )}
+                                                                     </Badge>
+                                                                 ))}
                                                              </div>
-                                                         </SelectItem>
-                                                     ))}
-                                                 </SelectContent>
-                                             </Select>
-                                             
-                                             <div className="flex flex-wrap gap-2 min-h-[40px] content-start bg-blue-50/30 p-3 rounded-lg border border-blue-100/50">
-                                                 {formData.serviceAreas?.map(area => (
-                                                     <Badge key={area} variant="secondary" className="bg-white text-blue-700 border border-blue-100 py-1.5 px-3 gap-2 font-medium shadow-sm">
-                                                         <MapPin className="h-3 w-3 text-blue-500" />
-                                                         {area}
-                                                         {isEditing && (
-                                                             <X 
-                                                                 className="h-3.5 w-3.5 text-blue-400 hover:text-red-500 cursor-pointer" 
-                                                                 onClick={() => formData && setFormData({...formData, serviceAreas: formData.serviceAreas?.filter(s => s !== area)})}
-                                                             />
-                                                         )}
-                                                     </Badge>
-                                                 ))}
-                                                 {(!formData.serviceAreas || formData.serviceAreas.length === 0) && (
-                                                     <span className="text-sm text-gray-400 italic pt-1 text-red-400">Please select at least one area.</span>
-                                                 )}
-                                             </div>
+                                                         ) : <span className="text-gray-400">Select service areas...</span>}
+                                                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                     </Button>
+                                                 </PopoverTrigger>
+                                                 <PopoverContent className="w-[400px] p-0" align="start">
+                                                     <Command>
+                                                         <CommandInput placeholder="Search regions..." />
+                                                         <CommandList>
+                                                             <CommandEmpty>No region found.</CommandEmpty>
+                                                             <CommandGroup>
+                                                                 {serviceAreaConfigs.map((area) => (
+                                                                     <CommandItem 
+                                                                         key={area.id} 
+                                                                         value={area.name} 
+                                                                         onSelect={() => {
+                                                                             const current = formData.serviceAreas || [];
+                                                                             if (current.includes(area.name)) {
+                                                                                 setFormData({...formData, serviceAreas: current.filter(s => s !== area.name)});
+                                                                             } else {
+                                                                                 setFormData({...formData, serviceAreas: [...current, area.name]});
+                                                                             }
+                                                                         }}
+                                                                     >
+                                                                         <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", formData.serviceAreas?.includes(area.name) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}>
+                                                                             <Check className={cn("h-4 w-4")} />
+                                                                         </div>
+                                                                         {area.name}
+                                                                     </CommandItem>
+                                                                 ))}
+                                                             </CommandGroup>
+                                                         </CommandList>
+                                                     </Command>
+                                                 </PopoverContent>
+                                             </Popover>
                                          </div>
                                      )}
                                  </div>
                              </div>
 
-                             {/* Section: Logistics & Transport (Advanced) */}
-                             <div className="space-y-6 pt-4">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-cyan-50 text-cyan-600 flex items-center justify-center">
-                                        <Truck className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Logistics</h3>
-                                        <p className="text-xs text-gray-500">Transportation and commute arrangements.</p>
-                                     </div>
+                             {/* Section: Logistics */}
+                             <div className="space-y-4 pt-4">
+                                 <div className="border-b border-gray-100 pb-2">
+                                     <h3 className="text-lg font-bold text-gray-900">Logistics</h3>
+                                     <p className="text-xs text-gray-500 mt-0.5">Used for dispatch and shift planning.</p>
                                  </div>
 
-                                 <div className="bg-slate-50 border border-slate-200 rounded-xl p-6 space-y-6">
+                                 <div className="space-y-4">
+                                     {/* Main Transport Select */}
                                      <div className="space-y-1.5">
-                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Mode <span className="text-red-500">*</span></Label>
-                                         <div className="flex flex-wrap gap-2">
-                                             {transportationConfigs.map(t => {
-                                                 const isActive = formData.transportationType === t.name;
-                                                 let Icon = Layers;
-                                                 let shortLabel = t.name;
+                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Arrangement <span className="text-red-500">*</span></Label>
+                                         <Select 
+                                             disabled={!isEditing} 
+                                             value={formData.transportationType} 
+                                             onValueChange={(v) => {
+                                                 setFormData({
+                                                     ...formData, 
+                                                     transportationType: v,
+                                                     assignedVehicle: "",
+                                                     vehicleType: "",
+                                                     plateNumber: "",
+                                                     primaryTransport: v === 'Flexible' ? formData.primaryTransport : "" 
+                                                 })
+                                             }}
+                                         >
+                                             <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
+                                                  <SelectValue placeholder="Select Transportation Type" />
+                                              </SelectTrigger>
+                                             <SelectContent>
+                                                 <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
+                                                 <SelectItem value="Self Drive">Self Drive</SelectItem>
+                                                 <SelectItem value="No Transportation">No Transportation</SelectItem>
+                                                 <SelectItem value="Flexible">Flexible</SelectItem>
+                                             </SelectContent>
+                                         </Select>
+                                         
+                                         {/* Inline Helper Text */}
+                                         {formData.transportationType && (
+                                             <p className="text-xs text-gray-500 leading-relaxed px-1">
+                                                {formData.transportationType === 'Transportation by Company' && "Company vehicle with driver; trips are assigned and managed via Dispatch."}
+                                                {formData.transportationType === 'Self Drive' && "Staff arranges their own transport using a company or personal vehicle."}
+                                                {formData.transportationType === 'No Transportation' && "No transport required; dispatch trips are not applicable."}
+                                                {formData.transportationType === 'Flexible' && "Transport may vary per booking; a default mode is required and can be changed later."}
+                                             </p>
+                                         )}
+                                     </div>
 
-                                                 // Mapping for Icon & Short Label
-                                                 if (t.category === 'company_driver') { Icon = Truck; shortLabel = "Company Bus/Driver"; }
-                                                 else if (t.category === 'company_vehicle') { Icon = Car; shortLabel = "Company Vehicle"; }
-                                                 else if (t.category === 'self_vehicle') { Icon = Car; shortLabel = "Personal Vehicle"; }
-                                                 else if (t.category === 'public') { Icon = Bus; shortLabel = "Public Transport"; }
-                                                 else if (t.category === 'hybrid') { Icon = Layers; shortLabel = "Hybrid / Flexible"; }
-
-                                                 return (
-                                                     <div 
-                                                         key={t.id}
-                                                         onClick={() => {
-                                                             if (!isEditing) return;
-                                                             setFormData({
-                                                                 ...formData, 
-                                                                 transportationType: t.name,
-                                                                 assignedVehicle: "",
-                                                                 vehicleType: "",
-                                                                 plateNumber: "",
-                                                                 primaryTransport: "",
-                                                                 transportVaries: false
-                                                             });
-                                                         }}
-                                                         className={`
-                                                             flex-1 min-w-[100px] flex flex-col items-center justify-center p-2 h-20 rounded-lg border cursor-pointer transition-all select-none
-                                                             ${isActive 
-                                                                 ? 'bg-blue-600 border-blue-600 text-white shadow-md' 
-                                                                 : 'bg-white border-gray-200 text-gray-500 hover:border-blue-300 hover:bg-blue-50/50'}
-                                                         `}
-                                                     >
-                                                         <Icon className={`h-5 w-5 mb-1.5 ${isActive ? 'text-white' : 'text-gray-400'}`} />
-                                                         <span className="text-[10px] font-bold text-center leading-tight">{shortLabel}</span>
-                                                     </div>
-                                                 );
-                                             })}
+                                     {/* Nested Dropdown for Flexible */}
+                                     {formData.transportationType === 'Flexible' && (
+                                         <div className="ml-4 pl-4 border-l-2 border-gray-100 space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                                             <Label className="text-xs font-semibold uppercase text-gray-400 tracking-wide">Default Transportation Mode <span className="text-red-500">*</span></Label>
+                                              <Select 
+                                                  disabled={!isEditing} 
+                                                  value={formData.primaryTransport} 
+                                                  onValueChange={(v) => setFormData({...formData, primaryTransport: v})}
+                                              >
+                                                  <SelectTrigger className="bg-white h-10 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full max-w-sm">
+                                                      <SelectValue placeholder="Select default mode" />
+                                                  </SelectTrigger>
+                                                  <SelectContent>
+                                                      <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
+                                                      <SelectItem value="Self Drive">Self Drive</SelectItem>
+                                                      <SelectItem value="No Transportation">No Transportation</SelectItem>
+                                                  </SelectContent>
+                                              </Select>
                                          </div>
-                                     </div>
-
-                                     {/* SMART FORM REVEAL AREA */}
-                                     <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                                         {(() => {
-                                             if (!formData.transportationType) return null;
-                                             
-                                             const selectedConfig = transportationConfigs.find(c => c.name === formData.transportationType);
-                                             const category = selectedConfig?.category || "company_driver";
-
-                                             // 1. Company Driver
-                                             if (category === "company_driver") {
-                                                 return (
-                                                     <div className="bg-blue-50/50 border border-blue-100 rounded-lg p-4 flex items-center gap-3">
-                                                         <CheckCircle className="h-5 w-5 text-green-500 flex-shrink-0" />
-                                                         <p className="text-sm text-blue-800">
-                                                             <span className="font-semibold">All set!</span> Staff will be added to the company routing pool. No further vehicle assignment is required.
-                                                         </p>
-                                                     </div>
-                                                 );
-                                             }
-
-                                             // 2. Company Vehicle
-                                             if (category === "company_vehicle") {
-                                                 return (
-                                                     <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-4 shadow-sm">
-                                                         <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
-                                                             <Car className="h-4 w-4 text-blue-500" />
-                                                             Vehicle Asset Assignment
-                                                         </h4>
-                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Select Vehicle <span className="text-red-500">*</span></Label>
-                                                                 <Select 
-                                                                     disabled={!isEditing} 
-                                                                     value={formData.assignedVehicle} 
-                                                                     onValueChange={v => setFormData({...formData, assignedVehicle: v})}
-                                                                 >
-                                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 text-sm"><SelectValue placeholder="Search Asset..." /></SelectTrigger>
-                                                                     <SelectContent>
-                                                                         {MOCK_COMPANY_VEHICLES.map(v => (
-                                                                             <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>
-                                                                         ))}
-                                                                     </SelectContent>
-                                                                 </Select>
-                                                             </div>
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Fuel/Notes</Label>
-                                                                 <Input 
-                                                                     disabled={!isEditing}
-                                                                     className="h-10 bg-white border-gray-200"
-                                                                     placeholder="e.g. Fuel card #1234"
-                                                                 />
-                                                             </div>
-                                                         </div>
-                                                     </div>
-                                                 );
-                                             }
-
-                                             // 3. Self Vehicle
-                                             if (category === "self_vehicle") {
-                                                 return (
-                                                     <div className="bg-white rounded-lg border border-gray-200 p-5 space-y-4 shadow-sm">
-                                                         <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
-                                                             <User className="h-4 w-4 text-orange-500" />
-                                                             Personal Vehicle Details
-                                                         </h4>
-                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle Type</Label>
-                                                                 <Select 
-                                                                     disabled={!isEditing} 
-                                                                     value={formData.vehicleType} 
-                                                                     onValueChange={v => setFormData({...formData, vehicleType: v})}
-                                                                 >
-                                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 text-sm"><SelectValue placeholder="Select Type" /></SelectTrigger>
-                                                                     <SelectContent>
-                                                                         {["Sedan Car", "SUV", "Motorbike", "Van"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                                                     </SelectContent>
-                                                                 </Select>
-                                                             </div>
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Plate Number</Label>
-                                                                 <Input 
-                                                                     disabled={!isEditing} 
-                                                                     value={formData.plateNumber} 
-                                                                     onChange={e => setFormData({...formData, plateNumber: e.target.value})}
-                                                                     placeholder="e.g. 123-XYZ"
-                                                                     className="h-10 bg-white border-gray-200"
-                                                                 />
-                                                             </div>
-                                                         </div>
-                                                     </div>
-                                                 );
-                                             }
-
-                                             // 4. Public Transport
-                                             if (category === "public") {
-                                                 return (
-                                                     <div className="bg-yellow-50/50 border border-yellow-100 rounded-lg p-4 flex items-center gap-3">
-                                                         <AlertCircle className="h-5 w-5 text-yellow-600 flex-shrink-0" />
-                                                         <p className="text-sm text-yellow-800">
-                                                             <span className="font-semibold">Note:</span> Staff relies on public transport. Ensure service radius assignments account for potential travel limitations.
-                                                         </p>
-                                                     </div>
-                                                 );
-                                             }
-
-                                             // 5. Hybrid
-                                             if (category === "hybrid") {
-                                                 return (
-                                                     <div className="bg-white rounded-lg border border-indigo-100 p-5 space-y-4 shadow-sm relative overflow-hidden">
-                                                         <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-indigo-100 to-transparent rounded-bl-full opacity-50"></div>
-                                                         <h4 className="font-medium text-gray-900 text-sm flex items-center gap-2">
-                                                             <Layers className="h-4 w-4 text-indigo-500" />
-                                                             Hybrid Arrangement
-                                                         </h4>
-                                                         
-                                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Primary Mode</Label>
-                                                                 <Select 
-                                                                     disabled={!isEditing} 
-                                                                     value={formData.primaryTransport} 
-                                                                     onValueChange={v => setFormData({...formData, primaryTransport: v})}
-                                                                 >
-                                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 text-sm"><SelectValue placeholder="Select Primary Mode" /></SelectTrigger>
-                                                                     <SelectContent>
-                                                                         <SelectItem value="Company Vehicle">Company Vehicle</SelectItem>
-                                                                         <SelectItem value="Self Vehicle">Self Vehicle</SelectItem>
-                                                                         <SelectItem value="Public Transport">Public Transport</SelectItem>
-                                                                     </SelectContent>
-                                                                 </Select>
-                                                             </div>
-                                                             
-                                                             <div className="flex items-center gap-2 pb-2">
-                                                                 <Switch 
-                                                                     checked={formData.transportVaries}
-                                                                     onCheckedChange={(c: boolean) => setFormData({...formData, transportVaries: c})}
-                                                                 />
-                                                                 <span className="text-sm text-gray-600 font-medium">Varies by shift/day</span>
-                                                             </div>
-                                                         </div>
-
-                                                         {/* Nested Hybrid Fields */}
-                                                         {formData.primaryTransport === "Company Vehicle" && (
-                                                             <div className="pt-3 border-t border-dashed border-gray-200 animate-in fade-in">
-                                                                 <div className="space-y-1.5">
-                                                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Assigned Asset</Label>
-                                                                     <Select value={formData.assignedVehicle} onValueChange={v => setFormData({...formData, assignedVehicle: v})}>
-                                                                        <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Search Asset..." /></SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {MOCK_COMPANY_VEHICLES.map(v => <SelectItem key={v.id} value={v.id}>{v.name}</SelectItem>)}
-                                                                        </SelectContent>
-                                                                     </Select>
-                                                                 </div>
-                                                             </div>
-                                                         )}
-                                                          {formData.primaryTransport === "Self Vehicle" && (
-                                                             <div className="pt-3 border-t border-dashed border-gray-200 animate-in fade-in grid grid-cols-2 gap-4">
-                                                                 <div className="space-y-1.5">
-                                                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Type</Label>
-                                                                     <Select value={formData.vehicleType} onValueChange={v => setFormData({...formData, vehicleType: v})}>
-                                                                        <SelectTrigger className="bg-white h-10 text-sm"><SelectValue placeholder="Select" /></SelectTrigger>
-                                                                        <SelectContent>
-                                                                            {["Sedan", "SUV", "Bike"].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                                                        </SelectContent>
-                                                                     </Select>
-                                                                 </div>
-                                                                 <div className="space-y-1.5">
-                                                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Plate #</Label>
-                                                                     <Input value={formData.plateNumber} onChange={e => setFormData({...formData, plateNumber: e.target.value})} className="h-10 bg-white" />
-                                                                 </div>
-                                                             </div>
-                                                         )}
-
-                                                     </div>
-                                                 );
-                                             }
-
-                                             return null;
-                                         })()}
-                                     </div>
+                                     )}
                                  </div>
                              </div>
 
-                             {/* Section: Personal Background */}
-                             <div className="space-y-6 pt-4">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                        <User className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Personal Background</h3>
-                                        <p className="text-xs text-gray-500">Additional personal details for HR records.</p>
-                                     </div>
-                                 </div>
 
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Religion</Label>
-                                        <Select disabled={!isEditing} value={formData.religion} onValueChange={v => setFormData({...formData, religion: v})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Religion" /></SelectTrigger>
-                                            <SelectContent>
-                                                {["Islam", "Christianity", "Hinduism", "Buddhism", "Other"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Marital Status</Label>
-                                        <Select disabled={!isEditing} value={formData.maritalStatus} onValueChange={v => setFormData({...formData, maritalStatus: v})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Status" /></SelectTrigger>
-                                            <SelectContent>
-                                                {["Single", "Married", "Divorced", "Widowed"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                 </div>
 
-                             </div>
 
-                             {/* Section: Shift Configuration */}
-                             <div className="space-y-6 pt-4">
+
+                             {/* MOVED SCHEDULE SECTION HERE */}
+                             <div className="space-y-6 pt-8 border-t border-gray-100">
                                  <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                                      <div className="h-8 w-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
                                         <Calendar className="h-4 w-4" />
                                      </div>
                                      <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Shift Configuration</h3>
+                                        <h3 className="text-lg font-bold text-gray-900">Schedule & Availability</h3>
                                         <p className="text-xs text-gray-500">Define working days and hours.</p>
                                      </div>
                                  </div>
@@ -1543,10 +1430,6 @@ export default function PendingInviteDetails() {
                                     {/* ROTATIONAL SHIFT UI - Summary View */}
                                     {formData.shiftSystem === 'Rotational' && (
                                         <div className="space-y-6 animate-in fade-in">
-                                            
-                                            {/* Template Selection */}
-
-
                                             {/* Summary Header */}
                                             <div className="flex items-center justify-between bg-green-50 p-4 rounded-lg border border-green-100">
                                                 <div className="flex items-center gap-2 text-green-800 text-sm font-medium">
@@ -1611,7 +1494,6 @@ export default function PendingInviteDetails() {
                                             </div>
                                         </div>
                                     )}
-
                                  </div>
                              </div>
 
@@ -1619,14 +1501,20 @@ export default function PendingInviteDetails() {
                                  <Button variant="outline" onClick={() => setCurrentStep(0)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
                                      Previous Step
                                  </Button>
-                                 <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all" onClick={() => saveChanges(true)}>
+                                 <Button 
+                                     className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                                     onClick={() => saveChanges(true)}
+                                     disabled={!reqs.ops}
+                                 >
                                      Next: Summary <ArrowRight className="w-4 h-4 ml-2" />
                                  </Button>
                              </div>
                          </div>
                      )}
 
-                    {/* 3. SUMMARY & ACTIVATION */}
+
+
+                    {/* 4. SUMMARY & ACTIVATION (Now Step 3 index 2) */}
                     {currentStep === 2 && (
                         <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
                             
@@ -1648,38 +1536,77 @@ export default function PendingInviteDetails() {
                                         <span className="font-bold text-sm text-gray-900">Personal Details</span>
                                     </div>
                                     <div className="space-y-3 text-sm">
-                                        <div className="flex justify-between"><span className="text-gray-500">Full Name</span> <span className="font-medium text-gray-900">{data?.name}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">Role</span> <span className="font-medium text-gray-900">{formData.role}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">Gender</span> <span className="font-medium text-gray-900">{data?.gender}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">Nationality</span> <span className="font-medium text-gray-900">{data?.nationality}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">Phone</span> <span className="font-medium text-gray-900">{data?.phone}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Full Name</span> <span className="font-medium text-gray-900 text-right">{data?.name}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Role</span> <span className="font-medium text-gray-900 text-right">{formData.role}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Gender</span> <span className="font-medium text-gray-900 text-right">{data?.gender}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Nationality</span> <span className="font-medium text-gray-900 text-right">{data?.nationality}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Contact</span> <div className="text-right flex flex-col"><span className="font-medium text-gray-900">{data?.phone}</span><span className="text-xs text-gray-500">{data?.email}</span></div></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Religion</span> <span className="font-medium text-gray-900 text-right">{formData.religion || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Marital Status</span> <span className="font-medium text-gray-900 text-right">{formData.maritalStatus || '-'}</span></div>
                                     </div>
                                 </div>
 
-                                {/* OPERATIONS CARD */}
+                                {/* OPERATIONS & SKILLS CARD */}
                                 <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
                                     <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
                                         <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center"><Briefcase className="h-4 w-4"/></div>
-                                        <span className="font-bold text-sm text-gray-900">Operations</span>
+                                        <span className="font-bold text-sm text-gray-900">Operations & Skills</span>
                                     </div>
                                     <div className="space-y-3 text-sm">
-                                         <div className="flex justify-between"><span className="text-gray-500">Department</span> <span className="font-medium text-gray-900">{formData.department}</span></div>
-                                         <div className="flex justify-between"><span className="text-gray-500">Type</span> <span className="font-medium text-gray-900">{formData.employmentType}</span></div>
-                                         <div className="flex justify-between"><span className="text-gray-500">Transport</span> <span className="font-medium text-gray-900">{formData.transportationType}</span></div>
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Department</span> <span className="font-medium text-gray-900 text-right">{formData.department}</span></div>
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Emp. Type</span> <span className="font-medium text-gray-900 text-right">{formData.employmentType}</span></div>
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Start Date</span> <span className="font-medium text-gray-900 text-right">{formData.startDate}</span></div>
+                                         
+                                         <div className="pt-2 border-t border-gray-50">
+                                            <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Transportation</span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-medium text-gray-900">
+                                                    {formData.transportationType}
+                                                    {formData.transportationType === 'Flexible' && formData.primaryTransport && (
+                                                        <span className="text-gray-500 font-normal ml-1">({formData.primaryTransport})</span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                         </div>
+
                                          <div>
-                                             <span className="text-gray-500 block mb-1">Service Areas</span>
+                                             <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Service Scope</span>
                                              <div className="flex flex-wrap gap-1">
-                                                {formData.serviceAreas?.map((area: string) => <Badge key={area} variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100">{area}</Badge>)}
-                                                {(!formData.serviceAreas?.length) && <span className="text-gray-400 italic">None</span>}
+                                                {formData.serviceScope === 'all' ? (
+                                                    <Badge variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md">All Service Areas</Badge>
+                                                ) : (
+                                                    <>
+                                                        {formData.serviceAreas?.map((area: string) => <Badge key={area} variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md">{area}</Badge>)}
+                                                        {(!formData.serviceAreas?.length) && <span className="text-gray-400 italic">None</span>}
+                                                    </>
+                                                )}
                                              </div>
                                          </div>
-                                         <div>
-                                             <span className="text-gray-500 block mb-1">Languages</span>
-                                             <div className="flex flex-wrap gap-1">
-                                                 {formData.languages?.map((l: string) => <Badge key={l} variant="outline" className="text-xs bg-gray-50">{l}</Badge>)}
-                                                 {(!formData.languages?.length) && <span className="text-gray-400 italic">None</span>}
+
+                                         <div className="grid grid-cols-2 gap-4 pt-1">
+                                             <div>
+                                                 <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Skills</span>
+                                                 <div className="flex flex-wrap gap-1">
+                                                     {formData.skills?.map((s: string) => <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200">{s}</Badge>)}
+                                                     {(!formData.skills?.length) && <span className="text-gray-400 italic text-xs">None</span>}
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Languages</span>
+                                                 <div className="flex flex-wrap gap-1">
+                                                     {formData.languages?.map((l: string) => <Badge key={l} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200">{l}</Badge>)}
+                                                     {(!formData.languages?.length) && <span className="text-gray-400 italic text-xs">None</span>}
+                                                 </div>
                                              </div>
                                          </div>
+                                         
+                                         {/* Documents Summary */}
+                                         {(formData.documents?.length || 0) > 0 && (
+                                            <div className="pt-2 mt-1 border-t border-gray-50 flex items-center gap-2">
+                                                <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+                                                <span className="text-xs text-gray-700 font-medium">{formData.documents?.length} Document(s) Verified</span>
+                                            </div>
+                                         )}
                                      </div>
                                 </div>
                                 
@@ -1690,15 +1617,15 @@ export default function PendingInviteDetails() {
                                         <span className="font-bold text-sm text-gray-900">Compensation</span>
                                     </div>
                                     <div className="space-y-3 text-sm">
-                                        <div className="flex justify-between"><span className="text-gray-500">Scheme</span> <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">{formData.salaryType}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Scheme</span> <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">{formData.salaryType}</span></div>
                                         {(formData.salaryType === 'Fixed Monthly' || formData.salaryType === 'Fixed + Commission') && (
-                                            <div className="flex justify-between"><span className="text-gray-500">Base Salary</span> <span className="font-medium text-gray-900">QAR {formData.salaryAmount}</span></div>
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Base Salary</span> <span className="font-medium text-gray-900">QAR {formData.salaryAmount}</span></div>
                                         )}
                                         {(formData.salaryType === 'Commission-Based' || formData.salaryType === 'Fixed + Commission') && (
-                                            <div className="flex justify-between"><span className="text-gray-500">Commission</span> <span className="font-medium text-gray-900">{formData.commissionRate}%</span></div>
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Commission</span> <span className="font-medium text-gray-900">{formData.commissionRate}%</span></div>
                                         )}
                                         {formData.salaryType === 'Hourly-Rate' && (
-                                            <div className="flex justify-between"><span className="text-gray-500">Hourly Rate</span> <span className="font-medium text-gray-900">QAR {formData.hourlyRate}/hr</span></div>
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Hourly Rate</span> <span className="font-medium text-gray-900">QAR {formData.hourlyRate}/hr</span></div>
                                         )}
                                     </div>
                                 </div>

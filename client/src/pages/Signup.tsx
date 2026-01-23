@@ -207,7 +207,7 @@ export default function Signup() {
                         <Input
                             id="mobile"
                             type="tel"
-                            className={`${UNIFORM_INPUT_CLASSES} pl-24`}
+                            className={`${UNIFORM_INPUT_CLASSES} pl-28 font-mono`}
                             placeholder="3300 0000"
                             value={formData.mobile}
                             onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
@@ -242,12 +242,11 @@ export default function Signup() {
                 {/* Terms */}
                 <div className="flex items-start gap-3 pt-2">
                      <div className="flex items-center h-5">
-                         <input
+                         <Checkbox
                             id="terms"
-                            type="checkbox"
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                            className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                             checked={formData.agreeToTerms}
-                            onChange={(e) => setFormData({ ...formData, agreeToTerms: e.target.checked })}
+                            onCheckedChange={(checked) => setFormData({ ...formData, agreeToTerms: checked as boolean })}
                          />
                      </div>
                      <div className="text-xs leading-relaxed text-gray-500">
@@ -260,7 +259,7 @@ export default function Signup() {
                 <Button 
                     type="submit" 
                     size="lg"
-                    className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold shadow-md transition-all rounded-lg"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base font-semibold shadow-xl shadow-blue-200/50 rounded-lg transition-all"
                     disabled={isLoading}
                 >
                     {isLoading ? "creating Account..." : "Create my account"}
@@ -269,7 +268,7 @@ export default function Signup() {
                 <div className="text-center pt-2">
                     <span className="text-sm text-gray-500">
                         Already have an account?{" "}
-                        <Link href="/login" className="text-blue-600 font-semibold hover:underline">
+                        <Link href="/login" className="text-blue-600 font-bold hover:underline">
                             Login here
                         </Link>
                     </span>

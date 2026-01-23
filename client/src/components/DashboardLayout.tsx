@@ -101,7 +101,7 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
               return (
                 <li key={item.path}>
                   <Link href={item.path}>
-                    <a
+                    <div
                       className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200 ${
                         isActive
                           ? "bg-sidebar-primary/10 text-sidebar-primary border border-sidebar-primary/20"
@@ -112,7 +112,7 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
                       {!sidebarCollapsed && (
                         <span className="font-medium text-sm">{item.label}</span>
                       )}
-                    </a>
+                    </div>
                   </Link>
                 </li>
               );
@@ -134,7 +134,7 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
               return (
                 <li key={item.path}>
                   <Link href={item.path}>
-                    <a className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors duration-200 group">
+                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors duration-200 group">
                       <Icon className="h-5 w-5 flex-shrink-0" />
                       {!sidebarCollapsed && (
                         <span className="flex-1 flex items-center justify-between">
@@ -144,7 +144,7 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
                           </span>
                         </span>
                       )}
-                    </a>
+                    </div>
                   </Link>
                 </li>
               );
