@@ -212,8 +212,8 @@ export default function AddWorkforceMember() {
   
           // Map Role Type
           const roleTypeMap: Record<string, string> = {
-              "field-service": "field",
-              "internal": "office",
+              "field-service": "Field Service",
+              "internal": "Internal Staff",
               "driver": "driver"
           };
 

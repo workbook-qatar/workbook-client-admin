@@ -36,11 +36,35 @@ export default function PendingInvites() {
   useEffect(() => {
     const stored = localStorage.getItem("vendor_staff");
     if (stored) {
-      const allStaff: StaffMember[] = JSON.parse(stored);
+      const allStaff: StaffMember[] = JSON.parse(stored).map((s: any) => ({
+        ...s,
+        roleType: s.roleType === "field" ? "Field Service" : s.roleType === "office" ? "Internal Staff" : s.roleType
+      }));
       // Filter only pending/draft/expired/rejected
       const pending = allStaff.filter(s => 
-        ["pending", "draft", "expired", "rejected"].includes(s.membershipStatus || "")
+        ["pending", "draft", "expired", "rejected", "accepted"].includes(s.membershipStatus || "")
       );
+      
+      // Add Dummy Accepted if not present (for UI review)
+      if (!pending.find(p => p.membershipStatus === 'accepted')) {
+          pending.push({
+              id: "dummy-accepted-1",
+              staffId: "WB-ACC",
+              name: "Reviewer Validated",
+              role: "Supervisor",
+              roleType: "Internal Staff",
+              email: "reviewer@workbook.com",
+              phone: "+974 5000 1000",
+              location: "Qatar",
+              status: "offline", 
+              employmentStatus: "Active",
+              membershipStatus: "accepted",
+              inviteSentAt: new Date().toISOString(),
+              avatar: "RV",
+              avatarColor: "bg-green-600"
+          });
+      }
+
       setInvites(pending);
     }
   }, []);
@@ -61,6 +85,8 @@ export default function PendingInvites() {
         return <Badge variant="destructive" className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200">Expired</Badge>;
       case "rejected":
         return <Badge variant="destructive">Rejected</Badge>;
+      case "accepted":
+        return <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200">Accepted</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -146,6 +172,7 @@ export default function PendingInvites() {
                     <tr>
                         <th className="p-4 text-left font-medium text-muted-foreground">Staff Member</th>
                         <th className="p-4 text-left font-medium text-muted-foreground">Contact</th>
+                        <th className="p-4 text-left font-medium text-muted-foreground">Type</th>
                         <th className="p-4 text-left font-medium text-muted-foreground">Role</th>
                         <th className="p-4 text-left font-medium text-muted-foreground">Invite Status</th>
                         <th className="p-4 text-left font-medium text-muted-foreground">Sent At</th>
@@ -191,10 +218,10 @@ export default function PendingInvites() {
                                 </div>
                             </td>
                             <td className="p-4">
-                                <div className="flex flex-col">
-                                    <span className="font-medium">{staff.role}</span>
-                                    <span className="text-xs text-muted-foreground capitalize">{staff.roleType}</span>
-                                </div>
+                               <Badge variant="outline" className="capitalize font-normal text-muted-foreground bg-gray-50">{staff.roleType}</Badge>
+                            </td>
+                            <td className="p-4">
+                                <span className="font-medium">{staff.role}</span>
                             </td>
                             <td className="p-4">
                                 {getInviteStatusBadge(staff.membershipStatus)}
@@ -209,10 +236,6 @@ export default function PendingInvites() {
                             </td>
                             <td className="p-4 text-right">
                                 <div className="flex items-center justify-end gap-2" onClick={e => e.stopPropagation()}>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={(e) => { e.stopPropagation(); setLocation(`/workforce/pending/${staff.id}`)}}>
-                                        <MoreHorizontal className="h-4 w-4" />
-                                    </Button>
-                                    
                                     <DropdownMenu>
                                         <DropdownMenuTrigger asChild>
                                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">

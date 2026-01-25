@@ -25,30 +25,37 @@ interface OrganizationItem {
   description?: string;
   headOf?: string; // For departments (Head of Dept)
   status: "active" | "inactive";
+  applicableTo?: string[]; // "field_service", "driver", "internal"
 }
+
+const MEMBER_TYPES = [
+    { id: "field_service", label: "Field Service Staff" },
+    { id: "driver", label: "Driver" },
+    { id: "internal", label: "Internal Staff" },
+];
 
 // --- Defaults ---
 const DEFAULT_DEPARTMENTS: OrganizationItem[] = [
-  { id: "d1", name: "Operations", description: "Field operations and execution", status: "active" },
-  { id: "d2", name: "Sales", description: "Customer acquisition and relations", status: "active" },
-  { id: "d3", name: "Technical", description: "Specialized technical support", status: "active" },
-  { id: "d4", name: "Administration", description: "Internal office management", status: "active" },
-  { id: "d5", name: "Customer Service", description: "Support and helpdesk", status: "active" },
+  { id: "d1", name: "Operations", description: "Field operations and execution", status: "active", applicableTo: ["field_service", "driver", "internal"] },
+  { id: "d2", name: "Sales", description: "Customer acquisition and relations", status: "active", applicableTo: ["internal"] },
+  { id: "d3", name: "Technical", description: "Specialized technical support", status: "active", applicableTo: ["internal", "field_service"] },
+  { id: "d4", name: "Administration", description: "Internal office management", status: "active", applicableTo: ["internal"] },
+  { id: "d5", name: "Customer Service", description: "Support and helpdesk", status: "active", applicableTo: ["internal"] },
 ];
 
 const DEFAULT_TEAMS: OrganizationItem[] = [
-  { id: "t1", name: "Alpha Squad", description: "Morning shift field team", status: "active" },
-  { id: "t2", name: "Beta Squad", description: "Evening shift field team", status: "active" },
-  { id: "t3", name: "Rapid Response", description: "Emergency callouts", status: "active" },
+  { id: "t1", name: "Alpha Squad", description: "Morning shift field team", status: "active", applicableTo: ["field_service"] },
+  { id: "t2", name: "Beta Squad", description: "Evening shift field team", status: "active", applicableTo: ["field_service"] },
+  { id: "t3", name: "Rapid Response", description: "Emergency callouts", status: "active", applicableTo: ["field_service", "driver"] },
 ];
 
 const DEFAULT_JOB_TITLES: OrganizationItem[] = [
-    { id: "j1", name: "Cleaner", description: "General cleaning staff", status: "active" },
-    { id: "j2", name: "AC Technician", description: "HVAC specialist", status: "active" },
-    { id: "j3", name: "Electrician", description: "Electrical maintenance", status: "active" },
-    { id: "j4", name: "Plumber", description: "Plumbing maintenance", status: "active" },
-    { id: "j5", name: "Driver", description: "Vehicle operator", status: "active" },
-    { id: "j6", name: "Supervisor", description: "Team lead", status: "active" },
+    { id: "j1", name: "Cleaner", description: "General cleaning staff", status: "active", applicableTo: ["field_service"] },
+    { id: "j2", name: "AC Technician", description: "HVAC specialist", status: "active", applicableTo: ["field_service"] },
+    { id: "j3", name: "Electrician", description: "Electrical maintenance", status: "active", applicableTo: ["field_service"] },
+    { id: "j4", name: "Plumber", description: "Plumbing maintenance", status: "active" }, // Legacy support
+    { id: "j5", name: "Driver", description: "Vehicle operator", status: "active", applicableTo: ["driver"] },
+    { id: "j6", name: "Supervisor", description: "Team lead", status: "active", applicableTo: ["field_service", "internal"] },
 ];
 
 export default function OrganizationStructure() {
@@ -64,7 +71,7 @@ export default function OrganizationStructure() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [formData, setFormData] = useState<{name: string, description: string, applicableTo: string[]}>({ name: "", description: "", applicableTo: [] });
 
   // Load Data
   useEffect(() => {
@@ -134,13 +141,13 @@ export default function OrganizationStructure() {
 
   const openEdit = (item: OrganizationItem) => {
     setEditingId(item.id);
-    setFormData({ name: item.name, description: item.description || "" });
+    setFormData({ name: item.name, description: item.description || "", applicableTo: item.applicableTo || [] });
     setIsDialogOpen(true);
   };
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ name: "", description: "" });
+    setFormData({ name: "", description: "", applicableTo: [] });
   };
 
   // Filter
@@ -218,6 +225,37 @@ export default function OrganizationStructure() {
                                         <Label htmlFor="desc">Description</Label>
                                         <Input id="desc" placeholder="Optional description..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                                     </div>
+                                    
+                                    <div className="space-y-3 pt-2">
+                                        <Label>Applicable Member Types</Label>
+                                        <div className="flex flex-col gap-2 p-3 border rounded-md bg-gray-50/50">
+                                            {MEMBER_TYPES.map(type => {
+                                                const isChecked = formData.applicableTo.includes(type.id);
+                                                return (
+                                                    <div 
+                                                        key={type.id} 
+                                                        className="flex items-center gap-2 cursor-pointer"
+                                                        onClick={() => {
+                                                            const current = formData.applicableTo;
+                                                            if (isChecked) {
+                                                                setFormData({...formData, applicableTo: current.filter(t => t !== type.id)});
+                                                            } else {
+                                                                setFormData({...formData, applicableTo: [...current, type.id]});
+                                                            }
+                                                        }}
+                                                    >
+                                                        <div className={`h-4 w-4 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-blue-600 border-blue-600' : 'bg-white border-gray-300'}`}>
+                                                            {isChecked && <div className="h-1.5 w-2 bg-white -rotate-45 border-l-2 border-b-2 border-white transform mb-0.5" style={{width: 6, height: 4, borderRadius: 1, backgroundColor: 'transparent'}}></div>}
+                                                            {/* Simple checkmark CSS hack or Icon */}
+                                                            {isChecked && <Plus className="h-3 w-3 text-white rotate-45 transform origin-center" />} 
+                                                        </div>
+                                                        <span className="text-sm text-gray-700">{type.label}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        <p className="text-[10px] text-gray-500">Select which staff roles this option appears for.</p>
+                                    </div>
                                 </div>
                                 <DialogFooter>
                                     <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
@@ -239,6 +277,13 @@ export default function OrganizationStructure() {
                                     <div>
                                         <h3 className="font-semibold text-gray-900 text-sm">{item.name}</h3>
                                         {item.description && <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>}
+                                        <div className="flex gap-1 mt-1.5 flex-wrap">
+                                            {item.applicableTo?.map(t => (
+                                                <span key={t} className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">
+                                                    {MEMBER_TYPES.find(m => m.id === t)?.label || t}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -265,6 +310,13 @@ export default function OrganizationStructure() {
                                     <div>
                                         <h3 className="font-semibold text-gray-900 text-sm">{item.name}</h3>
                                         {item.description && <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>}
+                                        <div className="flex gap-1 mt-1.5 flex-wrap">
+                                            {item.applicableTo?.map(t => (
+                                                <span key={t} className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">
+                                                    {MEMBER_TYPES.find(m => m.id === t)?.label || t}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

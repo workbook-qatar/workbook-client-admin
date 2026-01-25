@@ -115,7 +115,7 @@ const MOCK_COMPANY_VEHICLES = [
     { id: "v3", name: "Mitsubishi Canter - T001" },
 ];
 
-export default function PendingInviteDetails() {
+export default function StaffPendingInviteDetails() {
   const [, params] = useRoute("/workforce/pending/:id");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [, setLocation] = useLocation();
@@ -172,6 +172,7 @@ export default function PendingInviteDetails() {
   const [newTemplateData, setNewTemplateData] = useState({ name: "", startTime: "", endTime: "" });
 
   const handleSaveNewTemplate = () => {
+    if (!formData) return;
     if (!newTemplateData.name || !newTemplateData.startTime || !newTemplateData.endTime) {
         toast.error("Please fill all fields");
         return;
@@ -225,7 +226,9 @@ export default function PendingInviteDetails() {
     // 2. Load Organization & Employment Settings
     const storedDepts = localStorage.getItem("vendor_departments");
     if (storedDepts) {
-        setDepartmentOptions(JSON.parse(storedDepts).map((d: any) => d.name));
+        let depts = JSON.parse(storedDepts).map((d: any) => d.name);
+        if (!depts.includes("Logistics")) depts.push("Logistics");
+        setDepartmentOptions(depts);
     } else {
         setDepartmentOptions(["Operations", "Maintenance", "Sales", "HR", "Logistics"]);
     }

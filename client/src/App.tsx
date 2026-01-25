@@ -19,7 +19,7 @@ import AddWorkforceMember from "./pages/AddWorkforceMember";
 import AddCustomer from "./pages/AddCustomer";
 import Services from "./pages/Services";
 import PendingInvites from "./pages/PendingInvites";
-import PendingInviteDetails from "./pages/PendingInviteDetails";
+import PendingInviteDispatcher from "./pages/PendingInviteDispatcher";
 import CreatePackage from "./pages/CreatePackage";
 import CreateCategory from "./pages/CreateCategory";
 import CreateServiceArea from "./pages/CreateServiceArea";
@@ -55,7 +55,7 @@ function Router() {
 
       <Route path="/dispatch" component={Dispatch} />
       <Route path="/workforce/pending" component={PendingInvites} />
-      <Route path="/workforce/pending/:id" component={PendingInviteDetails} />
+      <Route path="/workforce/pending/:id" component={PendingInviteDispatcher} />
       <Route path="/workforce" component={Workforce} />
       <Route path="/workforce/add" component={AddWorkforceMember} />
       <Route path="/staff/:id" component={StaffDetails} />

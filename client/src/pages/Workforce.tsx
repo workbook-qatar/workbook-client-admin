@@ -53,7 +53,7 @@ export interface StaffMember {
   staffId: string; // WB1, WB2, etc.
   name: string;
   role: string;
-  roleType: "field" | "office" | "driver" | "part-time";
+  roleType: "Field Service" | "Internal Staff" | "driver" | "part-time";
   email: string;
   phone: string;
   location: string;
@@ -69,7 +69,8 @@ export interface StaffMember {
     | "pending"
     | "rejected"
     | "expired"
-    | "cancelled";
+    | "cancelled"
+    | "accepted";
   inviteSentAt?: string;
   emailVerified?: boolean;
   phoneVerified?: boolean; // via Staff App OTP
@@ -92,7 +93,7 @@ const SAMPLE_STAFF: StaffMember[] = [
     staffId: "WB1",
     name: "NISAR KORAMMAN KANDY MOIDEEN",
     role: "Cleaner",
-    roleType: "field",
+    roleType: "Field Service",
     email: "nisar@workbook.com",
     phone: "+97488997788",
     location: "India",
@@ -119,7 +120,7 @@ const SAMPLE_STAFF: StaffMember[] = [
     staffId: "WB2",
     name: "fgdfdfg",
     role: "Cleaner",
-    roleType: "field",
+    roleType: "Field Service",
     email: "dgdfgds@hfh.vv",
     phone: "+974556434554",
     location: "Vietnam",
@@ -141,7 +142,7 @@ const SAMPLE_STAFF: StaffMember[] = [
     staffId: "WB3",
     name: "FAIS KAPPIKKUNNUMMAL",
     role: "Cleaner",
-    roleType: "office",
+    roleType: "Internal Staff",
     email: "fais@gmail.com",
     phone: "+9745687879",
     location: "India",
@@ -183,7 +184,7 @@ const SAMPLE_STAFF: StaffMember[] = [
     staffId: "",
     name: "Pending Staff 2",
     role: "Field Technician",
-    roleType: "field",
+    roleType: "Field Service",
     email: "tech.pending@example.com",
     phone: "+97455443322",
     location: "Qatar",
@@ -219,6 +220,7 @@ export default function Workforce() {
         ...s,
         membershipStatus: s.membershipStatus || "active", // Default legacy to active
         employmentStatus: s.employmentStatus || "Active",
+        roleType: s.roleType === "field" ? "Field Service" : s.roleType === "office" ? "Internal Staff" : s.roleType
       }));
       setStaff(parsedStaff);
     } else {
@@ -305,8 +307,8 @@ export default function Workforce() {
   // Stats
   const stats = {
     total: activeWorkforce.length,
-    field: activeWorkforce.filter(s => s.roleType === "field").length,
-    office: activeWorkforce.filter(s => s.roleType === "office").length,
+    field: activeWorkforce.filter(s => s.roleType === "Field Service").length,
+    office: activeWorkforce.filter(s => s.roleType === "Internal Staff").length,
     drivers: activeWorkforce.filter(s => s.roleType === "driver").length,
     pending: pendingInvites.filter(s => s.membershipStatus === "pending")
       .length,
@@ -396,7 +398,7 @@ export default function Workforce() {
 
           <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
             <p className="text-xs font-medium text-muted-foreground uppercase">
-              Field Staff
+              Field Service
             </p>
             <div className="flex items-center justify-between mt-1">
               <p className="text-2xl font-bold font-heading">{stats.field}</p>
@@ -416,7 +418,7 @@ export default function Workforce() {
 
           <Card className="glass-panel p-4 border hover:bg-card/90 transition-all cursor-pointer">
             <p className="text-xs font-medium text-muted-foreground uppercase">
-              Office
+              Internal Staff
             </p>
             <div className="flex items-center justify-between mt-1">
               <p className="text-2xl font-bold font-heading">{stats.office}</p>
@@ -459,8 +461,8 @@ export default function Workforce() {
                 </SelectTrigger>
                 <SelectContent>
                     <SelectItem value="all">All Roles</SelectItem>
-                    <SelectItem value="field">Field Staff</SelectItem>
-                    <SelectItem value="office">Office Staff</SelectItem>
+                    <SelectItem value="Field Service">Field Service</SelectItem>
+                    <SelectItem value="Internal Staff">Internal Staff</SelectItem>
                     <SelectItem value="driver">Drivers</SelectItem>
                 </SelectContent>
                 </Select>

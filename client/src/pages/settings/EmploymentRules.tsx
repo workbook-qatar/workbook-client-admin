@@ -28,6 +28,7 @@ interface ConfigItem {
   status: "active" | "inactive";
   // Transport specific
   category?: "company_driver" | "company_vehicle" | "self_vehicle" | "public" | "hybrid" | "other"; 
+  applicableTo?: string[]; // "field_service", "driver", "internal"
 }
 
 interface ShiftTemplate {
@@ -37,12 +38,18 @@ interface ShiftTemplate {
   endTime: string;
 }
 
+const MEMBER_TYPES = [
+    { id: "field_service", label: "Field Service Staff" },
+    { id: "driver", label: "Driver" },
+    { id: "internal", label: "Internal Staff" },
+];
+
 // --- Defaults ---
 const DEFAULT_EMPLOYMENT_TYPES: ConfigItem[] = [
-  { id: "et1", name: "Full Time", description: "Standard 40+ hours week", status: "active" },
-  { id: "et2", name: "Part Time", description: "Less than 30 hours week", status: "active" },
-  { id: "et3", name: "Contract", description: "Project-based engagement", status: "active" },
-  { id: "et4", name: "Temporary", description: "Short-term placement", status: "active" },
+  { id: "et1", name: "Full Time", description: "Standard 40+ hours week", status: "active", applicableTo: ["field_service", "driver", "internal"] },
+  { id: "et2", name: "Part Time", description: "Less than 30 hours week", status: "active", applicableTo: ["internal"] },
+  { id: "et3", name: "Contract", description: "Project-based engagement", status: "active", applicableTo: ["field_service", "driver", "internal"] },
+  { id: "et4", name: "Temporary", description: "Short-term placement", status: "active", applicableTo: ["field_service"] },
 ];
 
 const DEFAULT_CONTRACT_TYPES: ConfigItem[] = [
@@ -77,7 +84,7 @@ export default function EmploymentRules() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<Partial<ConfigItem>>({ name: "", description: "", category: "company_driver" });
+  const [formData, setFormData] = useState<Partial<ConfigItem>>({ name: "", description: "", category: "company_driver", applicableTo: [] });
 
   // --- Shifts State ---
   const [enabledShiftTypes, setEnabledShiftTypes] = useState({ fixed: true, rotational: true, flexible: false });
@@ -207,13 +214,13 @@ export default function EmploymentRules() {
 
   const openEdit = (item: ConfigItem) => {
     setEditingId(item.id);
-    setFormData({ name: item.name, description: item.description || "", category: item.category });
+    setFormData({ name: item.name, description: item.description || "", category: item.category, applicableTo: item.applicableTo || [] });
     setIsDialogOpen(true);
   };
 
   const resetForm = () => {
     setEditingId(null);
-    setFormData({ name: "", description: "", category: "company_driver" });
+    setFormData({ name: "", description: "", category: "company_driver", applicableTo: [] });
   };
 
   // Shift Settings Save
@@ -360,6 +367,35 @@ export default function EmploymentRules() {
                                                 <Label htmlFor="desc">Description</Label>
                                                 <Input id="desc" placeholder="Optional description..." value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} />
                                             </div>
+
+                                            <div className="space-y-3 pt-2">
+                                                <Label>Applicable Member Types</Label>
+                                                <div className="flex flex-col gap-2 p-3 border rounded-md bg-gray-50/50">
+                                                    {MEMBER_TYPES.map(type => {
+                                                        const isChecked = formData.applicableTo?.includes(type.id);
+                                                        return (
+                                                            <div 
+                                                                key={type.id} 
+                                                                className="flex items-center gap-2 cursor-pointer"
+                                                                onClick={() => {
+                                                                    const current = formData.applicableTo || [];
+                                                                    if (isChecked) {
+                                                                        setFormData({...formData, applicableTo: current.filter(t => t !== type.id)});
+                                                                    } else {
+                                                                        setFormData({...formData, applicableTo: [...current, type.id]});
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <div className={`h-4 w-4 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-teal-600 border-teal-600' : 'bg-white border-gray-300'}`}>
+                                                                    {isChecked && <Plus className="h-3 w-3 text-white rotate-45 transform origin-center" />} 
+                                                                </div>
+                                                                <span className="text-sm text-gray-700">{type.label}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <p className="text-[10px] text-gray-500">Select which staff roles this option appears for.</p>
+                                            </div>
                                         </div>
                                     <DialogFooter>
                                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
@@ -379,6 +415,13 @@ export default function EmploymentRules() {
                                         <div>
                                             <h3 className="font-semibold text-gray-900 text-sm">{item.name}</h3>
                                             {item.description && <p className="text-xs text-gray-500 mt-0.5">{item.description}</p>}
+                                            <div className="flex gap-1 mt-1.5 flex-wrap">
+                                                {item.applicableTo?.map(t => (
+                                                    <span key={t} className="text-[10px] bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded border border-gray-200">
+                                                        {MEMBER_TYPES.find(m => m.id === t)?.label || t}
+                                                    </span>
+                                                ))}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">

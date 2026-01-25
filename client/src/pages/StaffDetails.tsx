@@ -111,7 +111,7 @@ const mockStaffData = {
   jobsCompleted: 156,
   earnings: "5890 QAR",
   hours: "42.5h/week",
-  roleType: "field", // Default
+  roleType: "Field Service", // Default
   membershipStatus: "active" as MembershipStatus,
 };
 
@@ -349,7 +349,7 @@ export default function StaffDetails() {
                         <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Email</Label><div className="font-medium">{staff.email}</div></div>
                         <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Phone</Label><div className="font-medium">{staff.phone}</div></div>
                         
-                        {staff.roleType !== 'office' && (
+                        {staff.roleType !== 'Internal Staff' && (
                             <>
                                 <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">QID Number</Label><div className="font-medium">{staff.qid}</div></div>
                                 <div className="space-y-1"><Label className="text-xs text-muted-foreground uppercase">Nationality</Label><div className="font-medium">{staff.nationality}</div></div>
@@ -571,7 +571,7 @@ export default function StaffDetails() {
             <TabsTrigger value="profile">Profile</TabsTrigger>
             
             {/* Field Staff Tabs */}
-            {staff.roleType !== 'office' && (
+            {staff.roleType !== 'Internal Staff' && (
                 <>
                         <>
                             <TabsTrigger value="schedule">Schedule</TabsTrigger>
@@ -584,7 +584,7 @@ export default function StaffDetails() {
             )}
 
             {/* Internal Staff Tabs */}
-            {staff.roleType === 'office' && (
+            {staff.roleType === 'Internal Staff' && (
                 <>
                     <TabsTrigger value="roles">Role & Permissions</TabsTrigger>
                     <TabsTrigger value="activity">Activity Log</TabsTrigger>

@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from "react";
-import { useLocation } from "wouter";
+import { useRoute, useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,12 +9,29 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { 
   ArrowLeft, CheckCircle, ShieldCheck, Mail, Phone, Calendar, 
-  MapPin, User, Hash, Flag, Upload, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Car, Truck, Trash2, X
+  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck, Car, Bus, Layers, Check, ChevronDown 
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { StaffMember } from "./Workforce";
+// import DriverPendingInviteDetails from "./DriverPendingInviteDetails"; // Removed circular dependency
 
-// Helper Functions for Time Grid (Copied for independence)
+// Helper Functions for Time Grid
 const formatTimeLabel = (time: string) => {
     const [h] = time.split(':');
     const hour = parseInt(h);
@@ -24,6 +40,23 @@ const formatTimeLabel = (time: string) => {
     return `${displayHour} ${suffix}`;
 };
 
+const isHourActive = (current: string, start: string, end: string) => {
+    return current >= start && current < end;
+};
+
+const incrementHour = (time: string) => {
+    const [h] = time.split(':');
+    let hour = parseInt(h) + 1;
+    return `${hour.toString().padStart(2, '0')}:00`;
+};
+
+const decrementHour = (time: string) => {
+    const [h] = time.split(':');
+    let hour = parseInt(h) - 1;
+    return `${hour.toString().padStart(2, '0')}:00`;
+};
+
+// Extended interface for local usage
 interface ExtendedStaffMember extends StaffMember {
     nickname?: string;
     qid?: string;
@@ -51,34 +84,209 @@ interface ExtendedStaffMember extends StaffMember {
     workHoursStart?: string;
     workHoursEnd?: string;
     rotationalSchedule?: Record<string, { start: string; end: string }[]>;
-    // Driver specific (Ensuring these exist in type even if optional)
+    // Transport
+    transportationType?: string;
+    primaryTransport?: string; // For Hybrid
+    transportVaries?: boolean; // For Hybrid
+    // Driver specific / Transport Logic
     assignedVehicle?: string; 
+    vehicleType?: string; // For Self
+    plateNumber?: string; // For Self
     licenseCategory?: string;
     licenseNumber?: string;
     licenseExpiry?: string;
+    // Operations
+    serviceScope?: 'all' | 'specific';
+    serviceAreas?: string[];
+    seatCapacity?: string; // New field for Personal Vehicle
 }
 
-export default function DriverPendingInviteDetails({ initialData }: { initialData: ExtendedStaffMember }) {
-  const [, setLocation] = useLocation();
-  const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Operations, 2=Summary
-  const [isEditing, setIsEditing] = useState(true); // Default to true for onboarding flow
+const MOCK_SERVICE_AREAS = [
+    { id: "sa-1", name: "Doha Central" },
+    { id: "sa-2", name: "West Bay" },
+    { id: "sa-3", name: "The Pearl" },
+    { id: "sa-4", name: "Al Rayyan" },
+    { id: "sa-5", name: "Al Wakrah" },
+    { id: "sa-6", name: "Lusail" },
+];
+
+
+
+export default function DriverPendingInviteDetails() {
+  const [, params] = useRoute("/workforce/pending/:id");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  const [, setLocation] = useLocation();
+  const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Ops&Skills, 2=Summary
+  const [isEditing, setIsEditing] = useState(false);
   
-  // Form State
-  const [formData, setFormData] = useState<ExtendedStaffMember>(initialData);
+  // Cert Form State (To be removed/ignored in new flow, but keeping for safety for now)
+  const [isAddingCert, setIsAddingCert] = useState(false);
+  const [tempCert, setTempCert] = useState({ name: "", expiry: "" });
+  
+  // "Committed" Data (Display)
+  const [data, setData] = useState<ExtendedStaffMember | null>(null);
+  
+  // "Draft" Data (Form)
+  const [formData, setFormData] = useState<ExtendedStaffMember | null>(null);
+  
+  // Basic Info Edit Components
+  const [isBasicInfoOpen, setIsBasicInfoOpen] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState<{
+      nickname: string;
+      mobile: string;
+      email: string;
+      gender: 'Male' | 'Female';
+      avatar?: string;
+  } | null>(null);
 
-  // Settings Data (Simplified for Driver - reduced fetch needs if possible, but safe to init defaults)
-  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<string[]>([]);
-  const [enabledShiftSystems, setEnabledShiftSystems] = useState<string[]>([]);
-  const [activeDayModal, setActiveDayModal] = useState<string | null>(null);
+  const [companyVehicles, setCompanyVehicles] = useState<{id: string, name: string}[]>([]);
 
-  // Load Settings
+  // Initialize basic info form when opening modal
   useEffect(() => {
+      if (isBasicInfoOpen && data) {
+          setBasicInfoForm({
+              nickname: data.nickname || "",
+              mobile: data.phone || "",
+              email: data.email || "",
+              gender: data.gender || "Male",
+              avatar: data.avatar
+          });
+      }
+  }, [isBasicInfoOpen, data]);
+
+  const [activeDayModal, setActiveDayModal] = useState<string | null>(null);
+  
+  // Settings Data
+  const [availableSkills, setAvailableSkills] = useState<any[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([]);
+  const [positionOptions, setPositionOptions] = useState<string[]>([]);
+  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<string[]>([]);
+  const [transportationConfigs, setTransportationConfigs] = useState<any[]>([]); // Store full config objects
+  const [serviceAreaConfigs, setServiceAreaConfigs] = useState<any[]>(MOCK_SERVICE_AREAS); // Default to mocks
+  const [enabledShiftSystems, setEnabledShiftSystems] = useState<string[]>([]);
+  const [shiftTemplateOptions, setShiftTemplateOptions] = useState<any[]>([]);
+
+  // Dialog State for "Add Shift Block" -> "Create Template"
+  const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
+  const [newTemplateData, setNewTemplateData] = useState({ name: "", startTime: "", endTime: "" });
+
+  const handleSaveNewTemplate = () => {
+    if (!formData) return;
+    if (!newTemplateData.name || !newTemplateData.startTime || !newTemplateData.endTime) {
+        toast.error("Please fill all fields");
+        return;
+    }
+    const newTemplate = {
+        id: `custom-${Date.now()}`,
+        name: newTemplateData.name,
+        startTime: newTemplateData.startTime,
+        endTime: newTemplateData.endTime
+    };
+    
+    // 1. Update List
+    const updated = [...shiftTemplateOptions, newTemplate];
+    setShiftTemplateOptions(updated);
+    localStorage.setItem("vendor_shift_templates", JSON.stringify(updated));
+    
+    // 2. Add to Current Day (since user clicked "Add Shift Block")
+    if (activeDayModal) {
+         const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
+         currentSlots.push({ start: newTemplate.startTime, end: newTemplate.endTime });
+          setFormData({
+             ...formData,
+             rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
+          });
+          toast.success("Template created and shift added");
+    } else {
+        toast.success("Shift template created");
+    }
+
+    setIsCreateTemplateOpen(false);
+    setNewTemplateData({ name: "", startTime: "", endTime: "" });
+  };
+
+  // Load Data
+  useEffect(() => {
+    // 1. Load Skills
+    const storedSkills = localStorage.getItem("vendor_skills");
+    if (storedSkills) {
+        setAvailableSkills(JSON.parse(storedSkills));
+    } else {
+        setAvailableSkills([
+             { name: "HVAC Repair", requiresCert: true, certName: "HVAC Technician Certificate" },
+             { name: "Electrical", requiresCert: true, certName: "Electrician Certification" },
+             { name: "Plumbing", requiresCert: true, certName: "Plumbing License" },
+             { name: "Deep Cleaning", requiresCert: false },
+             { name: "Carpentry", requiresCert: false },
+             { name: "Beautician", requiresCert: true, certName: "Cosmetology License" }
+        ]);
+    }
+
+    // 2. Load Organization & Employment Settings
+    // 2. Load Organization & Employment Settings
+    const storedDepts = localStorage.getItem("vendor_departments");
+    if (storedDepts) {
+        const allDepts = JSON.parse(storedDepts);
+        // Filter for "driver" or if applicableTo is missing (legacy)
+        const validDepts = allDepts.filter((d: any) => !d.applicableTo || d.applicableTo.includes("driver"));
+        let depts = validDepts.map((d: any) => d.name);
+        
+        if (!depts.includes("Logistics")) depts.push("Logistics"); // Always include Logistics for Driver
+        setDepartmentOptions(depts);
+    } else {
+        setDepartmentOptions(["Operations", "Logistics"]);
+    }
+
+    const storedJobs = localStorage.getItem("vendor_job_titles");
+    if (storedJobs) {
+        const allJobs = JSON.parse(storedJobs);
+        const validJobs = allJobs.filter((j: any) => !j.applicableTo || j.applicableTo.includes("driver"));
+        setPositionOptions(validJobs.map((j: any) => j.name || j.title));
+    } else {
+        setPositionOptions(["Driver"]);
+    }
+
     const storedEmpTypes = localStorage.getItem("vendor_employment_types");
     if (storedEmpTypes) {
-        setEmploymentTypeOptions(JSON.parse(storedEmpTypes).filter((e: any) => e.isActive).map((e: any) => e.name));
+        const allTypes = JSON.parse(storedEmpTypes);
+        const validTypes = allTypes.filter((e: any) => e.isActive !== false && (!e.applicableTo || e.applicableTo.includes("driver")));
+        setEmploymentTypeOptions(validTypes.map((e: any) => e.name));
     } else {
-        setEmploymentTypeOptions(["Full Time", "Part Time", "Contract"]);
+        setEmploymentTypeOptions(["Full Time", "Contract"]);
+    }
+
+    const storedTransport = localStorage.getItem("vendor_transportation_types");
+    const NEW_TRANSPORT_DEFAULTS = [
+      { id: "tt1", name: "Company Provides Transportation (With Driver)", description: "Staff will be transported by company driver/route", status: "active", category: "company_driver" },
+      { id: "tt2", name: "Company Provides Vehicle (Staff Drives)", description: "Company assigned vehicle (Car/Van)", status: "active", category: "company_vehicle" },
+      { id: "tt3", name: "Self – Own Vehicle", description: "Employee uses personal vehicle", status: "active", category: "self_vehicle" },
+      { id: "tt4", name: "Public / Ride Transport", description: "Staff uses taxi/uber/public transport", status: "active", category: "public" },
+      { id: "tt5", name: "Hybrid / Flexible", description: "Varies by shift/day", status: "active", category: "hybrid" },
+    ];
+
+    if (storedTransport) {
+        let loaded = JSON.parse(storedTransport);
+        // FORCE MIGRATION: Check if using old names
+        if (loaded.some((t: any) => t.name === "Company-Provided Transportation" || t.name === "Company Vehicle (Self Drive)")) {
+            loaded = NEW_TRANSPORT_DEFAULTS;
+            localStorage.setItem("vendor_transportation_types", JSON.stringify(loaded));
+        }
+        setTransportationConfigs(loaded.filter((t: any) => t.status === 'active'));
+    } else {
+        setTransportationConfigs(NEW_TRANSPORT_DEFAULTS);
+        localStorage.setItem("vendor_transportation_types", JSON.stringify(NEW_TRANSPORT_DEFAULTS));
+    }
+
+    // 3. Load Fleet Data
+    const storedVehicles = localStorage.getItem("vendor_vehicles");
+    if (storedVehicles) {
+        setCompanyVehicles(JSON.parse(storedVehicles).map((v: any) => ({
+            id: v.id,
+            name: `${v.name} - ${v.plateNumber}` // Format for display
+        })));
+    } else {
+        // Fallback or empty if module just initialized
+        setCompanyVehicles([]);
     }
 
     const storedShiftConfig = localStorage.getItem("vendor_shift_types_enabled");
@@ -92,59 +300,232 @@ export default function DriverPendingInviteDetails({ initialData }: { initialDat
     } else {
         setEnabledShiftSystems(["Fixed", "Rotational", "Flexible"]);
     }
-  }, []);
 
-  const rotationHours = [
-      "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", 
-      "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
-  ];
+    const storedTemplates = localStorage.getItem("vendor_shift_templates");
+    if (storedTemplates) {
+        setShiftTemplateOptions(JSON.parse(storedTemplates));
+    }
+
+    const storedAreas = localStorage.getItem("vendor_service_areas");
+    if (storedAreas) {
+        const areas = JSON.parse(storedAreas);
+        if (areas.length > 0) setServiceAreaConfigs(areas);
+    }
+
+
+    const stored = localStorage.getItem("vendor_staff");
+    if (stored && params?.id) {
+        const list = JSON.parse(stored);
+        const found = list.find((s: any) => s.id === params.id || s.id === parseInt(params.id));
+        if (found) {
+            // Mock Data Enrichment if missing
+            const initialized: ExtendedStaffMember = { 
+                ...found, 
+                nickname: found.nickname || "N/A",
+                role: "", // Ensure role starts empty for manual selection
+                qid: found.qid || "28535638494",
+                dob: found.dob || "1995-04-12",
+                nationality: found.nationality || "Qatar",
+                gender: found.gender || "Male",
+                department: found.department || "",
+                employmentType: found.employmentType || "",
+                startDate: found.startDate || "",
+                salaryType: found.salaryType || "",
+                salaryAmount: found.salaryAmount || "",
+                commissionRate: found.commissionRate || "",
+                hourlyRate: found.hourlyRate || "",
+                languages: [],
+                religion: "",
+                maritalStatus: "",
+                emergencyPhone: "",
+                skills: [], 
+                documents: found.documents || [],
+                shiftSystem: "" as any,
+                workingDays: [],
+                workHoursStart: "",
+                workHoursEnd: "",
+                rotationalSchedule: {},
+                transportationType: found.transportationType || "",
+                assignedVehicle: found.assignedVehicle || "",
+                vehicleType: found.vehicleType || "",
+                plateNumber: found.plateNumber || "",
+                primaryTransport: found.primaryTransport || "",
+                transportVaries: found.transportVaries || false,
+                licenseCategory: found.licenseCategory || "",
+                licenseNumber: found.licenseNumber || "",
+                licenseExpiry: found.licenseExpiry || "",
+                serviceScope: "" as any, // Start empty
+                serviceAreas: found.serviceAreas || []
+            };
+            
+            // Check for Default Business Hours override if new/empty
+            const storedBizHours = localStorage.getItem("vendor_business_hours");
+            if (storedBizHours && (!found.workHoursStart || found.workHoursStart === "08:00")) {
+                 const biz = JSON.parse(storedBizHours);
+                 initialized.workHoursStart = biz.start;
+                 initialized.workHoursEnd = biz.end;
+            }
+            if (!initialized.seatCapacity) initialized.seatCapacity = ""; // Init new field
+
+            setData(initialized);
+            setFormData(initialized);
+            // Auto-enter edit mode for onboarding review if data is "fresh"
+            setIsEditing(true); 
+        }
+    }
+  }, [params?.id]);
+
+  if (!data || !formData) return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+
+  // if (data.role === 'Driver') {
+  //     return <DriverPendingInviteDetails initialData={data} />;
+  // }
+
+  // --- Logic Helpers ---
+  const handleEditToggle = () => {
+      if (isEditing) {
+          setFormData(data); // Revert
+          setIsEditing(false);
+          setIsAddingCert(false);
+      } else {
+          setFormData(data); // Sync
+          setIsEditing(true);
+      }
+  };
 
   const saveChanges = (advanceStep = false) => {
       const stored = localStorage.getItem("vendor_staff");
       if (stored) {
           const list = JSON.parse(stored);
-          const index = list.findIndex((s: any) => s.id === formData.id);
-          if (index !== -1) {
+          const index = list.findIndex((s: any) => s.id === data.id);
+          if (index !== -1 && formData) {
               list[index] = { ...list[index], ...formData };
               localStorage.setItem("vendor_staff", JSON.stringify(list));
+              setData(formData);
               toast.success("Changes saved successfully");
               if (advanceStep) setCurrentStep(prev => prev + 1);
           }
       }
   };
 
-  const handleActivate = () => {
-    const stored = localStorage.getItem("vendor_staff");
-    if (stored) {
-        let list = JSON.parse(stored);
-        list = list.map((s: any) => s.id === formData.id ? { ...s, membershipStatus: 'active', employmentStatus: 'Active', status: 'available' } : s);
-        localStorage.setItem("vendor_staff", JSON.stringify(list));
-        setIsSuccessOpen(true);
-    }
+  const handleSaveBasicInfo = () => {
+        if (!basicInfoForm || !data) return;
+        
+        const updatedData = {
+            ...data,
+            nickname: basicInfoForm.nickname,
+            phone: basicInfoForm.mobile,
+            email: basicInfoForm.email,
+            gender: basicInfoForm.gender,
+            avatar: basicInfoForm.avatar || data.avatar
+        };
+
+        const stored = localStorage.getItem("vendor_staff");
+        if (stored) {
+            const list = JSON.parse(stored);
+            const index = list.findIndex((s: any) => s.id === data.id);
+            if (index !== -1) {
+                list[index] = updatedData;
+                localStorage.setItem("vendor_staff", JSON.stringify(list));
+                setData(updatedData as ExtendedStaffMember);
+                // Also update local formData to reflect changes immediately
+                setFormData(prev => prev ? { ...prev, ...updatedData } : null);
+                setIsBasicInfoOpen(false);
+                toast.success("Basic Info updated successfully");
+            }
+        }
+    };
+
+  const handleAddCert = () => {
+      if (!formData) return; // Basic check
+      if (!tempCert.name) {
+          toast.error("Certificate name is required");
+          return;
+      }
+      const newDoc = { 
+          name: tempCert.name, 
+          type: "Certificate", 
+          status: 'valid' as const,
+          expiryDate: tempCert.expiry 
+      };
+      setFormData({ ...formData, documents: [...(formData.documents || []), newDoc] });
+      setTempCert({ name: "", expiry: "" });
+      setIsAddingCert(false);
+      toast.success("Certificate added");
   };
 
+  // Check Requirements matching the new 3 Steps
+  // Check Requirements matching the new 3 Steps (Merged)
   const checkRequirements = () => {
-    const d = formData;
+    const d = formData || data;
+    const opsValid = d.serviceScope === 'all' || (d.serviceScope === 'specific' && (d.serviceAreas?.length || 0) > 0);
+    const scheduleValid = (d.workingDays?.length || 0) > 0;
+
+    const isCompVehicle = d.transportationType === 'Company Vehicle';
+    // Validate vehicle assignment only if Company Vehicle. 
+    // If Personal Vehicle, we don't strictly force plate number (as per "vehicle assignment not required"), but could be optional.
+    const vehicleValid = isCompVehicle ? !!d.assignedVehicle : true;
+
     return {
-        employment: !!(d.employmentType && d.startDate && d.salaryType),
-        operations: !!(d.shiftSystem && d.workingDays?.length && d.licenseNumber && d.licenseCategory && d.licenseExpiry && d.assignedVehicle),
-        summary: true
+        employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType),
+        // Combined validation
+        ops: !!d.transportationType && vehicleValid && opsValid && scheduleValid, 
+        summary: true 
     };
   };
 
   const reqs = checkRequirements();
   const steps = [
-      { id: 'employment', label: 'Employment Info', completed: reqs.employment },
-      { id: 'operations', label: 'Operations', completed: reqs.operations },
+      { id: 'employment', label: 'Employment & Contracts', completed: reqs.employment },
+      { id: 'ops', label: 'Operations & Compliance', completed: reqs.ops },
       { id: 'summary', label: 'Summary & Activation', completed: currentStep === 2 },
   ];
   
   const completedCount = steps.filter(s => s.completed).length;
   const progressPercent = (completedCount / steps.length) * 100;
+  const canActivate = progressPercent === 100;
+
+  const handleActivate = () => {
+    const stored = localStorage.getItem("vendor_staff");
+    if (stored) {
+        let list = JSON.parse(stored);
+        list = list.map((s: any) => s.id === data.id ? { ...s, membershipStatus: 'active', employmentStatus: 'Active', status: 'available' } : s);
+        localStorage.setItem("vendor_staff", JSON.stringify(list));
+        
+        // Show success
+        setIsSuccessOpen(true);
+    }
+  };
+
+  // Handlers for Right Panel Logic (Skills/Docs)
+  const handleAddSkill = (skill: string) => {
+      if (!formData) return;
+      if (!formData.skills?.includes(skill)) {
+          setFormData({ ...formData, skills: [...(formData.skills || []), skill] });
+      }
+  };
+  const handleRemoveSkill = (skill: string) => {
+      if (!formData) return;
+      setFormData({ ...formData, skills: formData.skills?.filter(s => s !== skill) });
+  };
+  const handleMockUpload = () => {
+      if (!formData) return;
+      const newDoc = { name: "Uploaded Document.pdf", type: "General", status: 'valid' as const };
+      setFormData({ ...formData, documents: [...(formData.documents || []), newDoc] });
+      toast.success("Document uploaded (mock)");
+  };
+
+  const serviceAreas = ["Doha Central", "West Bay", "The Pearl", "Al Rayyan", "Al Wakrah"];
+  
+  const rotationHours = [
+      "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", 
+      "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
+  ];
+  const rotationDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Ordered as per design req if needed
 
   return (
     <DashboardLayout>
-       <div className="space-y-6">
+      <div className="space-y-6">
         {/* Nav */}
         <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" onClick={() => setLocation("/workforce/pending")}>
@@ -152,68 +533,61 @@ export default function DriverPendingInviteDetails({ initialData }: { initialDat
             </Button>
         </div>
 
+        {/* Split View */}
         <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-6 animate-in fade-in slide-in-from-bottom-2">
             
-            {/* LEFT SIDEBAR */}
+            {/* LEFT SIDEBAR - PROFILE DETAILS */}
             <div className="w-full lg:w-80 shrink-0 space-y-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
-                    {/* Header */}
-                    <div className="p-6 flex flex-col items-center text-center border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/50">
+                    
+                    {/* Header: Photo & Name */}
+                    <div className="p-6 flex flex-col items-center text-center border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/50 relative">
+                        {/* Edit Action */}
+                        <div className="absolute top-4 right-4">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-white/80 transition-all rounded-full" onClick={() => setIsBasicInfoOpen(true)}>
+                                <Edit2 className="h-4 w-4" />
+                            </Button>
+                        </div>
+
                         <div className="relative mb-4">
                             <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
-                                <AvatarImage src={formData.avatar} className="object-cover"/>
+                                <AvatarImage src={data.avatar} className="object-cover"/>
                                 <AvatarFallback className="text-2xl font-bold bg-gray-100 text-gray-600">
-                                    {formData.name.substring(0,2).toUpperCase()}
+                                    {data.name.substring(0,2).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
                             <div className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow-sm border border-gray-200">
-                                <Car className="h-3 w-3 text-gray-500" />
+                                <User className="h-3 w-3 text-gray-500" />
                             </div>
                         </div>
-                        <h2 className="font-bold text-lg text-gray-900 leading-tight">{formData.name}</h2>
-                        <span className="text-xs font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full mt-1 uppercase tracking-wide">Driver</span>
+                        <h2 className="font-bold text-lg text-gray-900 leading-tight">{data.name}</h2>
+                        <p className="text-sm text-gray-500 mt-1">{data.nickname || 'No Nickname'}</p>
                     </div>
 
-                    {/* Details List */}
-                    <div className="p-6 space-y-4 text-sm flex-1">
-                         <div className="space-y-4">
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <Hash className="h-4 w-4" />
-                                    <span>QID Number</span>
-                                </div>
-                                <span className="font-medium text-gray-900">{formData.qid}</span>
-                            </div>
-                            <div className="flex items-center justify-between group">
-                                <div className="flex items-center gap-3 text-gray-500">
-                                    <Phone className="h-4 w-4" />
-                                    <span>Mobile</span>
-                                </div>
-                                <span className="font-medium text-gray-900">{formData.phone}</span>
-                            </div>
-                            
-                            {/* License Info Sidebar */}
-                            <div className="pt-4 border-t border-gray-100 mt-4 space-y-4">
-                                <div className="flex items-center justify-between group">
-                                    <div className="flex items-center gap-3 text-gray-500">
-                                        <Award className="h-4 w-4" />
-                                        <span>License</span>
+                    {/* Profile Details List */}
+                    <div className="p-6 space-y-4 text-sm flex-1 overflow-y-auto">
+                        <div className="space-y-4">
+                            {[
+                                { icon: Hash, label: "QID Number", value: data.qid },
+                                { icon: Calendar, label: "Date of Birth", value: data.dob },
+                                { icon: Flag, label: "Nationality", value: data.nationality },
+                                { icon: User, label: "Gender", value: data.gender },
+                                { icon: Phone, label: "Mobile", value: data.phone },
+                                { icon: Mail, label: "Email", value: data.email, isMultiline: true }
+                            ].map((item, i) => (
+                                <div key={i} className="flex items-start justify-between group">
+                                    <div className="flex items-center gap-3 text-gray-500 shrink-0 mt-0.5">
+                                        <item.icon className="h-4 w-4" />
+                                        <span>{item.label}</span>
                                     </div>
-                                    <span className="font-medium text-gray-900">{formData.licenseCategory || 'N/A'}</span>
-                                </div>
-                                <div className="flex items-center justify-between group">
-                                    <div className="flex items-center gap-3 text-gray-500">
-                                        <ShieldCheck className="h-4 w-4" />
-                                        <span>Expiry</span>
-                                    </div>
-                                    <span className={`font-medium ${new Date(formData.licenseExpiry || '').getTime() < Date.now() ? 'text-red-600' : 'text-green-600'}`}>
-                                        {formData.licenseExpiry || 'N/A'}
+                                    <span className={`font-medium text-gray-900 text-right ml-4 ${item.isMultiline ? 'break-all' : ''}`}>
+                                        {item.value || '---'}
                                     </span>
                                 </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
-
+                    
                     {/* Progress Badge */}
                     <div className="px-6 py-2">
                          <div className="flex items-center justify-between mb-2">
@@ -225,7 +599,7 @@ export default function DriverPendingInviteDetails({ initialData }: { initialDat
                         </div>
                     </div>
 
-                    {/* Steps */}
+                    {/* Next Steps List */}
                     <div className="p-6 pt-2 space-y-2">
                          {steps.map((step, idx) => (
                              <div 
@@ -254,30 +628,54 @@ export default function DriverPendingInviteDetails({ initialData }: { initialDat
                          ))}
                     </div>
 
-                    <div className="p-4 border-t bg-gray-50 mt-auto text-center text-xs text-gray-400">
-                        Complete all steps to activate driver.
+                     {/* Footer Action - Removed Activate Button from Sidebar */}
+                     <div className="p-4 border-t bg-gray-50 mt-auto text-center text-xs text-gray-400">
+                        Complete all steps to activate.
                     </div>
                 </div>
             </div>
 
-            {/* RIGHT PANEL */}
+            {/* RIGHT PANEL - WIZARD CONTENT */}
             <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
+                
+                {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-8 bg-white">
-                    
-                    {/* STEP 0: EMPLOYMENT INFO */}
-                    {currentStep === 0 && (
-                        <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                     
+                     {/* 1. EMPLOYMENT DETAILS */}
+                     {currentStep === 0 && (
+                         <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                             
+                             {/* Section: Role Information */}
                              <div className="space-y-6">
                                  <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                                      <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
                                         <Briefcase className="h-4 w-4" />
                                      </div>
                                      <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Employment Information</h3>
-                                        <p className="text-xs text-gray-500">Contract details for the driver.</p>
+                                        <h3 className="text-lg font-bold text-gray-900">Role Information</h3>
+                                        <p className="text-xs text-gray-500">Define the position and departmental placement.</p>
                                      </div>
                                  </div>
+
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Position <span className="text-red-500">*</span></Label>
+                                        <Select disabled={!isEditing} value={formData.role} onValueChange={v => setFormData({...formData, role: v})}>
+                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Position" /></SelectTrigger>
+                                            <SelectContent>
+                                                {positionOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Department <span className="text-red-500">*</span></Label>
+                                        <Select disabled={!isEditing} value={formData.department} onValueChange={v => setFormData({...formData, department: v})}>
+                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Department" /></SelectTrigger>
+                                            <SelectContent>
+                                                {departmentOptions.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                     <div className="space-y-1.5">
                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Employment Type <span className="text-red-500">*</span></Label>
                                         <Select disabled={!isEditing} value={formData.employmentType} onValueChange={v => setFormData({...formData, employmentType: v as any})}>
@@ -300,275 +698,1073 @@ export default function DriverPendingInviteDetails({ initialData }: { initialDat
                                  </div>
                              </div>
 
-                             {/* Compensation (Simplified for Driver if needed, or same) */}
+                             {/* Section: Compensation */}
                              <div className="space-y-6">
                                  <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
                                      <div className="h-8 w-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
                                         <Banknote className="h-4 w-4" />
                                      </div>
                                      <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Compensation</h3>
-                                        <p className="text-xs text-gray-500">Salary structure.</p>
+                                        <h3 className="text-lg font-bold text-gray-900">Compensation Package</h3>
+                                        <p className="text-xs text-gray-500">Configure salary structure and payment terms.</p>
                                      </div>
                                  </div>
+
                                  <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 space-y-6">
-                                      <div className="space-y-1.5">
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                         <div className="space-y-1.5 md:col-span-2">
                                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Salary Scheme <span className="text-red-500">*</span></Label>
                                             <Select disabled={!isEditing} value={formData.salaryType} onValueChange={v => setFormData({...formData, salaryType: v as any})}>
-                                                <SelectTrigger className="bg-white w-full h-11 border-gray-200 text-sm"><SelectValue placeholder="Select Salary Type" /></SelectTrigger>
+                                                <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm"><SelectValue placeholder="Select Salary Type" /></SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem value="Fixed Monthly">Fixed Monthly</SelectItem>
-                                                    <SelectItem value="Commission-Based">Commission-Based</SelectItem>
+                                                    <SelectItem value="Hourly-Rate">Hourly-Rate</SelectItem>
+                                                    <SelectItem value="Commission-Based">Commission</SelectItem>
                                                     <SelectItem value="Fixed + Commission">Fixed + Commission</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                      </div>
-                                      {(formData.salaryType === "Fixed Monthly" || formData.salaryType === "Fixed + Commission") && (
-                                            <div className="space-y-1.5">
-                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Monthly Base Salary</Label>
-                                                <Input disabled={!isEditing} value={formData.salaryAmount} onChange={e => setFormData({...formData, salaryAmount: e.target.value})} placeholder="0.00" />
+                                            <p className="text-[11px] text-gray-500 pt-1">
+                                                {formData.salaryType === 'Fixed Monthly' && "Driver receives a consistent monthly salary regardless of trips."}
+                                                {formData.salaryType === 'Commission-Based' && "Earnings are based on completed deliveries or trips."}
+                                                {formData.salaryType === 'Hourly-Rate' && "Pay is calculated based on total clocked working hours."}
+                                                {formData.salaryType === 'Fixed + Commission' && "Driver receives a basic salary plus an incentive per trip."}
+                                            </p>
+                                         </div>
+
+                                         {(formData.salaryType === "Fixed Monthly" || formData.salaryType === "Fixed + Commission") && (
+                                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Monthly Base Salary <span className="text-red-500">*</span></Label>
+                                                <div className="relative group">
+                                                     <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                                        QAR
+                                                     </div>
+                                                     <Input 
+                                                        disabled={!isEditing} 
+                                                        value={formData.salaryAmount} 
+                                                        onChange={e => setFormData({...formData, salaryAmount: e.target.value})} 
+                                                        placeholder="0.00" 
+                                                        className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
+                                                     />
+                                                </div>
                                             </div>
-                                      )}
+                                         )}
+
+                                          {(formData.salaryType === "Commission-Based" || formData.salaryType === "Fixed + Commission") && (
+                                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Per Trip / Delivery Incentive <span className="text-red-500">*</span></Label>
+                                                <div className="relative group">
+                                                     <Input 
+                                                        disabled={!isEditing} 
+                                                        value={formData.commissionRate} 
+                                                        onChange={e => setFormData({...formData, commissionRate: e.target.value})} 
+                                                        placeholder="0" 
+                                                        className="h-11 w-full pr-10 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
+                                                     />
+                                                     <div className="absolute right-3 top-3.5 text-gray-400 text-sm font-bold">%</div>
+                                                </div>
+                                            </div>
+                                         )}
+
+                                         {formData.salaryType === "Hourly-Rate" && (
+                                             <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Hourly Rate <span className="text-red-500">*</span></Label>
+                                                <div className="relative group">
+                                                     <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                                        QAR
+                                                     </div>
+                                                     <Input 
+                                                        disabled={!isEditing} 
+                                                        value={formData.hourlyRate} 
+                                                        onChange={e => setFormData({...formData, hourlyRate: e.target.value})} 
+                                                        placeholder="0.00" 
+                                                        className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
+                                                     />
+                                                     <div className="absolute right-3 top-3.5 text-gray-400 text-xs font-medium">/ hour</div>
+                                                </div>
+                                            </div>
+                                         )}
+                                     </div>
                                  </div>
                              </div>
 
-                             <div className="pt-8 border-t border-gray-100 flex items-center justify-end">
-                                 <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700" onClick={() => saveChanges(true)}>
-                                     Next: Operations <ArrowRight className="w-4 h-4 ml-2" />
-                                 </Button>
-                             </div>
-                        </div>
-                    )}
 
-                    {/* STEP 1: OPERATIONS (Vehicle, License, Shift) */}
-                    {currentStep === 1 && (
-                        <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+
+                             <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                                 <Button variant="outline" onClick={() => setLocation("/workforce/pending")} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
+                                     Cancel
+                                 </Button>
+                                     <Button 
+                                         className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                                         onClick={() => saveChanges(true)}
+                                         disabled={!reqs.employment}
+                                     >
+                                         Next: Operations & Compliance <ArrowRight className="w-4 h-4 ml-2" />
+                                     </Button>
+                             </div>
+                         </div>
+                     )}
+
+                     {/* 2. OPERATIONS & COMPLIANCE */}
+                     {currentStep === 1 && (
+                         <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                              
-                             {/* Vehicle Assignment */}
-                             <div className="space-y-6">
+                             {/* Section: Operations Config */}
+                             
+
+
+
+
+                             {/* Section: Operations Config */}
+                             <div className="space-y-6 pt-4">
                                  <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center">
-                                        <Car className="h-4 w-4" />
+                                     <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <Globe className="h-4 w-4" />
                                      </div>
                                      <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Vehicle Assignment</h3>
-                                        <p className="text-xs text-gray-500">Assign a vehicle.</p>
+                                        <h3 className="text-lg font-bold text-gray-900">Operations Config</h3>
+                                        <p className="text-xs text-gray-500">Service areas and operational scope.</p>
                                      </div>
                                  </div>
-                                 <div className="space-y-1.5">
-                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle <span className="text-red-500">*</span></Label>
-                                     <Select disabled={!isEditing} value={formData.assignedVehicle} onValueChange={v => setFormData({...formData, assignedVehicle: v})}>
-                                         <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
-                                            <SelectValue placeholder="Select Vehicle" />
-                                         </SelectTrigger>
-                                         <SelectContent>
-                                            {["Van - Toyota Hiace", "Car - Nissan Sunny", "Van - Nissan Urvan", "Pending Assignment"].map(v => (
-                                                <SelectItem key={v} value={v}>
-                                                    <div className="flex items-center gap-2">
-                                                        <Truck className="h-4 w-4 text-gray-500" />
-                                                        {v}
-                                                    </div>
-                                                </SelectItem>
-                                            ))}
-                                         </SelectContent>
-                                     </Select>
+
+                                 <div className="space-y-4">
+                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Operational Scope <span className="text-red-500">*</span></Label>
+                                     
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                         <div 
+                                            onClick={() => isEditing && setFormData({ ...formData, serviceScope: 'all', serviceAreas: [] })}
+                                            className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${formData.serviceScope === 'all' 
+                                                    ? 'bg-blue-50/50 border-blue-600 shadow-sm' 
+                                                    : 'bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50'}
+                                                ${!isEditing && 'opacity-60 cursor-not-allowed'}
+                                            `}
+                                         >
+                                            <div className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === 'all' ? 'border-blue-600' : 'border-gray-300'}`}>
+                                                {formData.serviceScope === 'all' && <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                                                    <Globe className="h-4 w-4 text-blue-500" />
+                                                    All Service Areas
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                                    Driver can be dispatched to any location within the operational territory.
+                                                </p>
+                                            </div>
+                                         </div>
+
+                                         <div 
+                                            onClick={() => isEditing && setFormData({ ...formData, serviceScope: 'specific' })}
+                                            className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${formData.serviceScope === 'specific' 
+                                                    ? 'bg-blue-50/50 border-blue-600 shadow-sm' 
+                                                    : 'bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50'}
+                                                ${!isEditing && 'opacity-60 cursor-not-allowed'}
+                                            `}
+                                         >
+                                            <div className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === 'specific' ? 'border-blue-600' : 'border-gray-300'}`}>
+                                                {formData.serviceScope === 'specific' && <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                                                    <MapPin className="h-4 w-4 text-orange-500" />
+                                                    Specific Zones
+                                                </div>
+                                                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                                                    Restrict driver availability to specific zones or regions only.
+                                                </p>
+                                            </div>
+                                         </div>
+                                     </div>
+
+                                     {/* CONDITIONAL RENDER: Specific Areas Selector - Refactored to match Languages/Skills Pattern */}
+                                     {formData.serviceScope === 'specific' && (
+                                         <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
+                                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Selected Regions <span className="text-red-500">*</span></Label>
+                                             <Popover>
+                                                 <PopoverTrigger asChild disabled={!isEditing}>
+                                                     <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
+                                                         {formData.serviceAreas && formData.serviceAreas.length > 0 ? (
+                                                             <div className="flex flex-wrap gap-1.5">
+                                                                 {formData.serviceAreas.map(area => (
+                                                                     <Badge key={area} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
+                                                                         {area}
+                                                                         {isEditing && (
+                                                                             <span className="ml-1 cursor-pointer hover:text-red-600 transition-colors" onClick={(e) => { 
+                                                                                 e.stopPropagation(); 
+                                                                                 setFormData({...formData, serviceAreas: formData.serviceAreas?.filter(s => s !== area)}); 
+                                                                             }}>
+                                                                                 <X className="h-3 w-3" />
+                                                                             </span>
+                                                                         )}
+                                                                     </Badge>
+                                                                 ))}
+                                                             </div>
+                                                         ) : <span className="text-gray-400">Select service areas...</span>}
+                                                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                                     </Button>
+                                                 </PopoverTrigger>
+                                                 <PopoverContent className="w-[400px] p-0" align="start">
+                                                     <Command>
+                                                         <CommandInput placeholder="Search regions..." />
+                                                         <CommandList>
+                                                             <CommandEmpty>No region found.</CommandEmpty>
+                                                             <CommandGroup>
+                                                                 {serviceAreaConfigs.map((area) => (
+                                                                     <CommandItem 
+                                                                         key={area.id} 
+                                                                         value={area.name} 
+                                                                         onSelect={() => {
+                                                                             const current = formData.serviceAreas || [];
+                                                                             if (current.includes(area.name)) {
+                                                                                 setFormData({...formData, serviceAreas: current.filter(s => s !== area.name)});
+                                                                             } else {
+                                                                                 setFormData({...formData, serviceAreas: [...current, area.name]});
+                                                                             }
+                                                                         }}
+                                                                     >
+                                                                         <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", formData.serviceAreas?.includes(area.name) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}>
+                                                                             <Check className={cn("h-4 w-4")} />
+                                                                         </div>
+                                                                         {area.name}
+                                                                     </CommandItem>
+                                                                 ))}
+                                                             </CommandGroup>
+                                                         </CommandList>
+                                                     </Command>
+                                                 </PopoverContent>
+                                             </Popover>
+                                         </div>
+                                     )}
                                  </div>
                              </div>
 
-                             {/* License & Compliance */}
-                             <div className="space-y-6">
-                                <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                    <div className="h-8 w-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
-                                    <ShieldCheck className="h-4 w-4" />
-                                    </div>
-                                    <div>
-                                    <h3 className="text-lg font-bold text-gray-900">License & Compliance</h3>
-                                    <p className="text-xs text-gray-500">Manage driving license details.</p>
-                                    </div>
-                                </div>
-                                <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        <div className="space-y-1.5">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500">License Number</Label>
-                                            <Input disabled={!isEditing} value={formData.licenseNumber} onChange={e => setFormData({...formData, licenseNumber: e.target.value})} />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500">Category</Label>
-                                            <Input disabled={!isEditing} value={formData.licenseCategory} onChange={e => setFormData({...formData, licenseCategory: e.target.value})} />
-                                        </div>
-                                        <div className="space-y-1.5">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500">Expiry Date</Label>
-                                            <Input type="date" disabled={!isEditing} value={formData.licenseExpiry} onChange={e => setFormData({...formData, licenseExpiry: e.target.value})} />
-                                        </div>
-                                    </div>
-                                    {/* Docs - Simplified Mock */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                                        {['License Front', 'License Back'].map(docName => {
-                                            const existing = formData.documents?.find(d => d.name === docName);
-                                            return (
-                                                <div key={docName} className="border border-dashed border-gray-300 rounded-lg p-4 flex flex-col items-center justify-center text-center gap-2 hover:bg-gray-50">
-                                                    {existing ? (
-                                                        <>
-                                                            <CheckCircle className="h-8 w-8 text-green-500" />
-                                                            <span className="text-sm font-medium text-gray-900">{docName} Uploaded</span>
-                                                            {isEditing && <Button variant="link" className="text-red-500 h-auto p-0 text-xs" onClick={() => {
-                                                                const newDocs = formData.documents?.filter(d => d.name !== docName) || [];
-                                                                setFormData({...formData, documents: newDocs});
-                                                            }}>Remove</Button>}
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <Upload className="h-8 w-8 text-gray-300" />
-                                                            <span className="text-sm font-medium text-gray-500">Upload {docName}</span>
-                                                            <Button size="sm" variant="secondary" className="mt-2" onClick={() => {
-                                                                const newDoc = { name: docName, type: 'License', status: 'valid' as const, expiryDate: formData.licenseExpiry };
-                                                                setFormData({...formData, documents: [...(formData.documents || []), newDoc]});
-                                                                toast.success(`${docName} uploaded`);
-                                                            }} disabled={!isEditing}>Choose File</Button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                             </div>
+                             {/* Section: Logistics */}
+                             <div className="space-y-4 pt-4">
+                                 <div className="border-b border-gray-100 pb-2">
+                                     <h3 className="text-lg font-bold text-gray-900">Logistics</h3>
+                                     <p className="text-xs text-gray-500 mt-0.5">Used for dispatch and shift planning.</p>
+                                 </div>
 
-                             {/* Shift Config */}
-                             <div className="space-y-6">
-                                <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                    <div className="h-8 w-8 rounded-full bg-teal-50 text-teal-600 flex items-center justify-center">
-                                        <Clock className="h-4 w-4" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Shift Configuration</h3>
-                                        <p className="text-xs text-gray-500">Working hours and days.</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-6">
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {enabledShiftSystems.includes("Fixed") && (
-                                            <div onClick={() => isEditing && setFormData({...formData, shiftSystem: 'Fixed'})}
-                                                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                                    formData.shiftSystem === 'Fixed' ? 'border-blue-600 bg-blue-50/50' : 'border-gray-100 hover:border-gray-200'
-                                                }`}>
-                                                <div className="font-bold text-sm text-gray-900 mb-1">Fixed Schedule</div>
-                                            </div>
-                                        )}
-                                        {enabledShiftSystems.includes("Rotational") && (
-                                            <div onClick={() => isEditing && setFormData({...formData, shiftSystem: 'Rotational'})}
-                                                className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
-                                                    formData.shiftSystem === 'Rotational' ? 'border-blue-600 bg-blue-50/50' : 'border-gray-100 hover:border-gray-200'
-                                                }`}>
-                                                <div className="font-bold text-sm text-gray-900 mb-1">Rotational</div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {formData.shiftSystem === 'Fixed' && (
-                                        <div className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-xs font-semibold uppercase text-gray-500">Start Time</Label>
-                                                    <Select disabled={!isEditing} value={formData.workHoursStart} onValueChange={v => setFormData({...formData, workHoursStart: v})}>
-                                                        <SelectTrigger className="bg-white"><SelectValue/></SelectTrigger>
-                                                        <SelectContent>{rotationHours.map(h => <SelectItem key={h} value={h}>{formatTimeLabel(h)}</SelectItem>)}</SelectContent>
-                                                    </Select>
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <Label className="text-xs font-semibold uppercase text-gray-500">End Time</Label>
-                                                    <Select disabled={!isEditing} value={formData.workHoursEnd} onValueChange={v => setFormData({...formData, workHoursEnd: v})}>
-                                                        <SelectTrigger className="bg-white"><SelectValue/></SelectTrigger>
-                                                        <SelectContent>{rotationHours.map(h => <SelectItem key={h} value={h}>{formatTimeLabel(h)}</SelectItem>)}</SelectContent>
-                                                    </Select>
-                                                </div>
-                                            </div>
-                                            <div className="mt-6">
-                                                 <Label className="text-xs font-semibold uppercase text-gray-500 block mb-3">Working Days</Label>
-                                                 <div className="flex flex-wrap gap-2">
-                                                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => {
-                                                         const isSelected = formData.workingDays?.includes(day);
-                                                         return (
-                                                             <div key={day} onClick={() => {
-                                                                 if (!isEditing) return;
-                                                                 const current = formData.workingDays || [];
-                                                                 const newDays = isSelected ? current.filter(d => d !== day) : [...current, day];
-                                                                 setFormData({...formData, workingDays: newDays});
-                                                             }} className={`h-10 w-10 flex items-center justify-center rounded-lg border text-sm font-bold cursor-pointer transition-all ${isSelected ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-500 border-gray-200'}`}>
-                                                                 {day}
-                                                             </div>
-                                                         );
-                                                     })}
+                                 <div className="space-y-4">
+                                     {/* Main Transport Select */}
+                                     {/* Main Transport Select */}
+                                     <div className="space-y-4">
+                                         <div className="space-y-1.5">
+                                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Vehicle & Transportation Model <span className="text-red-500">*</span></Label>
+                                             <Select 
+                                                 disabled={!isEditing} 
+                                                 value={formData.transportationType} 
+                                                 onValueChange={(v) => {
+                                                     setFormData({
+                                                         ...formData, 
+                                                         transportationType: v,
+                                                         assignedVehicle: "", // Reset dependent fields
+                                                         vehicleType: "",
+                                                         plateNumber: "",
+                                                     })
+                                                 }}
+                                             >
+                                                 <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
+                                                      <SelectValue placeholder="Select Vehicle Model" />
+                                                  </SelectTrigger>
+                                                 <SelectContent>
+                                                     <SelectItem value="Company Vehicle">Company Vehicle</SelectItem>
+                                                     <SelectItem value="Personal Vehicle">Personal Vehicle</SelectItem>
+                                                 </SelectContent>
+                                             </Select>
+                                             
+                                             {formData.transportationType && (
+                                                 <p className="text-xs text-gray-500 leading-relaxed px-1">
+                                                    {formData.transportationType === 'Company Vehicle' && "Driver uses a company-owned vehicle assigned from the fleet."}
+                                                    {formData.transportationType === 'Personal Vehicle' && "Driver uses their own vehicle (ensure license & insurance are valid)."}
+                                                 </p>
+                                             )}
+                                         </div>
+
+                                         {/* COMPANY VEHICLE: Assignment */}
+                                         {formData.transportationType === 'Company Vehicle' && (
+                                             <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3 animate-in fade-in slide-in-from-top-2">
+                                                 <div className="flex items-center gap-2 text-blue-800 text-sm font-semibold">
+                                                     <Truck className="h-4 w-4" />
+                                                     Fleet Assignment
                                                  </div>
+                                                 
+                                                 <div className="grid grid-cols-1 gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-xs font-semibold text-gray-500">Assigned Vehicle <span className="text-red-500">*</span></Label>
+                                                        <Select 
+                                                            disabled={!isEditing} 
+                                                            value={formData.assignedVehicle} 
+                                                            onValueChange={(v) => setFormData({...formData, assignedVehicle: v})}
+                                                        >
+                                                            <SelectTrigger className="bg-white h-10 border-blue-200 transition-all text-sm shadow-sm w-full">
+                                                                <SelectValue placeholder="Select Vehicle from Fleet" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                {companyVehicles.length > 0 ? (
+                                                                    companyVehicles.map(v => (
+                                                                        <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="p-2 text-xs text-center text-gray-500">
+                                                                        No vehicles found. <br />
+                                                                        <span className="text-blue-600 cursor-pointer hover:underline" onClick={() => window.open("/vehicles", "_blank")}>Add in Vehicles Module</span>
+                                                                    </div>
+                                                                )}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                 </div>
+                                             </div>
+                                         )}
+
+                                         {/* PERSONAL VEHICLE: Seat Capacity Only */}
+                                         {formData.transportationType === 'Personal Vehicle' && (
+                                             <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
+                                                  <div className="flex items-center justify-between">
+                                                      <div className="space-y-0.5">
+                                                          <div className="flex items-center gap-2 text-gray-800 text-sm font-semibold">
+                                                                <Truck className="h-4 w-4" />
+                                                                Vehicle Capacity
+                                                          </div>
+                                                          <p className="text-xs text-gray-500">How many passengers/staff can this vehicle carry?</p>
+                                                      </div>
+                                                      
+                                                      <div className="w-32">
+                                                            <div className="relative">
+                                                                <Input 
+                                                                    disabled={!isEditing} 
+                                                                    type="number"
+                                                                    placeholder="0"
+                                                                    min="1"
+                                                                    value={formData.seatCapacity || ""}
+                                                                    onChange={(e) => setFormData({...formData, seatCapacity: e.target.value})}
+                                                                    className="bg-white h-10 border-gray-200 pr-8 text-right font-medium"
+                                                                />
+                                                                <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium h-full pointer-events-none">
+                                                                    Pax
+                                                                </span>
+                                                            </div>
+                                                      </div>
+                                                  </div>
+                                             </div>
+                                         )}
+                                     </div>
+                                     </div>
+                                 </div>
+
+
+
+
+
+                             {/* MOVED SCHEDULE SECTION HERE */}
+                             <div className="space-y-6 pt-8 border-t border-gray-100">
+                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                                     <div className="h-8 w-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
+                                        <Calendar className="h-4 w-4" />
+                                     </div>
+                                     <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Schedule & Availability</h3>
+                                        <p className="text-xs text-gray-500">Define working days and hours.</p>
+                                     </div>
+                                 </div>
+
+                                 <div className="space-y-6">
+                                    <div className="max-w-xs space-y-1.5">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Shift System</Label>
+                                        <Select disabled={!isEditing} value={formData.shiftSystem} onValueChange={v => setFormData({...formData, shiftSystem: v as any})}>
+                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select System" /></SelectTrigger>
+                                            <SelectContent>
+                                                {enabledShiftSystems.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    {/* FIXED SHIFT UI */}
+                                    {formData.shiftSystem === 'Fixed' && (
+                                        <div className="space-y-5 animate-in fade-in">
+                                            <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row items-start md:items-center gap-4">
+                                                <div className="space-y-1.5 flex-1">
+                                                    <Label className="text-xs font-semibold uppercase text-blue-800">Standard Daily Hours</Label>
+                                                    <div className="flex items-center gap-2">
+                                                        <Input 
+                                                            type="time" 
+                                                            disabled={!isEditing}
+                                                            value={formData.workHoursStart} 
+                                                            onChange={e => setFormData({...formData, workHoursStart: e.target.value})}
+                                                            className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+                                                        />
+                                                        <span className="text-blue-400 font-medium">to</span>
+                                                        <Input 
+                                                            type="time" 
+                                                            disabled={!isEditing}
+                                                            value={formData.workHoursEnd} 
+                                                            onChange={e => setFormData({...formData, workHoursEnd: e.target.value})}
+                                                            className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="hidden md:block w-px h-10 bg-blue-200"></div>
+                                                <div className="text-xs text-blue-700 max-w-sm">
+                                                    These hours will apply to all selected days below. Uncheck days to mark them as "Off".
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Working Days</Label>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+                                                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
+                                                        const isActive = formData.workingDays?.includes(day);
+                                                        return (
+                                                            <div 
+                                                                key={day}
+                                                                onClick={() => {
+                                                                    if (!isEditing) return;
+                                                                    const current = formData.workingDays || [];
+                                                                    if (current.includes(day)) {
+                                                                        setFormData({...formData, workingDays: current.filter(d => d !== day)});
+                                                                    } else {
+                                                                        setFormData({...formData, workingDays: [...current, day]});
+                                                                    }
+                                                                }}
+                                                                className={`
+                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-24
+                                                                    ${isActive 
+                                                                        ? 'bg-green-50 border-green-200 text-green-700 shadow-sm ring-1 ring-green-100' 
+                                                                        : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:border-gray-300'}
+                                                                `}
+                                                            >
+                                                                <span className="font-bold text-sm mb-1">{day}</span>
+                                                                {isActive ? (
+                                                                    <div className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">
+                                                                        {formData.workHoursStart || "09:00"} - {formData.workHoursEnd || "17:00"}
+                                                                    </div>
+                                                                ) : (
+                                                                    <span className="text-[10px] italic">Off Day</span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
-                                </div>
+
+                                    {/* FLEXIBLE SHIFT UI */}
+                                    {formData.shiftSystem === 'Flexible' && (
+                                        <div className="space-y-5 animate-in fade-in">
+                                            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 text-purple-700 text-sm">
+                                                Flexible staff do not have fixed start/end times. Select the days they are generally available to accept jobs.
+                                            </div>
+                                            
+                                            <div className="space-y-2">
+                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Availability Days</Label>
+                                                <div className="grid grid-cols-7 gap-2">
+                                                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
+                                                        const isActive = formData.workingDays?.includes(day);
+                                                        return (
+                                                            <div 
+                                                                key={day}
+                                                                onClick={() => {
+                                                                    if (!isEditing) return;
+                                                                    const current = formData.workingDays || [];
+                                                                    if (current.includes(day)) {
+                                                                        setFormData({...formData, workingDays: current.filter(d => d !== day)});
+                                                                    } else {
+                                                                        setFormData({...formData, workingDays: [...current, day]});
+                                                                    }
+                                                                }}
+                                                                className={`
+                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-20
+                                                                    ${isActive 
+                                                                        ? 'bg-purple-50 border-purple-200 text-purple-700 shadow-sm' 
+                                                                        : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50'}
+                                                                `}
+                                                            >
+                                                                <span className="font-bold text-sm">{day}</span>
+                                                                <span className="text-[10px] mt-1">{isActive ? 'Available' : '-'}</span>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* ROTATIONAL SHIFT UI - Summary View */}
+                                    {formData.shiftSystem === 'Rotational' && (
+                                        <div className="space-y-6 animate-in fade-in">
+                                            {/* Summary Header */}
+                                            <div className="flex items-center justify-between bg-green-50 p-4 rounded-lg border border-green-100">
+                                                <div className="flex items-center gap-2 text-green-800 text-sm font-medium">
+                                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                                    Weekly Coverage Preview
+                                                </div>
+                                                <div className="text-xs text-green-600 italic">
+                                                    Click on any day to configure multiple shifts.
+                                                </div>
+                                            </div>
+
+                                            {/* Weekly Visual Columns */}
+                                            <div className="grid grid-cols-7 gap-2">
+                                                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => {
+                                                    const slots = formData.rotationalSchedule?.[day] || []; 
+                                                    const hasShift = slots.length > 0;
+                                                    
+                                                    // Calculate total hours for the day for display
+                                                    const totalHours = slots.reduce((acc, slot) => {
+                                                        const start = parseInt(slot.start.split(':')[0]);
+                                                        const end = parseInt(slot.end.split(':')[0]);
+                                                        return acc + (end - start);
+                                                    }, 0);
+
+                                                    return (
+                                                        <div key={day} className="flex flex-col gap-2">
+                                                            <div className="text-center">
+                                                                <div className="text-xs font-bold text-gray-700 uppercase">{day}</div>
+                                                                <div className="text-[10px] text-gray-400">
+                                                                    {hasShift ? `(${totalHours}h)` : '(0h)'}
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div 
+                                                                onClick={() => setActiveDayModal(day)}
+                                                                className={`
+                                                                    h-40 rounded-lg border flex flex-col items-center justify-start p-1.5 gap-1.5 cursor-pointer transition-all hover:ring-2 hover:ring-green-200 hover:border-green-300
+                                                                    ${hasShift ? 'bg-white border-gray-200' : 'bg-gray-50/50 border-gray-100 opacity-70'}
+                                                                `}>
+                                                                {hasShift ? (
+                                                                    slots.map((slot, idx) => (
+                                                                        <div key={idx} className="w-full bg-green-100 text-green-800 text-[10px] py-1 px-1 rounded font-medium border border-green-200 flex flex-col items-center justify-center flex-shrink-0 min-h-[28px]">
+                                                                            <span>{slot.start}</span>
+                                                                            <span className="w-full h-px bg-green-200 my-0.5"></span>
+                                                                            <span>{slot.end}</span>
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-300 italic">
+                                                                        Off
+                                                                    </div>
+                                                                )}
+                                                                
+                                                                {/* Hover Hint */}
+                                                                <div className="mt-auto pt-1 text-[9px] text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                    Edit
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    )}
+                                 </div>
                              </div>
-                             
+
                              <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
-                                 <Button variant="outline" onClick={() => setCurrentStep(0)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">Back</Button>
-                                 <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm" onClick={() => saveChanges(true)}>
-                                     Next: Summary & Activation <ArrowRight className="w-4 h-4 ml-2" />
+                                 <Button variant="outline" onClick={() => setCurrentStep(0)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
+                                     Previous Step
+                                 </Button>
+                                 <Button 
+                                     className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                                     onClick={() => saveChanges(true)}
+                                     disabled={!reqs.ops}
+                                 >
+                                     Next: Summary <ArrowRight className="w-4 h-4 ml-2" />
                                  </Button>
                              </div>
-                        </div>
-                    )}
+                         </div>
+                     )}
 
-                    {/* STEP 2: SUMMARY */}
+
+
+                    {/* 4. SUMMARY & ACTIVATION (Now Step 3 index 2) */}
                     {currentStep === 2 && (
-                        <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
-                             <div className="bg-gradient-to-br from-green-50 to-white border border-green-100 rounded-xl p-8 text-center space-y-6">
-                                 <div className="mx-auto w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-600 mb-2 ring-4 ring-green-50">
-                                     <CheckCircle className="h-10 w-10" />
-                                 </div>
-                                 <h2 className="text-2xl font-bold text-gray-900">Ready for Activation</h2>
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-2xl mx-auto text-left bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                                     <div>
-                                         <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Role</span>
-                                         <div className="font-semibold">Driver</div>
+                        <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
+                            
+                            <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
+                               <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
+                                   <ShieldCheck className="h-7 w-7" />
+                               </div>
+                               <h2 className="text-xl font-bold text-gray-900">Review & Activate</h2>
+                               <p className="text-sm text-gray-500 max-w-md mx-auto mt-1">
+                                   Finalize the staff member's profile for deployment.
+                               </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* PROFILE CARD */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+                                        <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><User className="h-4 w-4"/></div>
+                                        <span className="font-bold text-sm text-gray-900">Personal Details</span>
+                                    </div>
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Full Name</span> <span className="font-medium text-gray-900 text-right">{data?.name}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Role</span> <span className="font-medium text-gray-900 text-right">{formData.role}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Gender</span> <span className="font-medium text-gray-900 text-right">{data?.gender}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Nationality</span> <span className="font-medium text-gray-900 text-right">{data?.nationality}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Contact</span> <div className="text-right flex flex-col"><span className="font-medium text-gray-900">{data?.phone}</span><span className="text-xs text-gray-500">{data?.email}</span></div></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Religion</span> <span className="font-medium text-gray-900 text-right">{formData.religion || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Marital Status</span> <span className="font-medium text-gray-900 text-right">{formData.maritalStatus || '-'}</span></div>
+                                    </div>
+                                </div>
+
+                                {/* OPERATIONS & SKILLS CARD */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+                                        <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center"><Briefcase className="h-4 w-4"/></div>
+                                        <span className="font-bold text-sm text-gray-900">Operations & Logistics</span>
+                                    </div>
+                                    <div className="space-y-3 text-sm">
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Department</span> <span className="font-medium text-gray-900 text-right">{formData.department}</span></div>
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Emp. Type</span> <span className="font-medium text-gray-900 text-right">{formData.employmentType}</span></div>
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Start Date</span> <span className="font-medium text-gray-900 text-right">{formData.startDate}</span></div>
+                                         
+                                         <div className="pt-2 border-t border-gray-50">
+                                            <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Transportation</span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="font-medium text-gray-900">
+                                                    {formData.transportationType}
+                                                    {formData.transportationType === 'Flexible' && formData.primaryTransport && (
+                                                        <span className="text-gray-500 font-normal ml-1">({formData.primaryTransport})</span>
+                                                    )}
+                                                </span>
+                                            </div>
+                                         </div>
+
+                                         <div>
+                                             <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Service Scope</span>
+                                             <div className="flex flex-wrap gap-1">
+                                                {formData.serviceScope === 'all' ? (
+                                                    <Badge variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md">All Service Areas</Badge>
+                                                ) : (
+                                                    <>
+                                                        {formData.serviceAreas?.map((area: string) => <Badge key={area} variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md">{area}</Badge>)}
+                                                        {(!formData.serviceAreas?.length) && <span className="text-gray-400 italic">None</span>}
+                                                    </>
+                                                )}
+                                             </div>
+                                         </div>
+
+                                         <div className="pt-1">
+                                             <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">License Details</span>
+                                             <div className="space-y-1">
+                                                <div className="flex justify-between items-center"><span className="text-gray-500 text-xs">Number</span> <span className="font-medium text-gray-900">{formData.licenseNumber || '-'}</span></div>
+                                                <div className="flex justify-between items-center"><span className="text-gray-500 text-xs">Category</span> <span className="font-medium text-gray-900">{formData.licenseCategory || '-'}</span></div>
+                                                <div className="flex justify-between items-center"><span className="text-gray-500 text-xs">Expiry</span> <span className={`font-medium ${new Date(formData.licenseExpiry!) < new Date() ? 'text-red-600' : 'text-gray-900'}`}>{formData.licenseExpiry || '-'}</span></div>
+                                             </div>
+                                         </div>
+                                         
+                                         {/* Documents Summary */}
+                                         {(formData.documents?.length || 0) > 0 && (
+                                            <div className="pt-2 mt-1 border-t border-gray-50 flex items-center gap-2">
+                                                <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
+                                                <span className="text-xs text-gray-700 font-medium">{formData.documents?.length} Document(s) Verified</span>
+                                            </div>
+                                         )}
                                      </div>
-                                     <div>
-                                         <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Vehicle</span>
-                                         <div className="font-semibold text-gray-900">{formData.assignedVehicle}</div>
-                                     </div>
-                                     <div>
-                                         <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">License</span>
-                                         <div className="font-semibold text-gray-900">{formData.licenseNumber}</div>
-                                     </div>
-                                     <div>
-                                         <span className="text-xs text-gray-400 font-bold uppercase tracking-wider block mb-1">Start Date</span>
-                                         <div className="font-semibold">{formData.startDate}</div>
-                                     </div>
-                                 </div>
-                                 <div className="flex items-center justify-center gap-4 pt-4">
-                                     <Button variant="outline" className="h-12 w-32 border-gray-200" onClick={() => setCurrentStep(1)}>back</Button>
-                                     <Button onClick={handleActivate} disabled={!reqs.operations || !reqs.employment} className="h-12 w-48 bg-green-600 hover:bg-green-700 shadow-lg text-base">
-                                          Activate Driver
-                                     </Button>
-                                 </div>
-                             </div>
+                                </div>
+                                
+                                {/* COMPENSATION CARD */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+                                        <div className="h-8 w-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center"><Banknote className="h-4 w-4"/></div>
+                                        <span className="font-bold text-sm text-gray-900">Compensation</span>
+                                    </div>
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Scheme</span> <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">{formData.salaryType}</span></div>
+                                        {(formData.salaryType === 'Fixed Monthly' || formData.salaryType === 'Fixed + Commission') && (
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Base Salary</span> <span className="font-medium text-gray-900">QAR {formData.salaryAmount}</span></div>
+                                        )}
+                                        {(formData.salaryType === 'Commission-Based' || formData.salaryType === 'Fixed + Commission') && (
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Commission</span> <span className="font-medium text-gray-900">{formData.commissionRate}%</span></div>
+                                        )}
+                                        {formData.salaryType === 'Hourly-Rate' && (
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Hourly Rate</span> <span className="font-medium text-gray-900">QAR {formData.hourlyRate}/hr</span></div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* SHIFT CARD */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
+                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
+                                        <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center"><Calendar className="h-4 w-4"/></div>
+                                        <span className="font-bold text-sm text-gray-900">Shift Configuration</span>
+                                    </div>
+                                    <div className="space-y-3 text-sm">
+                                        <div className="flex justify-between"><span className="text-gray-500">System</span> <span className="font-medium text-gray-900">{formData.shiftSystem}</span></div>
+                                        <div className="flex justify-between"><span className="text-gray-500">Working Days</span> <span className="font-medium text-gray-900">{formData.shiftSystem === 'Rotational' ? 'Varied (Rotational)' : formData.workingDays?.length + ' Days/Week'}</span></div>
+                                        {formData.shiftSystem === 'Fixed' && (
+                                            <div className="flex justify-between"><span className="text-gray-500">Hours</span> <span className="font-medium text-gray-900">{formData.workHoursStart} - {formData.workHoursEnd}</span></div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="pt-6 flex items-center gap-4">
+                                <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50">
+                                    Back to Operations
+                                </Button>
+                                <Button 
+                                   className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-sm hover:shadow text-white font-semibold tracking-wide transition-all" 
+                                   onClick={handleActivate}
+                                >
+                                     Complete Activation
+                                     <CheckCircle className="ml-2 w-5 h-5" />
+                                </Button>
+                            </div>
                         </div>
                     )}
-
                 </div>
             </div>
         </div>
-
-        {/* Success Modal */}
-        {isSuccessOpen && (
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl shadow-xl max-w-md w-full p-8 text-center">
-                    <div className="mx-auto w-20 h-20 bg-green-50 rounded-full flex items-center justify-center text-green-600 mb-6 border border-green-100">
-                        <CheckCircle className="h-10 w-10" />
+      </div>
+      {/* Single Day Shift Management Modal */}
+      {activeDayModal && formData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+                {/* Modal Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+                    <div>
+                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">Manage Shifts</div>
+                        <h2 className="text-xl font-bold text-gray-900">{activeDayModal}</h2>
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Driver Activated!</h2>
-                    <Button className="h-12 bg-blue-600 hover:bg-blue-700 w-full" onClick={() => setLocation("/workforce")}>
-                        Go to List <ArrowRight className="h-4 w-4 ml-2" />
+                    <Button variant="ghost" size="icon" onClick={() => setActiveDayModal(null)} className="rounded-full hover:bg-gray-200">
+                        <X className="w-5 h-5 text-gray-500" />
+                    </Button>
+                </div>
+
+                {/* Modal Body */}
+                <div className="p-6 space-y-6">
+                    {/* Quick Apply Template (Day Specific) */}
+                    {/* Quick Apply Templates (Day Specific) */}
+                    {shiftTemplateOptions.length > 0 && (
+                        <div className="space-y-2">
+                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide block">Quick Apply Templates</Label>
+                             <div className="grid grid-cols-1 gap-2">
+                                {shiftTemplateOptions.map((template: any) => {
+                                    // Check if this template is already applied
+                                    const currentShifts = formData.rotationalSchedule?.[activeDayModal] || [];
+                                    const isApplied = currentShifts.some((s: any) => s.start === template.startTime && s.end === template.endTime);
+                                    
+                                    // Helper for formatting
+                                    const formatToAmPm = (time: string) => {
+                                        if (!time) return "";
+                                        const [h, m] = time.split(':');
+                                        const hour = parseInt(h);
+                                        const ampm = hour >= 12 ? 'PM' : 'AM';
+                                        const hour12 = hour % 12 || 12;
+                                        return `${hour12}:${m} ${ampm}`;
+                                    };
+
+                                    return (
+                                        <div 
+                                            key={template.id}
+                                            onClick={() => {
+                                                const currentFuncShifts = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
+                                                
+                                                if (isApplied) {
+                                                    // Remove
+                                                    const filtered = currentFuncShifts.filter((s: any) => !(s.start === template.startTime && s.end === template.endTime));
+                                                    setFormData({
+                                                        ...formData,
+                                                        rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: filtered }
+                                                    });
+                                                } else {
+                                                    // Check Overlap
+                                                    const hasOverlap = currentFuncShifts.some((s: any) => {
+                                                        const startA = s.start;
+                                                        const endA = s.end;
+                                                        const startB = template.startTime;
+                                                        const endB = template.endTime;
+                                                        return (startA < endB && startB < endA);
+                                                    });
+
+                                                    if (hasOverlap) {
+                                                        toast.error("Cannot apply template: Overlaps with existing shift");
+                                                        return;
+                                                    }
+
+                                                    // Add
+                                                    currentFuncShifts.push({ start: template.startTime, end: template.endTime });
+                                                    setFormData({
+                                                        ...formData,
+                                                        rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentFuncShifts }
+                                                    });
+                                                    toast.success(`Applied ${template.name}`);
+                                                }
+                                            }}
+                                            className={`
+                                                flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all hover:bg-gray-50
+                                                ${isApplied 
+                                                    ? 'bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-100' 
+                                                    : 'bg-white border-gray-100 hover:border-gray-300'}
+                                            `}
+                                        >
+                                            <div className="flex flex-col">
+                                                <span className={`text-sm font-medium ${isApplied ? 'text-blue-700' : 'text-gray-700'}`}>
+                                                    {template.name}
+                                                </span>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                 <span className={`text-xs font-mono font-medium px-2 py-1 rounded ${isApplied ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
+                                                    {formatToAmPm(template.startTime)} - {formatToAmPm(template.endTime)}
+                                                </span>
+                                                <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isApplied ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-300'}`}>
+                                                    {isApplied ? <CheckCircle className="w-3.5 h-3.5" /> : <div className="w-2 h-2 rounded-full bg-gray-300" />}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                             </div>
+                        </div>
+                    )}
+
+                    {/* Existing Shifts List */}
+                    <div className="space-y-3">
+                        <Label className="text-xs font-semibold text-gray-500 uppercase">Time Slots</Label>
+                        
+                        {(formData.rotationalSchedule?.[activeDayModal] || []).length === 0 ? (
+                            <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-lg text-gray-400 text-sm">
+                                No shifts configured for this day.
+                            </div>
+                        ) : (
+                            (formData.rotationalSchedule?.[activeDayModal] || []).map((slot, index) => (
+                                <div key={index} className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300">
+                                    <div className="flex-1 flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                                        <Clock className="w-4 h-4 text-gray-400" />
+                                        <Input 
+                                            type="time" 
+                                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
+                                            value={slot.start}
+                                            onChange={(e) => {
+                                                const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
+                                                currentSlots[index] = { ...slot, start: e.target.value };
+                                                setFormData({
+                                                    ...formData,
+                                                    rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
+                                                });
+                                            }}
+                                        />
+                                        <span className="text-gray-300">|</span>
+                                        <Input 
+                                            type="time" 
+                                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
+                                            value={slot.end}
+                                            onChange={(e) => {
+                                                const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
+                                                currentSlots[index] = { ...slot, end: e.target.value };
+                                                setFormData({
+                                                    ...formData,
+                                                    rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
+                                                });
+                                            }}
+                                        />
+                                    </div>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="text-red-400 hover:text-red-600 hover:bg-red-50"
+                                        onClick={() => {
+                                            const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
+                                            currentSlots.splice(index, 1);
+                                            setFormData({
+                                                ...formData,
+                                                rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
+                                            });
+                                        }}
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* Modal Footer */}
+                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="bg-white border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                        onClick={() => setIsCreateTemplateOpen(true)}
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Add Shift Block
+                    </Button>
+                    <Button className="bg-black text-white hover:bg-gray-800" onClick={() => setActiveDayModal(null)}>
+                        Done
                     </Button>
                 </div>
             </div>
-        )}
-       </div>
+        </div>
+      )}
+      {/* Success Dialog */}
+      {isSuccessOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
+            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 transform animate-in zoom-in-95 duration-200">
+                <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center">
+                    <CheckCircle className="h-10 w-10 text-green-600" />
+                </div>
+                <div className="space-y-2">
+                    <h2 className="text-2xl font-bold text-gray-900">Activation Successful!</h2>
+                    <p className="text-gray-500 text-sm">
+                        {data?.name || "The staff member"} has been successfully activated and is now ready for deployment.
+                    </p>
+                </div>
+                <div className="pt-2">
+                    <Button 
+                        className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-lg"
+                        onClick={() => setLocation("/workforce")}
+                    >
+                        Return to Staff List
+                    </Button>
+                </div>
+            </div>
+        </div>
+      )}
+
+        <Dialog open={isBasicInfoOpen} onOpenChange={setIsBasicInfoOpen}>
+            <DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
+                <DialogHeader className="p-6 pb-2 border-b border-gray-100 bg-gray-50/50">
+                    <DialogTitle className="text-lg font-bold text-gray-900">Edit Basic Information</DialogTitle>
+                    <p className="text-xs text-gray-500 mt-1">Update primary contact and display details.</p>
+                </DialogHeader>
+                {basicInfoForm && (
+                <div className="p-6 space-y-8">
+                     {/* Photo Upload - Premium Style */}
+                     <div className="flex flex-col items-center">
+                        <div className="group relative">
+                            <div className="h-28 w-28 rounded-full p-1 bg-white border-2 border-dashed border-gray-200 group-hover:border-blue-400 transition-all shadow-sm">
+                                <Avatar className="h-full w-full">
+                                    <AvatarImage src={basicInfoForm.avatar} className="object-cover" />
+                                    <AvatarFallback className="bg-gray-100 text-gray-500 font-bold text-xl">
+                                        {basicInfoForm.nickname?.substring(0,2).toUpperCase() || "NA"}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                             <label className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2.5 shadow-lg cursor-pointer hover:bg-blue-700 hover:scale-105 transition-all text-white ring-4 ring-white">
+                                <Upload className="h-4 w-4" />
+                                <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if(file){
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => setBasicInfoForm({...basicInfoForm, avatar: reader.result as string});
+                                        reader.readAsDataURL(file);
+                                    }
+                                }}/>
+                            </label>
+                        </div>
+                        <span className="text-xs font-medium text-gray-400 mt-3 group-hover:text-blue-500 transition-colors">Tap camera icon to upload</span>
+                     </div>
+                     
+                     <div className="grid grid-cols-2 gap-x-5 gap-y-5">
+                        <div className="col-span-2 space-y-1.5">
+                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nickname</Label>
+                            <Input 
+                                value={basicInfoForm.nickname} 
+                                onChange={e => setBasicInfoForm({...basicInfoForm, nickname: e.target.value})} 
+                                className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                                placeholder="Preferred Name"
+                            />
+                        </div>
+
+                        <div className="space-y-1.5">
+                             <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Gender</Label>
+                             <Select value={basicInfoForm.gender} onValueChange={v => setBasicInfoForm({...basicInfoForm, gender: v as any})}>
+                                 <SelectTrigger className="h-11 border-gray-200 hover:border-blue-300 transition-all"><SelectValue /></SelectTrigger>
+                                 <SelectContent>
+                                     <SelectItem value="Male">Male</SelectItem>
+                                     <SelectItem value="Female">Female</SelectItem>
+                                 </SelectContent>
+                             </Select>
+                         </div>
+                         
+                         <div className="space-y-1.5">
+                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobile Number</Label>
+                            <Input 
+                                value={basicInfoForm.mobile} 
+                                onChange={e => setBasicInfoForm({...basicInfoForm, mobile: e.target.value})} 
+                                className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                            />
+                        </div>
+
+                        <div className="col-span-2 space-y-1.5">
+                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email Address</Label>
+                            <div className="relative">
+                                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                                <Input 
+                                    value={basicInfoForm.email} 
+                                    onChange={e => setBasicInfoForm({...basicInfoForm, email: e.target.value})} 
+                                    className="pl-9 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                                />
+                            </div>
+                        </div>
+                     </div>
+                </div>
+                )}
+                <div className="p-6 pt-2 bg-gray-50/50 border-t border-gray-100 flex gap-3">
+                    <Button variant="outline" onClick={() => setIsBasicInfoOpen(false)} className="flex-1 h-11 border-gray-200 text-gray-700 hover:bg-white hover:text-gray-900">Cancel</Button>
+                    <Button onClick={handleSaveBasicInfo} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 shadow-sm text-base font-medium">Save Changes</Button>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        {/* Create Template Dialog (triggered from Manage Shifts) */}
+        <Dialog open={isCreateTemplateOpen} onOpenChange={setIsCreateTemplateOpen}>
+            <DialogContent className="sm:max-w-[425px] z-[60]">
+                <DialogHeader>
+                    <DialogTitle>Add Shift Template</DialogTitle>
+                     <p className="text-sm text-gray-500 mt-1.5">
+                        Define a standard shift block.
+                    </p>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="space-y-2">
+                        <Label htmlFor="t-name">Template Name</Label>
+                        <Input 
+                            id="t-name"
+                            placeholder="e.g. Morning Shift A" 
+                            value={newTemplateData.name}
+                            onChange={(e) => setNewTemplateData({...newTemplateData, name: e.target.value})}
+                            className="border-blue-200 focus:border-blue-500"
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                             <Label>Start Time</Label>
+                             <div className="relative">
+                                <Input 
+                                    type="time" 
+                                    value={newTemplateData.startTime}
+                                    onChange={(e) => setNewTemplateData({...newTemplateData, startTime: e.target.value})}
+                                />
+                             </div>
+                        </div>
+                         <div className="space-y-2">
+                             <Label>End Time</Label>
+                             <div className="relative">
+                                <Input 
+                                    type="time" 
+                                    value={newTemplateData.endTime}
+                                    onChange={(e) => setNewTemplateData({...newTemplateData, endTime: e.target.value})}
+                                />
+                             </div>
+                        </div>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsCreateTemplateOpen(false)}>Cancel</Button>
+                    <Button onClick={handleSaveNewTemplate} className="bg-blue-600 hover:bg-blue-700">Save Template</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </DashboardLayout>
   );
 }
