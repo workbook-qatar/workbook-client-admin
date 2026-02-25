@@ -112,7 +112,7 @@ const MOCK_SERVICE_AREAS = [
 
 
 
-export default function DriverPendingInviteDetails() {
+export default function DriverPendingInviteDetails({ initialData }: { initialData?: ExtendedStaffMember }) {
   const [, params] = useRoute("/workforce/pending/:id");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [, setLocation] = useLocation();

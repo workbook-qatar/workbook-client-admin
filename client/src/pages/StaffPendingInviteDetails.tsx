@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import { 
   ArrowLeft, CheckCircle, ShieldCheck, Mail, Phone, Calendar, 
-  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck, Car, Bus, Layers, Check, ChevronDown 
+  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck, Car, Bus, Layers, Check, ChevronDown, Info 
 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
@@ -98,6 +98,10 @@ interface ExtendedStaffMember extends StaffMember {
     // Operations
     serviceScope?: 'all' | 'specific';
     serviceAreas?: string[];
+    // Access & Security
+    dashboardAccess?: boolean;
+    systemRole?: string;
+    permissionScope?: string;
 }
 
 const MOCK_SERVICE_AREAS = [
@@ -121,6 +125,11 @@ export default function StaffPendingInviteDetails() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Ops&Skills, 2=Summary
   const [isEditing, setIsEditing] = useState(false);
+  
+  // Basic Info - UI States
+  const [isExtractingQID, setIsExtractingQID] = useState(false);
+  const [isQIDExtracted, setIsQIDExtracted] = useState(false);
+  const [isManualEntry, setIsManualEntry] = useState(false);
   
   // Cert Form State (To be removed/ignored in new flow, but keeping for safety for now)
   const [isAddingCert, setIsAddingCert] = useState(false);
@@ -335,7 +344,10 @@ export default function StaffPendingInviteDetails() {
                 licenseNumber: found.licenseNumber || "",
                 licenseExpiry: found.licenseExpiry || "",
                 serviceScope: "" as any, // Start empty
-                serviceAreas: found.serviceAreas || []
+                serviceAreas: found.serviceAreas || [],
+                dashboardAccess: found.dashboardAccess ?? true,
+                systemRole: found.systemRole || "Manager",
+                permissionScope: found.permissionScope || "Full Access (Role Default)"
             };
             
             // Check for Default Business Hours override if new/empty
@@ -357,10 +369,43 @@ export default function StaffPendingInviteDetails() {
   if (!data || !formData) return <DashboardLayout><div>Loading...</div></DashboardLayout>;
 
   if (data.role === 'Driver') {
-      return <DriverPendingInviteDetails initialData={data} />;
+      return <DriverPendingInviteDetails initialData={data as any} />;
   }
 
   // --- Logic Helpers ---
+  const handleQIDUploadClick = () => {
+      setIsExtractingQID(true);
+      // Simulate extraction process
+      setTimeout(() => {
+          setIsExtractingQID(false);
+          setIsQIDExtracted(true);
+          setIsManualEntry(false);
+          setFormData(prev => prev ? {
+              ...prev,
+              name: "Ahmed Hassan",
+              qid: "28535638494",
+              dob: "1985-05-15",
+              nationality: "Qatar",
+              gender: "Male"
+          } : null);
+          toast.success("Details extracted from QID successfully");
+      }, 1500);
+  };
+
+  const handleManualEntryClick = () => {
+      setIsQIDExtracted(false);
+      setIsManualEntry(true);
+      setFormData(prev => prev ? {
+          ...prev,
+          name: "John Doe",
+          qid: "29012345678",
+          dob: "1990-01-01",
+          nationality: "India",
+          gender: "Male"
+      } : null);
+      toast.success("Manual entry mode enabled. Dummy data populated.");
+  };
+
   const handleEditToggle = () => {
       if (isEditing) {
           setFormData(data); // Revert
@@ -434,25 +479,29 @@ export default function StaffPendingInviteDetails() {
   };
 
   // Check Requirements matching the new 3 Steps
-  // Check Requirements matching the new 3 Steps (Merged)
+  // Check Requirements matching the new 5 Steps
   const checkRequirements = () => {
     const d = formData || data;
     const opsValid = d.serviceScope === 'all' || (d.serviceScope === 'specific' && (d.serviceAreas?.length || 0) > 0);
     const scheduleValid = (d.workingDays?.length || 0) > 0;
 
     return {
+        basic: !!(d.name && d.qid && d.dob && d.nationality && d.gender && d.phone && d.email),
         employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType && d.religion && d.maritalStatus),
         // Combined validation
         ops: (d.skills?.length || 0) > 0 && !!d.transportationType && (d.transportationType !== 'Flexible' || !!d.primaryTransport) && opsValid && scheduleValid, 
+        access: d.dashboardAccess === false || !!(d.dashboardAccess && d.systemRole && d.permissionScope),
         summary: true 
     };
   };
 
   const reqs = checkRequirements();
   const steps = [
+      { id: 'basic', label: 'Basic Information', completed: reqs.basic },
       { id: 'employment', label: 'Employment & Profile', completed: reqs.employment },
       { id: 'ops', label: 'Operations & Skills', completed: reqs.ops },
-      { id: 'summary', label: 'Summary & Activation', completed: currentStep === 2 },
+      { id: 'access', label: 'Access & Security', completed: reqs.access },
+      { id: 'summary', label: 'Summary & Activation', completed: currentStep === 4 },
   ];
   
   const completedCount = steps.filter(s => s.completed).length;
@@ -508,103 +557,115 @@ export default function StaffPendingInviteDetails() {
         </div>
 
         {/* Split View */}
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-6 animate-in fade-in slide-in-from-bottom-2">
+        <div className="flex flex-col lg:flex-row h-[calc(100vh-170px)] gap-6 animate-in fade-in slide-in-from-bottom-2">
             
             {/* LEFT SIDEBAR - PROFILE DETAILS */}
             <div className="w-full lg:w-80 shrink-0 space-y-6">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
                     
-                    {/* Header: Photo & Name */}
-                    <div className="p-6 flex flex-col items-center text-center border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/50 relative">
-                        {/* Edit Action */}
-                        <div className="absolute top-4 right-4">
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-white/80 transition-all rounded-full" onClick={() => setIsBasicInfoOpen(true)}>
-                                <Edit2 className="h-4 w-4" />
-                            </Button>
-                        </div>
-
-                        <div className="relative mb-4">
-                            <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+                    {/* Essential Setup Info */}
+                    <div className="bg-white border-b border-gray-100 p-6 space-y-6 shrink-0">
+                        {/* Profile Info */}
+                        <div className="flex items-center gap-4">
+                            <Avatar className="h-12 w-12 border border-gray-100 shadow-sm">
                                 <AvatarImage src={data.avatar} className="object-cover"/>
-                                <AvatarFallback className="text-2xl font-bold bg-gray-100 text-gray-600">
+                                <AvatarFallback className="font-bold bg-blue-50 text-blue-700">
                                     {data.name.substring(0,2).toUpperCase()}
                                 </AvatarFallback>
                             </Avatar>
-                            <div className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow-sm border border-gray-200">
-                                <User className="h-3 w-3 text-gray-500" />
+                            <div className="overflow-hidden">
+                                <h2 className="text-lg font-bold text-gray-900 leading-tight truncate">{data.name}</h2>
+                                <div className="flex items-center gap-1.5 mt-0.5 text-[13px] text-gray-500">
+                                    <Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                                    <span className="truncate">{data.email || 'No email provided'}</span>
+                                </div>
                             </div>
                         </div>
-                        <h2 className="font-bold text-lg text-gray-900 leading-tight">{data.name}</h2>
-                        <p className="text-sm text-gray-500 mt-1">{data.nickname || 'No Nickname'}</p>
-                    </div>
 
-                    {/* Profile Details List */}
-                    <div className="p-6 space-y-4 text-sm flex-1 overflow-y-auto">
-                        <div className="space-y-4">
-                            {[
-                                { icon: Hash, label: "QID Number", value: data.qid },
-                                { icon: Calendar, label: "Date of Birth", value: data.dob },
-                                { icon: Flag, label: "Nationality", value: data.nationality },
-                                { icon: User, label: "Gender", value: data.gender },
-                                { icon: Phone, label: "Mobile", value: data.phone },
-                                { icon: Mail, label: "Email", value: data.email, isMultiline: true }
-                            ].map((item, i) => (
-                                <div key={i} className="flex items-start justify-between group">
-                                    <div className="flex items-center gap-3 text-gray-500 shrink-0 mt-0.5">
-                                        <item.icon className="h-4 w-4" />
-                                        <span>{item.label}</span>
-                                    </div>
-                                    <span className={`font-medium text-gray-900 text-right ml-4 ${item.isMultiline ? 'break-all' : ''}`}>
-                                        {item.value || '---'}
-                                    </span>
+                        {/* Role Type */}
+                        <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Role Type</p>
+                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-3 py-1 font-semibold shadow-sm border border-blue-100/50">
+                                {data.role || "Field Service Staff"}
+                            </Badge>
+                        </div>
+
+                        {/* Invitation Status */}
+                        <div>
+                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Invitation Status</p>
+                            <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                                <div className="flex items-center gap-2 text-green-700 font-bold text-sm mb-1">
+                                    <CheckCircle className="h-4 w-4" />
+                                    <span>Accepted</span>
                                 </div>
-                            ))}
+                                <div className="flex items-center gap-1.5 text-xs font-medium text-green-600/80 ml-6">
+                                    <Calendar className="h-3 w-3" />
+                                    <span>Oct 24, 2025 • 09:41 AM</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    {/* Progress Badge */}
-                    <div className="px-6 py-2">
-                         <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Setup Progress</span>
-                            <span className="text-xs font-bold text-blue-600">{progressPercent.toFixed(0)}%</span>
+                    <div className="flex flex-col flex-1">
+                        {/* Progress Badge */}
+                        <div className="px-6 py-4 shrink-0">
+                             <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Setup Progress</span>
+                                <span className="text-xs font-bold text-blue-600">{progressPercent.toFixed(0)}%</span>
+                            </div>
+                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                                 <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
+                            </div>
                         </div>
-                        <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                             <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
-                        </div>
-                    </div>
 
-                    {/* Next Steps List */}
-                    <div className="p-6 pt-2 space-y-2">
-                         {steps.map((step, idx) => (
-                             <div 
-                                key={step.id}
-                                onClick={() => setCurrentStep(idx)}
-                                className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
-                                    currentStep === idx 
-                                    ? 'bg-blue-50 border-blue-200 shadow-sm' 
-                                    : 'bg-white border-transparent hover:bg-gray-50'
-                                }`}
-                             >
-                                 <div className={`
-                                     h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0
-                                     ${step.completed 
-                                         ? 'bg-green-100 text-green-600' 
-                                         : currentStep === idx 
-                                             ? 'bg-blue-600 text-white' 
-                                             : 'bg-gray-100 text-gray-400'}
-                                 `}>
-                                     {step.completed ? <CheckCircle className="h-3.5 w-3.5" /> : idx + 1}
+                        {/* Next Steps List */}
+                        <div className="px-6 pb-6 space-y-2 shrink-0">
+                             {steps.map((step, idx) => (
+                                 <div 
+                                    key={step.id}
+                                    onClick={() => setCurrentStep(idx)}
+                                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                                        currentStep === idx 
+                                        ? 'bg-blue-50 border-blue-200 shadow-sm' 
+                                        : 'bg-white border-transparent hover:bg-gray-50'
+                                    }`}
+                                 >
+                                     <div className={`
+                                         h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0
+                                         ${step.completed 
+                                             ? 'bg-green-100 text-green-600' 
+                                             : currentStep === idx 
+                                                 ? 'bg-blue-600 text-white' 
+                                                 : 'bg-gray-100 text-gray-400'}
+                                     `}>
+                                         {step.completed ? <CheckCircle className="h-3.5 w-3.5" /> : idx + 1}
+                                     </div>
+                                     <span className={`text-sm font-medium ${currentStep === idx ? 'text-blue-900' : 'text-gray-600'}`}>
+                                         {step.label}
+                                     </span>
                                  </div>
-                                 <span className={`text-sm font-medium ${currentStep === idx ? 'text-blue-900' : 'text-gray-600'}`}>
-                                     {step.label}
-                                 </span>
-                             </div>
-                         ))}
-                    </div>
+                             ))}
+                        </div>
 
-                     {/* Footer Action - Removed Activate Button from Sidebar */}
-                     <div className="p-4 border-t bg-gray-50 mt-auto text-center text-xs text-gray-400">
-                        Complete all steps to activate.
+                        {/* Important Notes Box */}
+                        <div className="px-6 pb-6 mt-auto">
+                            <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 shadow-sm">
+                                <div className="flex items-center gap-2 mb-1.5">
+                                    <div className="h-5 w-5 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center shrink-0">
+                                        <Info className="h-3 w-3" />
+                                    </div>
+                                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Important</span>
+                                </div>
+                                <p className="text-[11px] text-amber-800/90 leading-relaxed">
+                                    Review all details carefully before final activation.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Footer Action */}
+                        <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 text-center text-[11px] font-medium text-gray-400 shrink-0">
+                            Complete all steps to activate.
+                        </div>
                     </div>
                 </div>
             </div>
@@ -615,8 +676,217 @@ export default function StaffPendingInviteDetails() {
                 {/* Content Area */}
                 <div className="flex-1 overflow-y-auto p-8 bg-white">
                      
-                     {/* 1. EMPLOYMENT DETAILS */}
+                     {/* 0. BASIC INFORMATION */}
                      {currentStep === 0 && (
+                         <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                             
+                             {/* Upload QID Section */}
+                             <div className="bg-white border text-center p-8 rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-md transition-shadow relative overflow-hidden group">
+                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                                 <div className="mx-auto w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4 transition-all">
+                                     {isExtractingQID ? (
+                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                                     ) : isQIDExtracted ? (
+                                        <CheckCircle className="h-8 w-8 text-green-500" />
+                                     ) : (
+                                        <div className="relative">
+                                            <Hash className="h-8 w-8 text-blue-600" />
+                                        </div>
+                                     )}
+                                 </div>
+                                 <h3 className="text-lg font-bold text-gray-900 mb-2">
+                                     {isExtractingQID ? "Extracting Data..." : isQIDExtracted ? "QID Extracted Successfully" : "Auto-fill with QID"}
+                                 </h3>
+                                 <p className="text-sm text-gray-500 max-w-[340px] mx-auto mb-6 leading-relaxed">
+                                     {isExtractingQID ? "Please wait while we extract the details from the uploaded document securely." : isQIDExtracted ? "Personal details have been automatically populated below." : "Upload the staff member's QID document to automatically extract and populate personal details."}
+                                 </p>
+                                 
+                                 {!isExtractingQID && !isQIDExtracted && (
+                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                                         <Button 
+                                            variant="ghost" 
+                                            onClick={handleManualEntryClick}
+                                            className="h-11 px-6 rounded-lg font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                                         >
+                                            Skip & Enter Manually
+                                         </Button>
+                                         <Button 
+                                            onClick={handleQIDUploadClick}
+                                            className="h-11 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 font-medium text-white shadow-sm flex items-center gap-2 transition-colors"
+                                         >
+                                            <Upload className="h-4 w-4" /> Upload Document
+                                         </Button>
+                                     </div>
+                                 )}
+                             </div>
+
+                             {/* Personal Information Section */}
+                             <div className="space-y-6 pt-2">
+                                 <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+                                     <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+                                        <User className="h-5 w-5" />
+                                     </div>
+                                     <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Personal Information</h3>
+                                        <p className="text-xs text-gray-500">{(isQIDExtracted || isManualEntry) ? "Review and update the personal details below." : "Fields will remain locked until QID is uploaded or manual entry is selected."}</p>
+                                     </div>
+                                 </div>
+
+                                 <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-6 space-y-6 relative overflow-hidden transition-all duration-300">
+                                     {(!isQIDExtracted && !isManualEntry) && (
+                                         <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-all duration-300">
+                                             <div className="bg-white px-6 py-3 rounded-full shadow-lg border border-gray-100 font-medium text-sm text-gray-600 flex items-center gap-2">
+                                                 <ShieldCheck className="h-4 w-4 text-blue-500" />
+                                                 Please upload QID or select Manual Entry
+                                             </div>
+                                         </div>
+                                     )}
+                                     
+                                     {(isQIDExtracted || isManualEntry) && (
+                                         <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full group transition-all hover:border-blue-200">
+                                             <div className="flex items-center gap-5">
+                                                 <div className="relative h-16 w-16 rounded-full bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-blue-300 transition-all shadow-sm">
+                                                    <User className="h-7 w-7 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                                                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Upload className="h-5 w-5 text-white" />
+                                                    </div>
+                                                 </div>
+                                                 <div className="flex-1">
+                                                    <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-1">
+                                                        Profile Photo <span className="text-red-500">*</span>
+                                                    </h4>
+                                                    <p className="text-[11px] text-gray-500 max-w-[200px] leading-tight flex-wrap">Clear front-facing photo. JPG or PNG (Max 5MB).</p>
+                                                 </div>
+                                             </div>
+                                             <Button variant="outline" className="h-10 px-5 text-xs rounded-xl border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm font-semibold transition-colors shrink-0">
+                                                 Choose File
+                                             </Button>
+                                         </div>
+                                     )}
+
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
+                                                <span>Full Name <span className="text-red-500">*</span></span>
+                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+                                            </Label>
+                                            <Input 
+                                                value={formData.name || ""} 
+                                                placeholder="e.g. Ahmed Hassan"
+                                                className={`h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}
+                                                onChange={e => setFormData({...formData, name: e.target.value})} 
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Nickname <span className="text-gray-400 font-normal ml-1">(Optional)</span></Label>
+                                            <Input 
+                                                value={formData.nickname || ""} 
+                                                placeholder="e.g. Ahmed"
+                                                className="h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100"
+                                                onChange={e => setFormData({...formData, nickname: e.target.value})} 
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
+                                                <span>QID Number <span className="text-red-500">*</span></span>
+                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+                                            </Label>
+                                            <Input 
+                                                value={formData.qid || ""} 
+                                                placeholder="00000000000"
+                                                className={`h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}
+                                                onChange={e => setFormData({...formData, qid: e.target.value})} 
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
+                                                <span>Date of Birth <span className="text-red-500">*</span></span>
+                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+                                            </Label>
+                                            <Input 
+                                                type="date"
+                                                value={formData.dob || ""} 
+                                                className={`h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}
+                                                onChange={e => setFormData({...formData, dob: e.target.value})} 
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
+                                                <span>Nationality <span className="text-red-500">*</span></span>
+                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+                                            </Label>
+                                            <Select value={formData.nationality} onValueChange={v => setFormData({...formData, nationality: v})}>
+                                                <SelectTrigger className={`bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}>
+                                                    <SelectValue placeholder="Select nationality" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Qatar">Qatar</SelectItem>
+                                                    <SelectItem value="India">India</SelectItem>
+                                                    <SelectItem value="Philippines">Philippines</SelectItem>
+                                                    <SelectItem value="Nepal">Nepal</SelectItem>
+                                                    <SelectItem value="Bangladesh">Bangladesh</SelectItem>
+                                                    <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
+                                                    <SelectItem value="Pakistan">Pakistan</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
+                                                <span>Gender <span className="text-red-500">*</span></span>
+                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+                                            </Label>
+                                            <Select value={formData.gender} onValueChange={v => setFormData({...formData, gender: v as any})}>
+                                                <SelectTrigger className={`bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}>
+                                                    <SelectValue placeholder="Select gender" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="Male">Male</SelectItem>
+                                                    <SelectItem value="Female">Female</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Mobile Number <span className="text-red-500">*</span></Label>
+                                            <Input 
+                                                value={formData.phone || ""} 
+                                                placeholder="+974 55687989"
+                                                className="h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100"
+                                                onChange={e => setFormData({...formData, phone: e.target.value})} 
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Email Address <span className="text-red-500">*</span></Label>
+                                            <Input 
+                                                type="email"
+                                                value={formData.email || ""} 
+                                                placeholder="example@email.com"
+                                                className="h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100"
+                                                onChange={e => setFormData({...formData, email: e.target.value})} 
+                                            />
+                                        </div>
+                                     </div>
+                                 </div>
+                             </div>
+
+                             <div className="pt-6 flex items-center justify-between">
+                                 <Button variant="ghost" onClick={() => setLocation("/workforce/pending")} className="h-12 px-6 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-xl font-semibold transition-colors">
+                                     Cancel
+                                 </Button>
+                                 <Button 
+                                     className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center gap-2" 
+                                     onClick={() => {
+                                         saveChanges(true); // increments to step 1
+                                     }}
+                                     disabled={!reqs.basic || (!isQIDExtracted && !isManualEntry)}
+                                 >
+                                     Next: Employment & Profile <ArrowRight className="w-4 h-4" />
+                                 </Button>
+                             </div>
+                         </div>
+                     )}
+
+                     {/* 1. EMPLOYMENT DETAILS */}
+                     {currentStep === 1 && (
                          <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                              
                              {/* Section: Role Information */}
@@ -796,8 +1066,8 @@ export default function StaffPendingInviteDetails() {
                              </div>
 
                              <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
-                                 <Button variant="outline" onClick={() => setLocation("/workforce/pending")} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
-                                     Cancel
+                                 <Button variant="outline" onClick={() => setCurrentStep(0)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
+                                     Previous Step
                                  </Button>
                                      <Button 
                                          className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
@@ -810,8 +1080,8 @@ export default function StaffPendingInviteDetails() {
                          </div>
                      )}
 
-                     {/* 2. SKILLS & QUALIFICATIONS */}
-                     {currentStep === 1 && (
+                     {/* 2. OPERATIONS & SKILLS */}
+                     {currentStep === 2 && (
                          <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                              
                              {/* Section: Professional Profile */}
@@ -951,7 +1221,7 @@ export default function StaffPendingInviteDetails() {
                                      </div>
 
                                      {/* MANDATORY CERTIFICATES LOGIC */}
-                                    {formData.skills?.filter(skill => {
+                                    {(formData.skills || []).filter(skill => {
                                         const skillConfig = availableSkills.find(s => s.name === skill);
                                         return skillConfig?.requiresCert;
                                     }).length > 0 && (
@@ -1501,7 +1771,7 @@ export default function StaffPendingInviteDetails() {
                              </div>
 
                              <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
-                                 <Button variant="outline" onClick={() => setCurrentStep(0)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
+                                 <Button variant="outline" onClick={() => setCurrentStep(1)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
                                      Previous Step
                                  </Button>
                                  <Button 
@@ -1509,7 +1779,7 @@ export default function StaffPendingInviteDetails() {
                                      onClick={() => saveChanges(true)}
                                      disabled={!reqs.ops}
                                  >
-                                     Next: Summary <ArrowRight className="w-4 h-4 ml-2" />
+                                     Next: Access & Security <ArrowRight className="w-4 h-4 ml-2" />
                                  </Button>
                              </div>
                          </div>
@@ -1517,8 +1787,93 @@ export default function StaffPendingInviteDetails() {
 
 
 
-                    {/* 4. SUMMARY & ACTIVATION (Now Step 3 index 2) */}
-                    {currentStep === 2 && (
+                    {/* 4. ACCESS & SECURITY */}
+                    {currentStep === 3 && (
+                        <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
+                             <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-6 space-y-6 relative overflow-hidden transition-all duration-300">
+                                 <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
+                                     <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                                        <ShieldCheck className="h-5 w-5" />
+                                     </div>
+                                     <div>
+                                        <h3 className="text-lg font-bold text-gray-900">Access & Security</h3>
+                                        <p className="text-xs text-gray-500">Manage dashboard access, permissions, and security roles.</p>
+                                     </div>
+                                 </div>
+                                 
+                                 <div className="space-y-6">
+                                     <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
+                                         <div>
+                                            <h4 className="text-sm font-bold text-gray-900 mb-1">Dashboard Access</h4>
+                                            <p className="text-xs text-gray-500 leading-relaxed">Allow this user to log in to the admin dashboard.</p>
+                                         </div>
+                                         <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
+                                             <button 
+                                                onClick={() => setFormData({...formData, dashboardAccess: true})}
+                                                className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess !== false ? 'bg-purple-50 text-purple-700 opacity-100' : 'text-gray-500 hover:text-gray-900 opacity-70'}`}
+                                             >
+                                                Yes
+                                             </button>
+                                             <button 
+                                                onClick={() => setFormData({...formData, dashboardAccess: false})}
+                                                className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === false ? 'bg-purple-50 text-purple-700 opacity-100' : 'text-gray-500 hover:text-gray-900 opacity-70'}`}
+                                             >
+                                                No
+                                             </button>
+                                         </div>
+                                     </div>
+
+                                     {formData.dashboardAccess !== false && (
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 animate-in fade-in slide-in-from-top-2">
+                                         <div className="space-y-2">
+                                             <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">System Role <span className="text-red-500">*</span></Label>
+                                             <Select value={formData.systemRole} onValueChange={v => setFormData({...formData, systemRole: v})}>
+                                                 <SelectTrigger className="bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-purple-100">
+                                                     <SelectValue placeholder="Select system role" />
+                                                 </SelectTrigger>
+                                                 <SelectContent>
+                                                     <SelectItem value="Manager">Manager</SelectItem>
+                                                     <SelectItem value="Supervisor">Supervisor</SelectItem>
+                                                     <SelectItem value="Dispatcher">Dispatcher</SelectItem>
+                                                     <SelectItem value="Admin">Admin</SelectItem>
+                                                 </SelectContent>
+                                             </Select>
+                                         </div>
+                                         <div className="space-y-2">
+                                             <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Permission Scope</Label>
+                                             <Select value={formData.permissionScope} onValueChange={v => setFormData({...formData, permissionScope: v})}>
+                                                 <SelectTrigger className="bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-purple-100">
+                                                     <SelectValue placeholder="Select scope" />
+                                                 </SelectTrigger>
+                                                 <SelectContent>
+                                                     <SelectItem value="Full Access (Role Default)">Full Access (Role Default)</SelectItem>
+                                                     <SelectItem value="View Only">View Only</SelectItem>
+                                                     <SelectItem value="Custom Scope">Custom Scope</SelectItem>
+                                                 </SelectContent>
+                                             </Select>
+                                         </div>
+                                     </div>
+                                     )}
+                                 </div>
+                             </div>
+                             
+                             <div className="pt-4 flex items-center justify-between">
+                                 <Button variant="outline" onClick={() => setCurrentStep(2)} className="h-12 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold transition-colors">
+                                     Previous Step
+                                 </Button>
+                                 <Button 
+                                     className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2" 
+                                     onClick={() => saveChanges(true)}
+                                     disabled={!reqs.access}
+                                 >
+                                     Next: Summary <ArrowRight className="w-4 h-4" />
+                                 </Button>
+                             </div>
+                        </div>
+                    )}
+
+                    {/* 5. SUMMARY & ACTIVATION (Now Step 5 index 4) */}
+                    {currentStep === 4 && (
                         <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
                             
                             <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
@@ -1650,8 +2005,8 @@ export default function StaffPendingInviteDetails() {
                             </div>
 
                             <div className="pt-6 flex items-center gap-4">
-                                <Button variant="outline" onClick={() => setCurrentStep(1)} className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50">
-                                    Back to Operations
+                                <Button variant="outline" onClick={() => setCurrentStep(3)} className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50">
+                                    Back to Access & Security
                                 </Button>
                                 <Button 
                                    className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-sm hover:shadow text-white font-semibold tracking-wide transition-all" 

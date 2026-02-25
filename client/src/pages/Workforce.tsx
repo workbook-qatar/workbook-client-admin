@@ -46,6 +46,13 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // Staff Member Interface
 export interface StaffMember {
@@ -211,6 +218,10 @@ export default function Workforce() {
   const [selectedRole, setSelectedRole] = useState("all");
   const [showInactive, setShowInactive] = useState(false);
 
+  // Invite Modal State
+  const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [inviteData, setInviteData] = useState({ name: "", email: "", role: "" });
+
   useEffect(() => {
     const stored = localStorage.getItem("vendor_staff");
     if (stored) {
@@ -267,6 +278,38 @@ export default function Workforce() {
     const updated = staff.filter(s => s.id !== id);
     saveStaff(updated);
     toast.success("Removed from list");
+  };
+
+  const handleInviteSubmit = () => {
+    if (!inviteData.name || !inviteData.email || !inviteData.role) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    const newId = Date.now().toString();
+    const newInvite: StaffMember = {
+      id: newId,
+      staffId: "",
+      name: inviteData.name,
+      role: inviteData.role,
+      roleType: inviteData.role === "Driver" ? "driver" : inviteData.role === "Internal Staff" ? "Internal Staff" : "Field Service",
+      email: inviteData.email,
+      phone: "",
+      location: "",
+      status: "offline",
+      employmentStatus: "Active",
+      membershipStatus: "pending",
+      inviteSentAt: new Date().toISOString(),
+      emailVerified: false,
+      phoneVerified: false,
+      avatar: inviteData.name.substring(0, 2).toUpperCase(),
+      avatarColor: "bg-blue-600",
+    };
+
+    saveStaff([...staff, newInvite]);
+    toast.success("Invite sent successfully.");
+    setIsInviteOpen(false);
+    setInviteData({ name: "", email: "", role: "" });
   };
 
   // ------------------------------------------------------------------
@@ -377,9 +420,9 @@ export default function Workforce() {
                 <Mail className="h-4 w-4 mr-2" />
                 Pending Invites ({stats.pending})
              </Button>
-             <Button onClick={() => setLocation("/workforce/add")}>
+             <Button className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-all" onClick={() => setIsInviteOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Member
+                Invite User
              </Button>
           </div>
         </div>
@@ -648,6 +691,51 @@ export default function Workforce() {
             )}
         </div>
       </div>
+
+      {/* Invite User Modal */}
+      <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+        <DialogContent className="sm:max-w-[450px] p-0 overflow-hidden border border-gray-200 shadow-xl rounded-xl">
+          <DialogHeader className="px-8 py-6 border-b border-gray-100 bg-white">
+            <DialogTitle className="text-xl font-bold text-gray-900">Invite User</DialogTitle>
+          </DialogHeader>
+          <div className="px-8 py-6 space-y-6 bg-white">
+            <div className="space-y-1.5 border-none">
+              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Name <span className="text-red-500">*</span></Label>
+              <Input 
+                value={inviteData.name} 
+                onChange={e => setInviteData({...inviteData, name: e.target.value})}
+                className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+              />
+            </div>
+            <div className="space-y-1.5 border-none">
+              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Email Address <span className="text-red-500">*</span></Label>
+              <Input 
+                type="email"
+                value={inviteData.email} 
+                onChange={e => setInviteData({...inviteData, email: e.target.value})}
+                className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+              />
+            </div>
+            <div className="space-y-1.5 border-none">
+              <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Role <span className="text-red-500">*</span></Label>
+              <Select value={inviteData.role} onValueChange={v => setInviteData({...inviteData, role: v})}>
+                <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Field Service Staff">Field Service Staff</SelectItem>
+                  <SelectItem value="Driver">Driver</SelectItem>
+                  <SelectItem value="Internal Staff">Internal Staff</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="px-8 py-5 border-t border-gray-100 bg-gray-50 flex items-center justify-between sm:justify-between">
+            <Button variant="outline" className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-100 rounded-lg" onClick={() => setIsInviteOpen(false)}>Cancel</Button>
+            <Button className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all rounded-lg font-semibold text-white" onClick={handleInviteSubmit}>Invite</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
