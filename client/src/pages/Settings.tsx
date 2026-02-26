@@ -11,6 +11,7 @@ import {
   FileText, 
   ScrollText,
   Database,
+  ShieldCheck
 } from "lucide-react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -130,6 +131,23 @@ export default function Settings() {
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-4">General Settings</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              
+              {/* System Roles & Access */}
+              <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-indigo-100 group" onClick={() => setLocation('/settings/system-roles')}>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <div className="p-2 bg-indigo-100/50 rounded-lg group-hover:bg-indigo-600 transition-colors">
+                      <ShieldCheck className="h-5 w-5 text-indigo-600 group-hover:text-white transition-colors" />
+                    </div>
+                    System Roles & Access
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-gray-500 mb-4">
+                    Manage dashboard access, custom roles, and module permissions
+                  </p>
+                </CardContent>
+              </Card>
               <Card className="glass-panel cursor-pointer hover:shadow-md transition-all border-gray-100 group" onClick={handleFeatureClick}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-lg">

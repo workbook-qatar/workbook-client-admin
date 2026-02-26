@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRoute, useLocation } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -131,6 +131,39 @@ export default function StaffPendingInviteDetails() {
   const [isQIDExtracted, setIsQIDExtracted] = useState(false);
   const [isManualEntry, setIsManualEntry] = useState(false);
   
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
+
+  const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (!['image/jpeg', 'image/png'].includes(file.type)) {
+          toast.error("Invalid file type. Please upload a JPG or PNG image.");
+          return;
+      }
+
+      if (file.size > 5 * 1024 * 1024) {
+          toast.error("File is too large. Maximum size is 5MB.");
+          return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+          const base64String = event.target?.result as string;
+          if (formData) {
+              setFormData({ ...formData, avatar: base64String });
+          } else if (data) {
+              setFormData({ ...data, avatar: base64String });
+          }
+          toast.success("Profile photo uploaded successfully");
+          
+          if (profilePhotoInputRef.current) {
+              profilePhotoInputRef.current.value = '';
+          }
+      };
+      reader.readAsDataURL(file);
+  };
+  
   // Cert Form State (To be removed/ignored in new flow, but keeping for safety for now)
   const [isAddingCert, setIsAddingCert] = useState(false);
   const [tempCert, setTempCert] = useState({ name: "", expiry: "" });
@@ -233,21 +266,25 @@ export default function StaffPendingInviteDetails() {
     }
 
     // 2. Load Organization & Employment Settings
-    const storedDepts = localStorage.getItem("vendor_departments");
-    if (storedDepts) {
-        let depts = JSON.parse(storedDepts).map((d: any) => d.name);
-        if (!depts.includes("Logistics")) depts.push("Logistics");
-        setDepartmentOptions(depts);
-    } else {
-        setDepartmentOptions(["Operations", "Maintenance", "Sales", "HR", "Logistics"]);
-    }
+    setDepartmentOptions([
+        "Operations",
+        "Dispatch",
+        "Quality",
+        "Customer Support",
+        "HR & Admin",
+        "Finance",
+        "Logistics"
+    ]);
 
-    const storedJobs = localStorage.getItem("vendor_job_titles");
-    if (storedJobs) {
-        setPositionOptions(JSON.parse(storedJobs).map((j: any) => j.name || j.title));
-    } else {
-        setPositionOptions(["AC Technician", "Electrician", "Plumber", "Cleaner", "Supervisor", "Driver"]);
-    }
+    setPositionOptions([
+        "Cleaner",
+        "Team Leader",
+        "Dispatcher",
+        "QA Inspector",
+        "Driver",
+        "Accountant",
+        "HR Officer"
+    ]);
 
     const storedEmpTypes = localStorage.getItem("vendor_employment_types");
     if (storedEmpTypes) {
@@ -343,9 +380,8 @@ export default function StaffPendingInviteDetails() {
                 licenseCategory: found.licenseCategory || "",
                 licenseNumber: found.licenseNumber || "",
                 licenseExpiry: found.licenseExpiry || "",
-                serviceScope: "" as any, // Start empty
                 serviceAreas: found.serviceAreas || [],
-                dashboardAccess: found.dashboardAccess ?? true,
+                dashboardAccess: found.dashboardAccess ?? false,
                 systemRole: found.systemRole || "Manager",
                 permissionScope: found.permissionScope || "Full Access (Role Default)"
             };
@@ -383,6 +419,7 @@ export default function StaffPendingInviteDetails() {
           setFormData(prev => prev ? {
               ...prev,
               name: "Ahmed Hassan",
+              nickname: "Ahmed Hassan",
               qid: "28535638494",
               dob: "1985-05-15",
               nationality: "Qatar",
@@ -398,6 +435,7 @@ export default function StaffPendingInviteDetails() {
       setFormData(prev => prev ? {
           ...prev,
           name: "John Doe",
+          nickname: "John Doe",
           qid: "29012345678",
           dob: "1990-01-01",
           nationality: "India",
@@ -487,7 +525,7 @@ export default function StaffPendingInviteDetails() {
 
     return {
         basic: !!(d.name && d.qid && d.dob && d.nationality && d.gender && d.phone && d.email),
-        employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType && d.religion && d.maritalStatus),
+        employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType && d.religion),
         // Combined validation
         ops: (d.skills?.length || 0) > 0 && !!d.transportationType && (d.transportationType !== 'Flexible' || !!d.primaryTransport) && opsValid && scheduleValid, 
         access: d.dashboardAccess === false || !!(d.dashboardAccess && d.systemRole && d.permissionScope),
@@ -727,7 +765,7 @@ export default function StaffPendingInviteDetails() {
                                         <User className="h-5 w-5" />
                                      </div>
                                      <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Personal Information</h3>
+                                        <h3 className="text-lg font-bold text-gray-900">Personal Details</h3>
                                         <p className="text-xs text-gray-500">{(isQIDExtracted || isManualEntry) ? "Review and update the personal details below." : "Fields will remain locked until QID is uploaded or manual entry is selected."}</p>
                                      </div>
                                  </div>
@@ -745,9 +783,16 @@ export default function StaffPendingInviteDetails() {
                                      {(isQIDExtracted || isManualEntry) && (
                                          <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full group transition-all hover:border-blue-200">
                                              <div className="flex items-center gap-5">
-                                                 <div className="relative h-16 w-16 rounded-full bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-blue-300 transition-all shadow-sm">
-                                                    <User className="h-7 w-7 text-gray-400 group-hover:text-blue-500 transition-colors" />
-                                                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                 <div 
+                                                     className="relative h-16 w-16 rounded-full bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer group-hover:border-blue-300 transition-all shadow-sm group/avatar"
+                                                     onClick={() => profilePhotoInputRef.current?.click()}
+                                                 >
+                                                    {(formData?.avatar || data?.avatar) ? (
+                                                        <img src={formData?.avatar || data?.avatar} alt="Profile preview" className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <User className="h-7 w-7 text-gray-400 group-hover/avatar:text-blue-500 transition-colors" />
+                                                    )}
+                                                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
                                                         <Upload className="h-5 w-5 text-white" />
                                                     </div>
                                                  </div>
@@ -758,65 +803,90 @@ export default function StaffPendingInviteDetails() {
                                                     <p className="text-[11px] text-gray-500 max-w-[200px] leading-tight flex-wrap">Clear front-facing photo. JPG or PNG (Max 5MB).</p>
                                                  </div>
                                              </div>
-                                             <Button variant="outline" className="h-10 px-5 text-xs rounded-xl border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm font-semibold transition-colors shrink-0">
-                                                 Choose File
+                                             <input 
+                                                 type="file" 
+                                                 ref={profilePhotoInputRef} 
+                                                 className="hidden" 
+                                                 accept="image/jpeg, image/png" 
+                                                 onChange={handleProfilePhotoUpload} 
+                                             />
+                                             <Button 
+                                                 variant="outline" 
+                                                 className="h-10 px-5 text-xs rounded-xl border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm font-semibold transition-colors shrink-0"
+                                                 onClick={() => profilePhotoInputRef.current?.click()}
+                                             >
+                                                 {(formData?.avatar || data?.avatar) ? 'Change Photo' : 'Choose File'}
                                              </Button>
                                          </div>
                                      )}
 
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
-                                                <span>Full Name <span className="text-red-500">*</span></span>
-                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                                        {/* Full Name */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                Full Name <span className="text-red-500">*</span>
                                             </Label>
+                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
                                             <Input 
+                                                disabled
                                                 value={formData.name || ""} 
-                                                placeholder="e.g. Ahmed Hassan"
-                                                className={`h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}
+                                                placeholder="Manual Entry Staff"
+                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                                                 onChange={e => setFormData({...formData, name: e.target.value})} 
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Nickname <span className="text-gray-400 font-normal ml-1">(Optional)</span></Label>
+
+                                        {/* Display Name */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                Display Name
+                                            </Label>
                                             <Input 
                                                 value={formData.nickname || ""} 
-                                                placeholder="e.g. Ahmed"
-                                                className="h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100"
+                                                placeholder="Enter display name"
+                                                className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                                                 onChange={e => setFormData({...formData, nickname: e.target.value})} 
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
-                                                <span>QID Number <span className="text-red-500">*</span></span>
-                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+
+                                        {/* QID Number */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                QID Number <span className="text-red-500">*</span>
                                             </Label>
+                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
                                             <Input 
+                                                disabled
                                                 value={formData.qid || ""} 
                                                 placeholder="00000000000"
-                                                className={`h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}
+                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                                                 onChange={e => setFormData({...formData, qid: e.target.value})} 
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
-                                                <span>Date of Birth <span className="text-red-500">*</span></span>
-                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+
+                                        {/* Date of Birth */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                Date of Birth <span className="text-red-500">*</span>
                                             </Label>
+                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
                                             <Input 
                                                 type="date"
+                                                disabled
                                                 value={formData.dob || ""} 
-                                                className={`h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}
+                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100"
                                                 onChange={e => setFormData({...formData, dob: e.target.value})} 
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
-                                                <span>Nationality <span className="text-red-500">*</span></span>
-                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+
+                                        {/* Nationality */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                Nationality <span className="text-red-500">*</span>
                                             </Label>
-                                            <Select value={formData.nationality} onValueChange={v => setFormData({...formData, nationality: v})}>
-                                                <SelectTrigger className={`bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}>
+                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
+                                            <Select disabled value={formData.nationality} onValueChange={v => setFormData({...formData, nationality: v})}>
+                                                <SelectTrigger className="mt-auto bg-gray-50 w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg text-gray-500">
                                                     <SelectValue placeholder="Select nationality" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -830,13 +900,14 @@ export default function StaffPendingInviteDetails() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider flex justify-between items-center">
-                                                <span>Gender <span className="text-red-500">*</span></span>
-                                                {isQIDExtracted && <span className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md font-bold">Auto-filled</span>}
+
+                                        {/* Gender */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                Gender <span className="text-red-500">*</span>
                                             </Label>
                                             <Select value={formData.gender} onValueChange={v => setFormData({...formData, gender: v as any})}>
-                                                <SelectTrigger className={`bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100 ${isQIDExtracted ? 'bg-blue-50/20' : ''}`}>
+                                                <SelectTrigger className="mt-auto bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 text-gray-600">
                                                     <SelectValue placeholder="Select gender" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -845,22 +916,31 @@ export default function StaffPendingInviteDetails() {
                                                 </SelectContent>
                                             </Select>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Mobile Number <span className="text-red-500">*</span></Label>
+
+                                        {/* Mobile Number */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                Mobile Number <span className="text-red-500">*</span>
+                                            </Label>
                                             <Input 
                                                 value={formData.phone || ""} 
                                                 placeholder="+974 55687989"
-                                                className="h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100"
+                                                className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                                                 onChange={e => setFormData({...formData, phone: e.target.value})} 
                                             />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Email Address <span className="text-red-500">*</span></Label>
+
+                                        {/* Email Address */}
+                                        <div className="flex flex-col h-full">
+                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                                Email Address <span className="text-red-500">*</span>
+                                            </Label>
                                             <Input 
                                                 type="email"
+                                                disabled
                                                 value={formData.email || ""} 
                                                 placeholder="example@email.com"
-                                                className="h-12 w-full border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-blue-100"
+                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                                                 onChange={e => setFormData({...formData, email: e.target.value})} 
                                             />
                                         </div>
@@ -903,20 +983,20 @@ export default function StaffPendingInviteDetails() {
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Position <span className="text-red-500">*</span></Label>
-                                        <Select disabled={!isEditing} value={formData.role} onValueChange={v => setFormData({...formData, role: v})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Position" /></SelectTrigger>
-                                            <SelectContent>
-                                                {positionOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-1.5">
                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Department <span className="text-red-500">*</span></Label>
                                         <Select disabled={!isEditing} value={formData.department} onValueChange={v => setFormData({...formData, department: v})}>
                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Department" /></SelectTrigger>
                                             <SelectContent>
                                                 {departmentOptions.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Position <span className="text-red-500">*</span></Label>
+                                        <Select disabled={!isEditing} value={formData.role} onValueChange={v => setFormData({...formData, role: v})}>
+                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Position" /></SelectTrigger>
+                                            <SelectContent>
+                                                {positionOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -1054,7 +1134,7 @@ export default function StaffPendingInviteDetails() {
                                         </Select>
                                     </div>
                                     <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Marital Status <span className="text-red-500">*</span></Label>
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Marital Status <span className="lowercase normal-case font-normal capitalize-none text-gray-400 ml-1">(Optional)</span></Label>
                                         <Select disabled={!isEditing} value={formData.maritalStatus} onValueChange={v => setFormData({...formData, maritalStatus: v})}>
                                             <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Status" /></SelectTrigger>
                                             <SelectContent>
@@ -1810,7 +1890,7 @@ export default function StaffPendingInviteDetails() {
                                          <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
                                              <button 
                                                 onClick={() => setFormData({...formData, dashboardAccess: true})}
-                                                className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess !== false ? 'bg-purple-50 text-purple-700 opacity-100' : 'text-gray-500 hover:text-gray-900 opacity-70'}`}
+                                                className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === true ? 'bg-purple-50 text-purple-700 opacity-100' : 'text-gray-500 hover:text-gray-900 opacity-70'}`}
                                              >
                                                 Yes
                                              </button>
@@ -1823,37 +1903,100 @@ export default function StaffPendingInviteDetails() {
                                          </div>
                                      </div>
 
-                                     {formData.dashboardAccess !== false && (
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2 animate-in fade-in slide-in-from-top-2">
-                                         <div className="space-y-2">
-                                             <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">System Role <span className="text-red-500">*</span></Label>
-                                             <Select value={formData.systemRole} onValueChange={v => setFormData({...formData, systemRole: v})}>
-                                                 <SelectTrigger className="bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-purple-100">
-                                                     <SelectValue placeholder="Select system role" />
-                                                 </SelectTrigger>
-                                                 <SelectContent>
-                                                     <SelectItem value="Manager">Manager</SelectItem>
-                                                     <SelectItem value="Supervisor">Supervisor</SelectItem>
-                                                     <SelectItem value="Dispatcher">Dispatcher</SelectItem>
-                                                     <SelectItem value="Admin">Admin</SelectItem>
-                                                 </SelectContent>
-                                             </Select>
-                                         </div>
-                                         <div className="space-y-2">
-                                             <Label className="text-xs font-bold uppercase text-gray-500 tracking-wider">Permission Scope</Label>
-                                             <Select value={formData.permissionScope} onValueChange={v => setFormData({...formData, permissionScope: v})}>
-                                                 <SelectTrigger className="bg-white w-full h-12 border-gray-200 transition-all text-sm rounded-xl focus:ring-2 focus:ring-purple-100">
-                                                     <SelectValue placeholder="Select scope" />
-                                                 </SelectTrigger>
-                                                 <SelectContent>
-                                                     <SelectItem value="Full Access (Role Default)">Full Access (Role Default)</SelectItem>
-                                                     <SelectItem value="View Only">View Only</SelectItem>
-                                                     <SelectItem value="Custom Scope">Custom Scope</SelectItem>
-                                                 </SelectContent>
-                                             </Select>
+                                     <div className="relative overflow-hidden transition-all duration-300 pb-2">
+                                         {formData.dashboardAccess === false && (
+                                             <div className="absolute inset-0 bg-white/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center rounded-xl transition-all duration-300">
+                                                 <div className="bg-white px-5 py-3 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.06)] border border-gray-100 font-medium text-[13px] text-gray-700 flex items-center gap-2.5 animate-in zoom-in-95">
+                                                     <div className="h-7 w-7 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                                                         <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                                                     </div>
+                                                     Enable Dashboard Access to configure role
+                                                 </div>
+                                             </div>
+                                         )}
+                                         
+                                         <div className={`space-y-6 pt-2 transition-all duration-300 ${formData.dashboardAccess === false ? 'opacity-40 pointer-events-none select-none blur-[1px]' : 'animate-in fade-in slide-in-from-top-2'}`}>
+                                             <div className="space-y-2">
+                                                 <div className="flex items-center justify-between">
+                                                    <Label className="text-[13px] font-bold text-gray-900 tracking-tight">System Role <span className="text-red-500">*</span></Label>
+                                                    <Button variant="ghost" className="h-auto p-0 text-[12px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-transparent" onClick={() => setLocation('/settings')}>
+                                                        <Plus className="h-3.5 w-3.5 mr-1" /> Create System Role
+                                                    </Button>
+                                                 </div>
+                                                 
+                                                 <Select value={formData.systemRole} onValueChange={v => setFormData({...formData, systemRole: v})}>
+                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-purple-100 text-gray-700">
+                                                         <SelectValue placeholder="Select system role" />
+                                                     </SelectTrigger>
+                                                     <SelectContent>
+                                                         <SelectItem value="Manager">Manager</SelectItem>
+                                                         <SelectItem value="Supervisor">Supervisor</SelectItem>
+                                                         <SelectItem value="Dispatcher">Dispatcher</SelectItem>
+                                                         <SelectItem value="Admin">Admin</SelectItem>
+                                                     </SelectContent>
+                                                 </Select>
+                                             </div>
+
+                                             {formData.systemRole && (
+                                                 <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-5 space-y-4 shadow-sm">
+                                                     <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                                         <div className="flex items-center gap-2">
+                                                            <div className="h-6 w-6 rounded bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                                                                <Briefcase className="h-3.5 w-3.5" />
+                                                            </div>
+                                                            <span className="text-sm font-bold text-gray-900">{formData.systemRole} Access Preview</span>
+                                                         </div>
+                                                         <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-md px-2 py-0.5 text-[10px] font-bold border border-purple-100/50 uppercase tracking-widest shadow-sm">
+                                                             Read-Only
+                                                         </Badge>
+                                                     </div>
+                                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                                                        {(() => {
+                                                            const rolePermissions: Record<string, { module: string; access: string }[]> = {
+                                                                'Manager': [
+                                                                    { module: 'Workforce', access: 'Full Access' },
+                                                                    { module: 'Bookings', access: 'Full Access' },
+                                                                    { module: 'Customers', access: 'Full Access' },
+                                                                    { module: 'Services', access: 'Manage' },
+                                                                    { module: 'Finance', access: 'View Only' },
+                                                                    { module: 'Settings', access: 'View Only' },
+                                                                ],
+                                                                'Supervisor': [
+                                                                    { module: 'Workforce', access: 'View Only' },
+                                                                    { module: 'Bookings', access: 'Manage' },
+                                                                    { module: 'Dispatch', access: 'Full Access' },
+                                                                    { module: 'Customers', access: 'View Only' },
+                                                                ],
+                                                                'Dispatcher': [
+                                                                    { module: 'Dispatch', access: 'Full Access' },
+                                                                    { module: 'Bookings', access: 'Manage' },
+                                                                    { module: 'Workforce', access: 'View Only' },
+                                                                ],
+                                                                'Admin': [
+                                                                    { module: 'All Modules', access: 'Full Access' },
+                                                                    { module: 'System Settings', access: 'Full Access' },
+                                                                    { module: 'User Management', access: 'Full Access' },
+                                                                    { module: 'Billing', access: 'Full Access' },
+                                                                ]
+                                                            };
+                                                            
+                                                            const perms = rolePermissions[formData.systemRole] || [];
+                                                            
+                                                            return perms.map((p, i) => (
+                                                                <div key={i} className="space-y-1">
+                                                                    <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">{p.module}</div>
+                                                                    <div className="text-[13px] font-medium text-gray-900 flex items-center gap-1.5">
+                                                                        <Check className="h-3.5 w-3.5 text-green-500" />
+                                                                        {p.access}
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        })()}
+                                                     </div>
+                                                 </div>
+                                             )}
                                          </div>
                                      </div>
-                                     )}
                                  </div>
                              </div>
                              
@@ -1886,120 +2029,160 @@ export default function StaffPendingInviteDetails() {
                                </p>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* PROFILE CARD */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                                        <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center"><User className="h-4 w-4"/></div>
-                                        <span className="font-bold text-sm text-gray-900">Personal Details</span>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                {/* CARD 1: BASIC INFORMATION */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors">
+                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                                                <User className="h-4 w-4"/>
+                                            </div>
+                                            <span className="font-bold text-sm text-gray-900">Basic Information</span>
+                                        </div>
+                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 1</Badge>
                                     </div>
-                                    <div className="space-y-3 text-sm">
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Full Name</span> <span className="font-medium text-gray-900 text-right">{data?.name}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Role</span> <span className="font-medium text-gray-900 text-right">{formData.role}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Gender</span> <span className="font-medium text-gray-900 text-right">{data?.gender}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Nationality</span> <span className="font-medium text-gray-900 text-right">{data?.nationality}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Contact</span> <div className="text-right flex flex-col"><span className="font-medium text-gray-900">{data?.phone}</span><span className="text-xs text-gray-500">{data?.email}</span></div></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Religion</span> <span className="font-medium text-gray-900 text-right">{formData.religion || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Marital Status</span> <span className="font-medium text-gray-900 text-right">{formData.maritalStatus || '-'}</span></div>
+                                    <div className="space-y-3 text-[13px]">
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Full Name</span> <span className="font-semibold text-gray-900 text-right">{formData.name || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Display Name</span> <span className="font-semibold text-gray-900 text-right">{formData.nickname || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">QID Number</span> <span className="font-semibold text-gray-900 text-right">{formData.qid || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Date of Birth</span> <span className="font-semibold text-gray-900 text-right">{formData.dob || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Nationality</span> <span className="font-semibold text-gray-900 text-right">{formData.nationality || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Gender</span> <span className="font-semibold text-gray-900 text-right">{formData.gender || '-'}</span></div>
+                                        <div className="pt-2 border-t border-gray-50 mt-1">
+                                            <div className="flex justify-between items-center mb-2"><span className="text-gray-500 leading-none">Contact</span> <span className="font-semibold text-gray-900 text-right leading-none">{formData.phone || '-'}</span></div>
+                                            <div className="flex justify-between items-center"><span className="text-gray-500 leading-none">Email</span> <span className="font-semibold text-gray-900 text-right leading-none">{formData.email || '-'}</span></div>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* OPERATIONS & SKILLS CARD */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                                        <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center"><Briefcase className="h-4 w-4"/></div>
-                                        <span className="font-bold text-sm text-gray-900">Operations & Skills</span>
+                                {/* CARD 2: EMPLOYMENT & PROFILE */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-purple-200 transition-colors">
+                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0">
+                                                <Briefcase className="h-4 w-4"/>
+                                            </div>
+                                            <span className="font-bold text-sm text-gray-900">Employment & Profile</span>
+                                        </div>
+                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 2</Badge>
                                     </div>
-                                    <div className="space-y-3 text-sm">
-                                         <div className="flex justify-between items-center"><span className="text-gray-500">Department</span> <span className="font-medium text-gray-900 text-right">{formData.department}</span></div>
-                                         <div className="flex justify-between items-center"><span className="text-gray-500">Emp. Type</span> <span className="font-medium text-gray-900 text-right">{formData.employmentType}</span></div>
-                                         <div className="flex justify-between items-center"><span className="text-gray-500">Start Date</span> <span className="font-medium text-gray-900 text-right">{formData.startDate}</span></div>
-                                         
-                                         <div className="pt-2 border-t border-gray-50">
-                                            <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Transportation</span>
-                                            <div className="flex items-center justify-between">
-                                                <span className="font-medium text-gray-900">
-                                                    {formData.transportationType}
-                                                    {formData.transportationType === 'Flexible' && formData.primaryTransport && (
-                                                        <span className="text-gray-500 font-normal ml-1">({formData.primaryTransport})</span>
-                                                    )}
-                                                </span>
+                                    <div className="space-y-3 text-[13px]">
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Position</span> <span className="font-semibold text-gray-900 text-right">{formData.role || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Department</span> <span className="font-semibold text-gray-900 text-right">{formData.department || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Type</span> <span className="font-semibold text-gray-900 text-right">{formData.employmentType || '-'}</span></div>
+                                        <div className="flex justify-between items-center"><span className="text-gray-500">Start Date</span> <span className="font-semibold text-gray-900 text-right">{formData.startDate || '-'}</span></div>
+                                        
+                                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Scheme</span> <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 text-[11px]">{formData.salaryType || '-'}</span></div>
+                                            {(formData.salaryType === 'Fixed Monthly' || formData.salaryType === 'Fixed + Commission') && (
+                                                <div className="flex justify-between items-center"><span className="text-gray-500">Base Salary</span> <span className="font-semibold text-gray-900">QAR {formData.salaryAmount}</span></div>
+                                            )}
+                                            {(formData.salaryType === 'Commission-Based' || formData.salaryType === 'Fixed + Commission') && (
+                                                <div className="flex justify-between items-center"><span className="text-gray-500">Commission</span> <span className="font-semibold text-gray-900">{formData.commissionRate}%</span></div>
+                                            )}
+                                            {formData.salaryType === 'Hourly-Rate' && (
+                                                <div className="flex justify-between items-center"><span className="text-gray-500">Hourly Rate</span> <span className="font-semibold text-gray-900">QAR {formData.hourlyRate}/hr</span></div>
+                                            )}
+                                        </div>
+
+                                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Religion</span> <span className="font-semibold text-gray-900 text-right">{formData.religion || '-'}</span></div>
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Marital Status</span> <span className="font-semibold text-gray-900 text-right">{formData.maritalStatus || '-'}</span></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* CARD 3: OPERATIONS & SKILLS */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-orange-200 transition-colors">
+                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0">
+                                                <Globe className="h-4 w-4"/>
+                                            </div>
+                                            <span className="font-bold text-sm text-gray-900">Operations & Skills</span>
+                                        </div>
+                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 3</Badge>
+                                    </div>
+                                    <div className="space-y-3 text-[13px]">
+                                         <div className="flex justify-between items-start">
+                                            <span className="text-gray-500 shrink-0 mt-0.5">Skills</span>
+                                            <div className="flex flex-wrap gap-1 justify-end pl-4">
+                                                {formData.skills?.map((s: string) => <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700">{s}</Badge>)}
+                                                {(!formData.skills?.length) && <span className="text-gray-400 italic">None</span>}
                                             </div>
                                          </div>
-
-                                         <div>
-                                             <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Service Scope</span>
-                                             <div className="flex flex-wrap gap-1">
-                                                {formData.serviceScope === 'all' ? (
-                                                    <Badge variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md">All Service Areas</Badge>
-                                                ) : (
-                                                    <>
-                                                        {formData.serviceAreas?.map((area: string) => <Badge key={area} variant="secondary" className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md">{area}</Badge>)}
-                                                        {(!formData.serviceAreas?.length) && <span className="text-gray-400 italic">None</span>}
-                                                    </>
-                                                )}
-                                             </div>
+                                         <div className="flex justify-between items-start">
+                                            <span className="text-gray-500 shrink-0 mt-0.5">Languages</span>
+                                            <div className="flex flex-wrap gap-1 justify-end pl-4">
+                                                {formData.languages?.map((l: string) => <Badge key={l} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700">{l}</Badge>)}
+                                                {(!formData.languages?.length) && <span className="text-gray-400 italic">None</span>}
+                                            </div>
                                          </div>
-
-                                         <div className="grid grid-cols-2 gap-4 pt-1">
-                                             <div>
-                                                 <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Skills</span>
-                                                 <div className="flex flex-wrap gap-1">
-                                                     {formData.skills?.map((s: string) => <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200">{s}</Badge>)}
-                                                     {(!formData.skills?.length) && <span className="text-gray-400 italic text-xs">None</span>}
-                                                 </div>
-                                             </div>
-                                             <div>
-                                                 <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">Languages</span>
-                                                 <div className="flex flex-wrap gap-1">
-                                                     {formData.languages?.map((l: string) => <Badge key={l} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200">{l}</Badge>)}
-                                                     {(!formData.languages?.length) && <span className="text-gray-400 italic text-xs">None</span>}
-                                                 </div>
-                                             </div>
-                                         </div>
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Operational Scope</span> <span className="font-semibold text-gray-900 text-right">{formData.serviceScope === 'all' ? 'All Areas' : 'Specific Regions'}</span></div>
+                                         <div className="flex justify-between items-center"><span className="text-gray-500">Transportation</span> <span className="font-semibold text-gray-900 text-right max-w-[150px] truncate">{formData.transportationType || '-'}</span></div>
                                          
-                                         {/* Documents Summary */}
+                                         <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Shift System</span> <span className="font-semibold text-gray-900">{formData.shiftSystem || '-'}</span></div>
+                                            <div className="flex justify-between items-center"><span className="text-gray-500">Working Days</span> <span className="font-semibold text-gray-900">{formData.shiftSystem === 'Rotational' ? 'Varied (Rotational)' : (formData.workingDays?.length || 0) + ' Days/Week'}</span></div>
+                                            {formData.shiftSystem === 'Fixed' && (
+                                                <div className="flex justify-between items-center"><span className="text-gray-500">Shift Hours</span> <span className="font-semibold text-gray-900">{formData.workHoursStart} - {formData.workHoursEnd}</span></div>
+                                            )}
+                                         </div>
+
+                                         {/* Documents Indicator */}
                                          {(formData.documents?.length || 0) > 0 && (
-                                            <div className="pt-2 mt-1 border-t border-gray-50 flex items-center gap-2">
-                                                <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
-                                                <span className="text-xs text-gray-700 font-medium">{formData.documents?.length} Document(s) Verified</span>
-                                            </div>
+                                             <div className="pt-2 mt-1 border-t border-gray-50 flex items-center justify-between">
+                                                 <span className="text-gray-500">Verified Docs</span>
+                                                 <Badge className="bg-green-50 text-green-700 hover:bg-green-100 border-green-100 gap-1 px-2.5 py-0 rounded">
+                                                     <CheckCircle className="h-3 w-3" />
+                                                     {formData.documents?.length} Docs
+                                                 </Badge>
+                                             </div>
                                          )}
-                                     </div>
+                                    </div>
                                 </div>
                                 
-                                {/* COMPENSATION CARD */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                                        <div className="h-8 w-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center"><Banknote className="h-4 w-4"/></div>
-                                        <span className="font-bold text-sm text-gray-900">Compensation</span>
+                                {/* CARD 4: ACCESS & SECURITY */}
+                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-gray-300 transition-colors">
+                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="h-8 w-8 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center shrink-0">
+                                                <ShieldCheck className="h-4 w-4"/>
+                                            </div>
+                                            <span className="font-bold text-sm text-gray-900">Access & Security</span>
+                                        </div>
+                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 4</Badge>
                                     </div>
-                                    <div className="space-y-3 text-sm">
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Scheme</span> <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">{formData.salaryType}</span></div>
-                                        {(formData.salaryType === 'Fixed Monthly' || formData.salaryType === 'Fixed + Commission') && (
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Base Salary</span> <span className="font-medium text-gray-900">QAR {formData.salaryAmount}</span></div>
-                                        )}
-                                        {(formData.salaryType === 'Commission-Based' || formData.salaryType === 'Fixed + Commission') && (
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Commission</span> <span className="font-medium text-gray-900">{formData.commissionRate}%</span></div>
-                                        )}
-                                        {formData.salaryType === 'Hourly-Rate' && (
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Hourly Rate</span> <span className="font-medium text-gray-900">QAR {formData.hourlyRate}/hr</span></div>
-                                        )}
-                                    </div>
-                                </div>
+                                    <div className="space-y-3 text-[13px]">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-500">Staff App Access</span> 
+                                            <Badge className="bg-green-50 text-green-700 border-green-100 rounded hover:bg-green-100">Enabled</Badge>
+                                        </div>
+                                        
+                                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-gray-500">Management Access</span> 
+                                                {formData.dashboardAccess ? (
+                                                    <Badge className="bg-blue-50 text-blue-700 border-blue-100 rounded hover:bg-blue-100">Granted</Badge>
+                                                ) : (
+                                                    <span className="font-semibold text-gray-500">No Access</span>
+                                                )}
+                                            </div>
+                                            
+                                            {formData.dashboardAccess && (
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-gray-500">System Role</span> 
+                                                    <span className="font-semibold text-gray-900 text-right">{formData.systemRole || '-'}</span>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                {/* SHIFT CARD */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                                    <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                                        <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center"><Calendar className="h-4 w-4"/></div>
-                                        <span className="font-bold text-sm text-gray-900">Shift Configuration</span>
-                                    </div>
-                                    <div className="space-y-3 text-sm">
-                                        <div className="flex justify-between"><span className="text-gray-500">System</span> <span className="font-medium text-gray-900">{formData.shiftSystem}</span></div>
-                                        <div className="flex justify-between"><span className="text-gray-500">Working Days</span> <span className="font-medium text-gray-900">{formData.shiftSystem === 'Rotational' ? 'Varied (Rotational)' : formData.workingDays?.length + ' Days/Week'}</span></div>
-                                        {formData.shiftSystem === 'Fixed' && (
-                                            <div className="flex justify-between"><span className="text-gray-500">Hours</span> <span className="font-medium text-gray-900">{formData.workHoursStart} - {formData.workHoursEnd}</span></div>
-                                        )}
+                                        <div className="mt-4 bg-orange-50/50 rounded-lg p-3 border border-orange-100 flex items-start gap-2">
+                                            <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+                                            <p className="text-[11px] text-orange-800 leading-relaxed">
+                                                This profile is ready for final activation. Activating will officially register this staff member and send any automated welcome communications if configured.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

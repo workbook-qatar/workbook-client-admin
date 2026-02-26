@@ -30,6 +30,7 @@ import OrganizationStructure from "./pages/settings/OrganizationStructure";
 import EmploymentRules from "./pages/settings/EmploymentRules";
 import DocumentsCompliance from "./pages/settings/DocumentsCompliance";
 import DataBackup from "./pages/settings/DataBackup";
+import SystemRoles from "./pages/settings/SystemRoles";
 
 import Dispatch from "./pages/Dispatch";
 import Reports from "./pages/Reports";
@@ -79,6 +80,7 @@ function Router() {
       <Route path="/settings/employment" component={EmploymentRules} />
       <Route path="/settings/documents" component={DocumentsCompliance} />
       <Route path="/settings/data-backup" component={DataBackup} />
+      <Route path="/settings/system-roles" component={SystemRoles} />
 
       <Route path="/services/directory" component={ServiceDirectory} />
       <Route path="/support" component={Support} />
