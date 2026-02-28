@@ -1,0 +1,2 @@
+Error: Mis-matched closing tag </div> at line 1900. Expected </string> (opened at 1860).
+Left over tags in stack: div, div, div, div, div

@@ -119,6 +119,13 @@ const MOCK_COMPANY_VEHICLES = [
     { id: "v3", name: "Mitsubishi Canter - T001" },
 ];
 
+const STYLES = {
+  sectionTitle: "text-[16px] font-semibold text-gray-900 mb-5 relative pl-3 before:absolute before:left-0 before:top-1 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-full",
+  label: "text-[13px] text-gray-600 font-medium mb-1.5 block",
+  input: "w-full h-[38px] text-sm bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg transition-all",
+  card: "bg-white p-6 shadow-sm border border-gray-100/50 rounded-xl hover:shadow-md transition-shadow duration-200"
+};
+
 export default function StaffPendingInviteDetails() {
   const [, params] = useRoute("/workforce/pending/:id");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
@@ -719,7 +726,7 @@ export default function StaffPendingInviteDetails() {
                          <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                              
                              {/* Upload QID Section */}
-                             <div className="bg-white border text-center p-8 rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] hover:shadow-md transition-shadow relative overflow-hidden group">
+                             <div className={STYLES.card + " text-center relative overflow-hidden group hover:border-blue-300"}>
                                  <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
                                  <div className="mx-auto w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4 transition-all">
                                      {isExtractingQID ? (
@@ -760,17 +767,9 @@ export default function StaffPendingInviteDetails() {
 
                              {/* Personal Information Section */}
                              <div className="space-y-6 pt-2">
-                                 <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
-                                     <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                                        <User className="h-5 w-5" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Personal Details</h3>
-                                        <p className="text-xs text-gray-500">{(isQIDExtracted || isManualEntry) ? "Review and update the personal details below." : "Fields will remain locked until QID is uploaded or manual entry is selected."}</p>
-                                     </div>
-                                 </div>
+                                 <h3 className={STYLES.sectionTitle}>Personal Details</h3>
 
-                                 <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-6 space-y-6 relative overflow-hidden transition-all duration-300">
+                                 <div className={STYLES.card + " space-y-6 relative overflow-hidden transition-all duration-300"}>
                                      {(!isQIDExtracted && !isManualEntry) && (
                                          <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-all duration-300">
                                              <div className="bg-white px-6 py-3 rounded-full shadow-lg border border-gray-100 font-medium text-sm text-gray-600 flex items-center gap-2">
@@ -823,7 +822,7 @@ export default function StaffPendingInviteDetails() {
                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
                                         {/* Full Name */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 Full Name <span className="text-red-500">*</span>
                                             </Label>
                                             {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
@@ -838,7 +837,7 @@ export default function StaffPendingInviteDetails() {
 
                                         {/* Display Name */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 Display Name
                                             </Label>
                                             <Input 
@@ -851,7 +850,7 @@ export default function StaffPendingInviteDetails() {
 
                                         {/* QID Number */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 QID Number <span className="text-red-500">*</span>
                                             </Label>
                                             {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
@@ -866,7 +865,7 @@ export default function StaffPendingInviteDetails() {
 
                                         {/* Date of Birth */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 Date of Birth <span className="text-red-500">*</span>
                                             </Label>
                                             {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
@@ -874,19 +873,19 @@ export default function StaffPendingInviteDetails() {
                                                 type="date"
                                                 disabled
                                                 value={formData.dob || ""} 
-                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100"
+                                                className={STYLES.input}
                                                 onChange={e => setFormData({...formData, dob: e.target.value})} 
                                             />
                                         </div>
 
                                         {/* Nationality */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 Nationality <span className="text-red-500">*</span>
                                             </Label>
                                             {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
                                             <Select disabled value={formData.nationality} onValueChange={v => setFormData({...formData, nationality: v})}>
-                                                <SelectTrigger className="mt-auto bg-gray-50 w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg text-gray-500">
+                                                <SelectTrigger className={STYLES.input}>
                                                     <SelectValue placeholder="Select nationality" />
                                                 </SelectTrigger>
                                                 <SelectContent>
@@ -903,7 +902,7 @@ export default function StaffPendingInviteDetails() {
 
                                         {/* Gender */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 Gender <span className="text-red-500">*</span>
                                             </Label>
                                             <Select value={formData.gender} onValueChange={v => setFormData({...formData, gender: v as any})}>
@@ -919,7 +918,7 @@ export default function StaffPendingInviteDetails() {
 
                                         {/* Mobile Number */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 Mobile Number <span className="text-red-500">*</span>
                                             </Label>
                                             <Input 
@@ -932,7 +931,7 @@ export default function StaffPendingInviteDetails() {
 
                                         {/* Email Address */}
                                         <div className="flex flex-col h-full">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+                                            <Label className={STYLES.label}>
                                                 Email Address <span className="text-red-500">*</span>
                                             </Label>
                                             <Input 
@@ -971,15 +970,7 @@ export default function StaffPendingInviteDetails() {
                              
                              {/* Section: Role Information */}
                              <div className="space-y-6">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                        <Briefcase className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Role Information</h3>
-                                        <p className="text-xs text-gray-500">Define the position and departmental placement.</p>
-                                     </div>
-                                 </div>
+                                 <h3 className={STYLES.sectionTitle}>Role Information</h3>
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
@@ -1024,15 +1015,7 @@ export default function StaffPendingInviteDetails() {
 
                              {/* Section: Compensation */}
                              <div className="space-y-6">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
-                                        <Banknote className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Compensation Package</h3>
-                                        <p className="text-xs text-gray-500">Configure salary structure and payment terms.</p>
-                                     </div>
-                                 </div>
+                                 <h3 className={STYLES.sectionTitle}>Compensation Package</h3>
 
                                  <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 space-y-6">
                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1113,15 +1096,7 @@ export default function StaffPendingInviteDetails() {
 
                              {/* Section: Personal Background */}
                              <div className="space-y-6 pt-4">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                        <User className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Personal Background</h3>
-                                        <p className="text-xs text-gray-500">Additional personal details for HR records.</p>
-                                     </div>
-                                 </div>
+                                 <h3 className={STYLES.sectionTitle}>Personal Background</h3>
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-1.5">
@@ -1150,7 +1125,7 @@ export default function StaffPendingInviteDetails() {
                                      Previous Step
                                  </Button>
                                      <Button 
-                                         className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                                         className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50 h-[38px] flex items-center justify-center" 
                                          onClick={() => saveChanges(true)}
                                          disabled={!reqs.employment}
                                      >
@@ -1166,15 +1141,7 @@ export default function StaffPendingInviteDetails() {
                              
                              {/* Section: Professional Profile */}
                              <div className="space-y-6">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-                                        <Briefcase className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Professional Profile</h3>
-                                        <p className="text-xs text-gray-500">Skills, languages, and work capabilities.</p>
-                                     </div>
-                                 </div>
+                                 <h3 className={STYLES.sectionTitle}>Professional Profile</h3>
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                      
@@ -1375,7 +1342,7 @@ export default function StaffPendingInviteDetails() {
                                                                     // Upload Form
                                                                     <div className="flex flex-col lg:flex-row gap-4 items-end">
                                                                         <div className="w-full space-y-1.5">
-                                                                            <Label className="text-xs font-semibold text-gray-500">Document File</Label>
+                                                                            <Label className={STYLES.label}>Document File</Label>
                                                                             <div className="relative">
                                                                                 <Input 
                                                                                     disabled={!isEditing} 
@@ -1386,7 +1353,7 @@ export default function StaffPendingInviteDetails() {
                                                                         </div>
                                                                        {skillConfig?.certExpiry && (
                                                                            <div className="w-full lg:w-48 space-y-1.5">
-                                                                                <Label className="text-xs font-semibold text-gray-500">Expiry Date</Label>
+                                                                                <Label className={STYLES.label}>Expiry Date</Label>
                                                                                 <div className="relative">
                                                                                     <Input 
                                                                                         disabled={!isEditing} 
@@ -1447,15 +1414,7 @@ export default function StaffPendingInviteDetails() {
 
                              {/* Section: Operations Config */}
                              <div className="space-y-6 pt-4">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                        <Globe className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Operations Config</h3>
-                                        <p className="text-xs text-gray-500">Service areas and operational scope.</p>
-                                     </div>
-                                 </div>
+                                 <h3 className={STYLES.sectionTitle}>Operations Config</h3>
 
                                  <div className="space-y-4">
                                      <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Operational Scope <span className="text-red-500">*</span></Label>
@@ -1648,15 +1607,7 @@ export default function StaffPendingInviteDetails() {
 
                              {/* MOVED SCHEDULE SECTION HERE */}
                              <div className="space-y-6 pt-8 border-t border-gray-100">
-                                 <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                                     <div className="h-8 w-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
-                                        <Calendar className="h-4 w-4" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Schedule & Availability</h3>
-                                        <p className="text-xs text-gray-500">Define working days and hours.</p>
-                                     </div>
-                                 </div>
+                                 <h3 className={STYLES.sectionTitle}>Schedule & Availability</h3>
 
                                  <div className="space-y-6">
                                     <div className="max-w-xs space-y-1.5">
@@ -1855,7 +1806,7 @@ export default function StaffPendingInviteDetails() {
                                      Previous Step
                                  </Button>
                                  <Button 
-                                     className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed" 
+                                     className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50 h-[38px] flex items-center justify-center" 
                                      onClick={() => saveChanges(true)}
                                      disabled={!reqs.ops}
                                  >
@@ -1870,16 +1821,8 @@ export default function StaffPendingInviteDetails() {
                     {/* 4. ACCESS & SECURITY */}
                     {currentStep === 3 && (
                         <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
-                             <div className="bg-white border border-gray-100 rounded-2xl shadow-[0_2px_10px_rgb(0,0,0,0.02)] p-6 space-y-6 relative overflow-hidden transition-all duration-300">
-                                 <div className="flex items-center gap-3 pb-4 border-b border-gray-100">
-                                     <div className="h-10 w-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                                        <ShieldCheck className="h-5 w-5" />
-                                     </div>
-                                     <div>
-                                        <h3 className="text-lg font-bold text-gray-900">Access & Security</h3>
-                                        <p className="text-xs text-gray-500">Manage dashboard access, permissions, and security roles.</p>
-                                     </div>
-                                 </div>
+                             <div className={STYLES.card + " space-y-6 relative overflow-hidden transition-all duration-300"}>
+                                 <h3 className={STYLES.sectionTitle}>Access & Security</h3>
                                  
                                  <div className="space-y-6">
                                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
@@ -2192,7 +2135,7 @@ export default function StaffPendingInviteDetails() {
                                     Back to Access & Security
                                 </Button>
                                 <Button 
-                                   className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-sm hover:shadow text-white font-semibold tracking-wide transition-all" 
+                                   className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all h-[38px] flex items-center justify-center" 
                                    onClick={handleActivate}
                                 >
                                      Complete Activation
