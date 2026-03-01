@@ -766,10 +766,13 @@ export default function StaffPendingInviteDetails() {
                              </div>
 
                              {/* Personal Information Section */}
-                             <div className="space-y-6 pt-2">
-                                 <h3 className={STYLES.sectionTitle}>Personal Details</h3>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>1. Personal Information</h3>
+            <span className={STYLES.sectionDesc}>Core identity details of the staff member for official records</span>
+        </div>
 
-                                 <div className={STYLES.card + " space-y-6 relative overflow-hidden transition-all duration-300"}>
+                                 <div className="space-y-6 relative overflow-hidden transition-all duration-300">
                                      {(!isQIDExtracted && !isManualEntry) && (
                                          <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-all duration-300">
                                              <div className="bg-white px-6 py-3 rounded-full shadow-lg border border-gray-100 font-medium text-sm text-gray-600 flex items-center gap-2">
@@ -799,7 +802,7 @@ export default function StaffPendingInviteDetails() {
                                                     <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-1">
                                                         Profile Photo <span className="text-red-500">*</span>
                                                     </h4>
-                                                    <p className="text-[11px] text-gray-500 max-w-[200px] leading-tight flex-wrap">Clear front-facing photo. JPG or PNG (Max 5MB).</p>
+                                                    <span className="text-[11px] text-gray-400 mt-1 block">JPG or PNG (Max 5MB)</span>
                                                  </div>
                                              </div>
                                              <input 
@@ -969,8 +972,11 @@ export default function StaffPendingInviteDetails() {
                          <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                              
                              {/* Section: Role Information */}
-                             <div className="space-y-6">
-                                 <h3 className={STYLES.sectionTitle}>Role Information</h3>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>2. Role Information</h3>
+            <span className={STYLES.sectionDesc}>Employee’s designation, department allocation, and organizational level</span>
+        </div>
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-1.5">
@@ -1014,8 +1020,11 @@ export default function StaffPendingInviteDetails() {
                              </div>
 
                              {/* Section: Compensation */}
-                             <div className="space-y-6">
-                                 <h3 className={STYLES.sectionTitle}>Compensation Package</h3>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>3. Compensation Package</h3>
+            <span className={STYLES.sectionDesc}>Salary structure, allowances, incentives, deductions, and payment terms</span>
+        </div>
 
                                  <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 space-y-6">
                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1030,12 +1039,7 @@ export default function StaffPendingInviteDetails() {
                                                     <SelectItem value="Fixed + Commission">Fixed + Commission</SelectItem>
                                                 </SelectContent>
                                             </Select>
-                                            <p className="text-[11px] text-gray-500 pt-1">
-                                                {formData.salaryType === 'Fixed Monthly' && "Staff receives a consistent monthly salary regardless of jobs completed."}
-                                                {formData.salaryType === 'Commission-Based' && "Earnings are calculated as a percentage of the revenue from completed jobs."}
-                                                {formData.salaryType === 'Hourly-Rate' && "Pay is calculated based on the total number of clocked working hours."}
-                                                {formData.salaryType === 'Fixed + Commission' && "Staff receives a basic monthly salary plus a commission bonus per job."}
-                                            </p>
+                                            
                                          </div>
 
                                          {(formData.salaryType === "Fixed Monthly" || formData.salaryType === "Fixed + Commission") && (
@@ -1095,8 +1099,11 @@ export default function StaffPendingInviteDetails() {
                              </div>
 
                              {/* Section: Personal Background */}
-                             <div className="space-y-6 pt-4">
-                                 <h3 className={STYLES.sectionTitle}>Personal Background</h3>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>4. Personal Background</h3>
+            <span className={STYLES.sectionDesc}>Additional background details required for HR documentation and compliance</span>
+        </div>
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-1.5">
@@ -1140,8 +1147,11 @@ export default function StaffPendingInviteDetails() {
                          <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                              
                              {/* Section: Professional Profile */}
-                             <div className="space-y-6">
-                                 <h3 className={STYLES.sectionTitle}>Professional Profile</h3>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>5. Professional Profile</h3>
+            <span className={STYLES.sectionDesc}>Key competencies, certifications, technical skills, and role capabilities</span>
+        </div>
 
                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                      
@@ -1299,7 +1309,7 @@ export default function StaffPendingInviteDetails() {
                                                                                 Required
                                                                             </Badge>
                                                                         </h5>
-                                                                        <p className="text-xs text-gray-500 mt-0.5">Mandatory documentation for <b>{skill}</b> authorization.</p>
+                                                                        <span className="text-[11px] text-gray-400 mt-1 block">Mandatory documentation for authorization</span>
                                                                     </div>
                                                                     {existingDoc ? (
                                                                         <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 gap-1 pl-1.5 whitespace-nowrap">
@@ -1413,8 +1423,11 @@ export default function StaffPendingInviteDetails() {
 
 
                              {/* Section: Operations Config */}
-                             <div className="space-y-6 pt-4">
-                                 <h3 className={STYLES.sectionTitle}>Operations Config</h3>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>6. Operations Config</h3>
+            <span className={STYLES.sectionDesc}>Operational responsibilities including assigned service categories and coverage</span>
+        </div>
 
                                  <div className="space-y-4">
                                      <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Operational Scope <span className="text-red-500">*</span></Label>
@@ -1438,9 +1451,7 @@ export default function StaffPendingInviteDetails() {
                                                     <Globe className="h-4 w-4 text-blue-500" />
                                                     All Service Areas
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                                    Staff member can be dispatched to any location within the operational territory.
-                                                </p>
+                                                <span className="text-[11px] text-gray-400 mt-1 block">Can be dispatched to any location</span>
                                             </div>
                                          </div>
 
@@ -1462,9 +1473,7 @@ export default function StaffPendingInviteDetails() {
                                                     <MapPin className="h-4 w-4 text-orange-500" />
                                                     Specific Service Areas
                                                 </div>
-                                                <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                                                    Restrict staff availability to specific zones or regions only.
-                                                </p>
+                                                <span className="text-[11px] text-gray-400 mt-1 block">Restrict staff availability to specific zones</span>
                                             </div>
                                          </div>
                                      </div>
@@ -1532,11 +1541,11 @@ export default function StaffPendingInviteDetails() {
                              </div>
 
                              {/* Section: Logistics */}
-                             <div className="space-y-4 pt-4">
-                                 <div className="border-b border-gray-100 pb-2">
-                                     <h3 className="text-lg font-bold text-gray-900">Logistics</h3>
-                                     <p className="text-xs text-gray-500 mt-0.5">Used for dispatch and shift planning.</p>
-                                 </div>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>7. Logistics</h3>
+            <span className={STYLES.sectionDesc}>Dispatch preferences, mobility details, and resource allocation inputs</span>
+        </div>
 
                                  <div className="space-y-4">
                                      {/* Main Transport Select */}
@@ -1569,12 +1578,7 @@ export default function StaffPendingInviteDetails() {
                                          
                                          {/* Inline Helper Text */}
                                          {formData.transportationType && (
-                                             <p className="text-xs text-gray-500 leading-relaxed px-1">
-                                                {formData.transportationType === 'Transportation by Company' && "Company vehicle with driver; trips are assigned and managed via Dispatch."}
-                                                {formData.transportationType === 'Self Drive' && "Staff arranges their own transport using a company or personal vehicle."}
-                                                {formData.transportationType === 'No Transportation' && "No transport required; dispatch trips are not applicable."}
-                                                {formData.transportationType === 'Flexible' && "Transport may vary per booking; a default mode is required and can be changed later."}
-                                             </p>
+                                             
                                          )}
                                      </div>
 
@@ -1606,8 +1610,11 @@ export default function StaffPendingInviteDetails() {
 
 
                              {/* MOVED SCHEDULE SECTION HERE */}
-                             <div className="space-y-6 pt-8 border-t border-gray-100">
-                                 <h3 className={STYLES.sectionTitle}>Schedule & Availability</h3>
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>8. Schedule & Availability</h3>
+            <span className={STYLES.sectionDesc}>Working days, time slots, shift patterns, and availability constraints</span>
+        </div>
 
                                  <div className="space-y-6">
                                     <div className="max-w-xs space-y-1.5">
@@ -1821,14 +1828,18 @@ export default function StaffPendingInviteDetails() {
                     {/* 4. ACCESS & SECURITY */}
                     {currentStep === 3 && (
                         <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
-                             <div className={STYLES.card + " space-y-6 relative overflow-hidden transition-all duration-300"}>
-                                 <h3 className={STYLES.sectionTitle}>Access & Security</h3>
+                             <div className="space-y-6 relative overflow-hidden transition-all duration-300">
+                                 <!-- replaced -->
+<div className={STYLES.sectionHeader}>
+<h3 className={STYLES.sectionTitle}>9. Access & Security</h3>
+<span className={STYLES.sectionDesc}>System access levels, dashboard permissions, and security roles</span>
+</div>
                                  
                                  <div className="space-y-6">
                                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
                                          <div>
                                             <h4 className="text-sm font-bold text-gray-900 mb-1">Dashboard Access</h4>
-                                            <p className="text-xs text-gray-500 leading-relaxed">Allow this user to log in to the admin dashboard.</p>
+                                            <span className="text-[11px] text-gray-400 mt-1 block">Allow login to admin dashboard</span>
                                          </div>
                                          <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
                                              <button 
@@ -2359,7 +2370,7 @@ export default function StaffPendingInviteDetails() {
             <DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
                 <DialogHeader className="p-6 pb-2 border-b border-gray-100 bg-gray-50/50">
                     <DialogTitle className="text-lg font-bold text-gray-900">Edit Basic Information</DialogTitle>
-                    <p className="text-xs text-gray-500 mt-1">Update primary contact and display details.</p>
+                    <span className="text-[11px] text-gray-500 mt-1 block">Update primary contact and display details.</span>
                 </DialogHeader>
                 {basicInfoForm && (
                 <div className="p-6 space-y-8">
