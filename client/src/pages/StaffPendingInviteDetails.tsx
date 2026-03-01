@@ -120,7 +120,10 @@ const MOCK_COMPANY_VEHICLES = [
 ];
 
 const STYLES = {
-  sectionTitle: "text-[16px] font-semibold text-gray-900 mb-5 relative pl-3 before:absolute before:left-0 before:top-1 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-full",
+  sectionContainer: "mb-8",
+  sectionHeader: "mb-5",
+  sectionTitle: "text-[16px] font-semibold text-gray-900 relative pl-3 before:absolute before:left-0 before:top-1 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-full",
+  sectionDesc: "text-[12.5px] text-gray-400 mt-1.5 block",
   label: "text-[13px] text-gray-600 font-medium mb-1.5 block",
   input: "w-full h-[38px] text-sm bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg transition-all",
   card: "bg-white p-6 shadow-sm border border-gray-100/50 rounded-xl hover:shadow-md transition-shadow duration-200"
@@ -629,7 +632,7 @@ export default function StaffPendingInviteDetails() {
 
                         {/* Role Type */}
                         <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Role Type</p>
+                            <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Role Type</span>
                             <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-3 py-1 font-semibold shadow-sm border border-blue-100/50">
                                 {data.role || "Field Service Staff"}
                             </Badge>
@@ -637,7 +640,7 @@ export default function StaffPendingInviteDetails() {
 
                         {/* Invitation Status */}
                         <div>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Invitation Status</p>
+                            <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Invitation Status</span>
                             <div className="bg-green-50 border border-green-100 rounded-lg p-3">
                                 <div className="flex items-center gap-2 text-green-700 font-bold text-sm mb-1">
                                     <CheckCircle className="h-4 w-4" />
@@ -701,9 +704,9 @@ export default function StaffPendingInviteDetails() {
                                     </div>
                                     <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Important</span>
                                 </div>
-                                <p className="text-[11px] text-amber-800/90 leading-relaxed">
+                                <span className="block text-[11px] text-amber-800/90 leading-relaxed">
                                     Review all details carefully before final activation.
-                                </p>
+                                </span>
                             </div>
                         </div>
 
@@ -742,9 +745,9 @@ export default function StaffPendingInviteDetails() {
                                  <h3 className="text-lg font-bold text-gray-900 mb-2">
                                      {isExtractingQID ? "Extracting Data..." : isQIDExtracted ? "QID Extracted Successfully" : "Auto-fill with QID"}
                                  </h3>
-                                 <p className="text-sm text-gray-500 max-w-[340px] mx-auto mb-6 leading-relaxed">
+                                 <span className="block text-[12px] text-gray-500 max-w-[340px] mx-auto mb-6 leading-relaxed">
                                      {isExtractingQID ? "Please wait while we extract the details from the uploaded document securely." : isQIDExtracted ? "Personal details have been automatically populated below." : "Upload the staff member's QID document to automatically extract and populate personal details."}
-                                 </p>
+                                 </span>
                                  
                                  {!isExtractingQID && !isQIDExtracted && (
                                      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -1575,11 +1578,6 @@ export default function StaffPendingInviteDetails() {
                                                  <SelectItem value="Flexible">Flexible</SelectItem>
                                              </SelectContent>
                                          </Select>
-                                         
-                                         {/* Inline Helper Text */}
-                                         {formData.transportationType && (
-                                             
-                                         )}
                                      </div>
 
                                      {/* Nested Dropdown for Flexible */}
@@ -1829,7 +1827,7 @@ export default function StaffPendingInviteDetails() {
                     {currentStep === 3 && (
                         <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
                              <div className="space-y-6 relative overflow-hidden transition-all duration-300">
-                                 <!-- replaced -->
+                                 {/* replaced */}
 <div className={STYLES.sectionHeader}>
 <h3 className={STYLES.sectionTitle}>9. Access & Security</h3>
 <span className={STYLES.sectionDesc}>System access levels, dashboard permissions, and security roles</span>
@@ -1978,9 +1976,9 @@ export default function StaffPendingInviteDetails() {
                                    <ShieldCheck className="h-7 w-7" />
                                </div>
                                <h2 className="text-xl font-bold text-gray-900">Review & Activate</h2>
-                               <p className="text-sm text-gray-500 max-w-md mx-auto mt-1">
+                               <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
                                    Finalize the staff member's profile for deployment.
-                               </p>
+                               </span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -2133,9 +2131,9 @@ export default function StaffPendingInviteDetails() {
 
                                         <div className="mt-4 bg-orange-50/50 rounded-lg p-3 border border-orange-100 flex items-start gap-2">
                                             <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
-                                            <p className="text-[11px] text-orange-800 leading-relaxed">
+                                            <span className="block text-[11px] text-orange-800 leading-relaxed">
                                                 This profile is ready for final activation. Activating will officially register this staff member and send any automated welcome communications if configured.
-                                            </p>
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
@@ -2350,9 +2348,9 @@ export default function StaffPendingInviteDetails() {
                 </div>
                 <div className="space-y-2">
                     <h2 className="text-2xl font-bold text-gray-900">Activation Successful!</h2>
-                    <p className="text-gray-500 text-sm">
+                    <span className="block text-gray-500 text-[12px]">
                         {data?.name || "The staff member"} has been successfully activated and is now ready for deployment.
-                    </p>
+                    </span>
                 </div>
                 <div className="pt-2">
                     <Button 
@@ -2457,9 +2455,9 @@ export default function StaffPendingInviteDetails() {
             <DialogContent className="sm:max-w-[425px] z-[60]">
                 <DialogHeader>
                     <DialogTitle>Add Shift Template</DialogTitle>
-                     <p className="text-sm text-gray-500 mt-1.5">
+                     <span className="block text-[12px] text-gray-500 mt-1.5">
                         Define a standard shift block.
-                    </p>
+                    </span>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="space-y-2">

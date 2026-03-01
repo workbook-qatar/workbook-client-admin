@@ -13,6 +13,13 @@ import {
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator
+} from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 import { StaffMember } from "./Workforce";
 
@@ -38,6 +45,7 @@ export default function PendingInvites() {
   const [invites, setInvites] = useState<StaffMember[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   
   // Pagination State
   const [currentPage, setCurrentPage] = useState(1);
@@ -91,7 +99,8 @@ export default function PendingInvites() {
       const matchesSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
                             s.email.toLowerCase().includes(searchQuery.toLowerCase());
       const matchesRole = selectedRole ? s.roleType === selectedRole : true;
-      return matchesSearch && matchesRole;
+      const matchesStatus = selectedStatus ? s.membershipStatus?.toLowerCase() === selectedStatus.toLowerCase() : true;
+      return matchesSearch && matchesRole && matchesStatus;
   });
 
   const paginatedInvites = filteredInvites.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
@@ -99,7 +108,7 @@ export default function PendingInvites() {
 
   useEffect(() => {
     handlePageChange(1);
-  }, [searchQuery, selectedRole]);
+  }, [searchQuery, selectedRole, selectedStatus]);
 
   const handlePageChange = (newPage: number) => {
     if (newPage === currentPage) return;
@@ -201,9 +210,39 @@ export default function PendingInvites() {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
-                         <Button variant="outline" size="sm" className="h-10 px-4 gap-2 bg-white border-gray-200 shadow-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50">
-                             <Filter className="h-4 w-4" /> Filter Status
-                         </Button>
+                        <DropdownMenu>
+                             <DropdownMenuTrigger asChild>
+                                 <Button variant="outline" size="sm" className="h-10 px-4 gap-2 bg-white border-gray-200 shadow-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50">
+                                     <Filter className="h-4 w-4" /> 
+                                     {selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Filter Status'}
+                                 </Button>
+                             </DropdownMenuTrigger>
+                             <DropdownMenuContent align="end" className="w-[200px] bg-white border border-gray-200 shadow-lg rounded-xl overflow-hidden p-1">
+                                 <DropdownMenuItem 
+                                     onClick={() => setSelectedStatus(null)}
+                                     className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-md ${selectedStatus === null ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                 >
+                                     All Statuses
+                                 </DropdownMenuItem>
+                                 <DropdownMenuSeparator className="bg-gray-100 my-1"/>
+                                 {["pending", "draft", "expired", "rejected", "accepted"].map(status => (
+                                     <DropdownMenuItem 
+                                         key={status}
+                                         onClick={() => setSelectedStatus(status)}
+                                         className={`flex items-center gap-2 px-3 py-2 cursor-pointer rounded-md capitalize ${selectedStatus === status ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-700 hover:bg-gray-50'}`}
+                                     >
+                                         <div className={`w-2 h-2 rounded-full ${
+                                             status === 'pending' ? 'bg-amber-400' :
+                                             status === 'draft' ? 'bg-gray-400' :
+                                             status === 'expired' ? 'bg-red-400' :
+                                             status === 'rejected' ? 'bg-red-600' :
+                                             'bg-green-500' // accepted
+                                         }`} />
+                                         {status}
+                                     </DropdownMenuItem>
+                                 ))}
+                             </DropdownMenuContent>
+                         </DropdownMenu>
                     </div>
                 </div>
 
