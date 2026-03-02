@@ -56,6 +56,23 @@ const decrementHour = (time: string) => {
     return `${hour.toString().padStart(2, '0')}:00`;
 };
 
+const calculateExperience = (startDateStr?: string) => {
+    if (!startDateStr) return "0 Years 0 Months";
+    const start = new Date(startDateStr);
+    const now = new Date();
+    if (start > now || isNaN(start.getTime())) return "0 Years 0 Months";
+    
+    let years = now.getFullYear() - start.getFullYear();
+    let months = now.getMonth() - start.getMonth();
+    
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+    
+    return `${years} Year${years !== 1 ? 's' : ''} ${months} Month${months !== 1 ? 's' : ''}`;
+};
+
 // Extended interface for local usage
 interface ExtendedStaffMember extends StaffMember {
     nickname?: string;
@@ -95,7 +112,12 @@ interface ExtendedStaffMember extends StaffMember {
     licenseCategory?: string;
     licenseNumber?: string;
     licenseExpiry?: string;
-    // Operations
+    experienceStartDate?: string;
+    accommodationType?: 'Company Accommodation' | 'Self Accommodation' | string;
+    latitude?: string;
+    longitude?: string;
+    campName?: string;
+    fullAddress?: string;
     serviceScope?: 'all' | 'specific';
     serviceAreas?: string[];
     // Access & Security
@@ -141,6 +163,10 @@ export default function StaffPendingInviteDetails() {
   const [isQIDExtracted, setIsQIDExtracted] = useState(false);
   const [isManualEntry, setIsManualEntry] = useState(false);
   
+  // Activation State
+  const [isActivationPromptOpen, setIsActivationPromptOpen] = useState(false);
+  const [activationStatusSelect, setActivationStatusSelect] = useState<'On Leave' | 'Inactive'>('On Leave');
+
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -183,6 +209,15 @@ export default function StaffPendingInviteDetails() {
   
   // "Draft" Data (Form)
   const [formData, setFormData] = useState<ExtendedStaffMember | null>(null);
+
+  // Camp Location State
+  const [campLocations, setCampLocations] = useState<any[]>([
+      { id: '1', name: 'Camp A - Industrial Area', latitude: '25.1854', longitude: '51.3310', fullAddress: 'Street 41, Industrial Area' },
+      { id: '2', name: 'Camp B - Al Wakrah', latitude: '25.1768', longitude: '51.5975', fullAddress: 'Building 12, Wakrah' },
+      { id: '3', name: 'Camp C - West Bay', latitude: '25.3182', longitude: '51.5296', fullAddress: 'Tower 4, West Bay' },
+  ]);
+  const [isCreatingCamp, setIsCreatingCamp] = useState(false);
+  const [newCamp, setNewCamp] = useState({ name: '', coordinates: '', address: '' });
   
   // Basic Info Edit Components
   const [isBasicInfoOpen, setIsBasicInfoOpen] = useState(false);
@@ -391,6 +426,12 @@ export default function StaffPendingInviteDetails() {
                 licenseNumber: found.licenseNumber || "",
                 licenseExpiry: found.licenseExpiry || "",
                 serviceAreas: found.serviceAreas || [],
+                experienceStartDate: found.experienceStartDate || "",
+                accommodationType: found.accommodationType || "Company Accommodation",
+                latitude: found.latitude || "",
+                longitude: found.longitude || "",
+                campName: found.campName || "",
+                fullAddress: found.fullAddress || "",
                 dashboardAccess: found.dashboardAccess ?? false,
                 systemRole: found.systemRole || "Manager",
                 permissionScope: found.permissionScope || "Full Access (Role Default)"
@@ -556,16 +597,35 @@ export default function StaffPendingInviteDetails() {
   const progressPercent = (completedCount / steps.length) * 100;
   const canActivate = progressPercent === 100;
 
-  const handleActivate = () => {
+  const processActivation = (status: 'available'|'On Leave'|'Inactive', empStatus?: 'Active'|'Inactive'|'On Leave') => {
     const stored = localStorage.getItem("vendor_staff");
     if (stored) {
         let list = JSON.parse(stored);
-        list = list.map((s: any) => s.id === data.id ? { ...s, membershipStatus: 'active', employmentStatus: 'Active', status: 'available' } : s);
+        list = list.map((s: any) => s.id === data.id ? { ...s, membershipStatus: 'active', employmentStatus: empStatus || 'Active', status: status } : s);
         localStorage.setItem("vendor_staff", JSON.stringify(list));
         
-        // Show success
         setIsSuccessOpen(true);
     }
+  };
+
+  const isEligibleForDispatch = () => {
+      // Logic for dispatch readiness
+      const hasBaseLocation = formData?.accommodationType === 'Company Accommodation' || formData?.accommodationType === 'Self Accommodation';
+      return reqs.basic && reqs.employment && reqs.ops && reqs.access && hasBaseLocation;
+  };
+
+  const handleActivate = () => {
+    if (isEligibleForDispatch()) {
+        processActivation('available', 'Active');
+    } else {
+        setIsActivationPromptOpen(true);
+    }
+  };
+
+  const handlePromptActivation = () => {
+    const statusVal = activationStatusSelect === 'On Leave' ? 'on-leave' : 'offline';
+    processActivation(statusVal as any, activationStatusSelect);
+    setIsActivationPromptOpen(false);
   };
 
   // Handlers for Right Panel Logic (Skills/Docs)
@@ -771,7 +831,7 @@ export default function StaffPendingInviteDetails() {
                              {/* Personal Information Section */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>1. Personal Information</h3>
+            <h3 className={STYLES.sectionTitle}>Personal Information</h3>
             <span className={STYLES.sectionDesc}>Core identity details of the staff member for official records</span>
         </div>
 
@@ -977,7 +1037,7 @@ export default function StaffPendingInviteDetails() {
                              {/* Section: Role Information */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>2. Role Information</h3>
+            <h3 className={STYLES.sectionTitle}>Role Information</h3>
             <span className={STYLES.sectionDesc}>Employee’s designation, department allocation, and organizational level</span>
         </div>
 
@@ -1025,7 +1085,7 @@ export default function StaffPendingInviteDetails() {
                              {/* Section: Compensation */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>3. Compensation Package</h3>
+            <h3 className={STYLES.sectionTitle}>Compensation Package</h3>
             <span className={STYLES.sectionDesc}>Salary structure, allowances, incentives, deductions, and payment terms</span>
         </div>
 
@@ -1104,7 +1164,7 @@ export default function StaffPendingInviteDetails() {
                              {/* Section: Personal Background */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>4. Personal Background</h3>
+            <h3 className={STYLES.sectionTitle}>Personal Background</h3>
             <span className={STYLES.sectionDesc}>Additional background details required for HR documentation and compliance</span>
         </div>
 
@@ -1152,7 +1212,7 @@ export default function StaffPendingInviteDetails() {
                              {/* Section: Professional Profile */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>5. Professional Profile</h3>
+            <h3 className={STYLES.sectionTitle}>Professional Profile</h3>
             <span className={STYLES.sectionDesc}>Key competencies, certifications, technical skills, and role capabilities</span>
         </div>
 
@@ -1418,7 +1478,30 @@ export default function StaffPendingInviteDetails() {
                                         </div>
                                     )}
 
-
+                                    {/* Experience Field - Intelligent UX */}
+                                    <div className="md:col-span-2 space-y-3 pt-4 border-t border-gray-100">
+                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Industry Experience Start Date</Label>
+                                        <div className="flex flex-col md:flex-row md:items-center gap-4">
+                                            <div className="flex-1">
+                                                <Input 
+                                                    type="date"
+                                                    disabled={!isEditing} 
+                                                    value={formData.experienceStartDate} 
+                                                    max={new Date().toISOString().split('T')[0]}
+                                                    onChange={e => setFormData({...formData, experienceStartDate: e.target.value})} 
+                                                    className="h-11 w-full border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
+                                                />
+                                                <span className="text-[11px] text-gray-400 mt-1 block">Experience is calculated from this date until today.</span>
+                                            </div>
+                                            
+                                            <div className="flex-1 bg-gray-50 border border-gray-100 rounded-lg p-3 flex items-center justify-between">
+                                                <span className="text-xs font-semibold text-gray-500 uppercase">Total Experience</span>
+                                                <span className="text-sm font-bold text-gray-900 bg-white px-3 py-1 rounded-md shadow-sm border border-gray-100">
+                                                    {calculateExperience(formData.experienceStartDate)}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
 
                                  </div>
                              </div>
@@ -1428,7 +1511,7 @@ export default function StaffPendingInviteDetails() {
                              {/* Section: Operations Config */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>6. Operations Config</h3>
+            <h3 className={STYLES.sectionTitle}>Operations Config</h3>
             <span className={STYLES.sectionDesc}>Operational responsibilities including assigned service categories and coverage</span>
         </div>
 
@@ -1546,11 +1629,180 @@ export default function StaffPendingInviteDetails() {
                              {/* Section: Logistics */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>7. Logistics</h3>
+            <h3 className={STYLES.sectionTitle}>Logistics</h3>
             <span className={STYLES.sectionDesc}>Dispatch preferences, mobility details, and resource allocation inputs</span>
         </div>
 
                                  <div className="space-y-4">
+                                     {/* Base Location Panel */}
+                                     <div className="pb-6 border-b border-gray-100 space-y-6">
+                                         <div className="space-y-3">
+                                             <Label className="text-xs font-semibold uppercase text-gray-800 tracking-wide">Staff Base Location <span className="text-red-500">*</span></Label>
+                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                 {['Company Accommodation', 'Self Accommodation'].map(type => (
+                                                     <div 
+                                                         key={type}
+                                                         onClick={() => {
+                                                             if(isEditing) {
+                                                                 setFormData({ ...formData, accommodationType: type, campName: '', latitude: '', longitude: '', fullAddress: '' });
+                                                                 setIsCreatingCamp(false);
+                                                             }
+                                                         }}
+                                                         className={`
+                                                             flex items-center justify-center sm:justify-start gap-2.5 p-3 rounded-lg border-2 cursor-pointer transition-all
+                                                             ${formData.accommodationType === type 
+                                                                 ? 'bg-blue-50/50 border-blue-600 text-blue-700 shadow-sm' 
+                                                                 : 'bg-white border-gray-200 hover:border-blue-300 text-gray-600 hover:text-gray-900'}
+                                                             ${!isEditing && 'opacity-60 cursor-not-allowed'}
+                                                         `}
+                                                     >
+                                                         <div className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${formData.accommodationType === type ? 'border-blue-600 bg-white' : 'border-gray-300 bg-gray-50'}`}>
+                                                             {formData.accommodationType === type && <div className="h-2 w-2 rounded-full bg-blue-600" />}
+                                                         </div>
+                                                         <span className="text-sm font-semibold whitespace-nowrap">{type}</span>
+                                                     </div>
+                                                 ))}
+                                             </div>
+                                         </div>
+
+                                         {formData.accommodationType === 'Company Accommodation' && (
+                                             <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 shadow-[inset_0_2px_10px_rgb(0,0,0,0.01)]">
+                                                 <div className="space-y-1.5">
+                                                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Camp Location <span className="text-red-500">*</span></Label>
+                                                    <Select 
+                                                        disabled={!isEditing} 
+                                                        value={formData.campName} 
+                                                        onValueChange={(v) => {
+                                                            setIsCreatingCamp(false);
+                                                            const loc = campLocations.find(c => c.name === v);
+                                                            if (loc) {
+                                                                setFormData({...formData, campName: v, latitude: loc.latitude, longitude: loc.longitude, fullAddress: loc.fullAddress});
+                                                            } else {
+                                                                setFormData({...formData, campName: v});
+                                                            }
+                                                        }}
+                                                    >
+                                                        <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm font-medium shadow-sm hover:border-blue-400 w-full focus:ring-4 focus:ring-blue-50">
+                                                            <SelectValue placeholder="Select Camp Location" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {campLocations.map(camp => (
+                                                                <SelectItem key={camp.id} value={camp.name}>{camp.name}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    
+                                                    {!isCreatingCamp && (
+                                                        <div 
+                                                            className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-bold text-xs mt-2.5 cursor-pointer transition-colors w-max"
+                                                            onClick={() => { if(isEditing) setIsCreatingCamp(true); }}
+                                                        >
+                                                            <Plus className="h-4 w-4" /> Create New Camp Location
+                                                        </div>
+                                                    )}
+                                                 </div>
+
+                                                 {isCreatingCamp && (
+                                                     <div className="pt-2">
+                                                         <div className="p-5 bg-white rounded-xl border border-blue-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5 animate-in slide-in-from-top-2">
+                                                             <div className="flex items-center gap-2 mb-2">
+                                                                 <div className="h-6 w-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                                                     <MapPin className="h-3.5 w-3.5" />
+                                                                 </div>
+                                                                 <h4 className="text-sm font-bold text-gray-900">Add New Camp</h4>
+                                                             </div>
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Camp Name <span className="text-red-500">*</span></Label>
+                                                                 <Input 
+                                                                     value={newCamp.name} 
+                                                                     onChange={e => setNewCamp({...newCamp, name: e.target.value})} 
+                                                                     className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50" 
+                                                                     placeholder="e.g. Camp A - Industrial Area" 
+                                                                 />
+                                                             </div>
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Coordinates (Lat, Lng) <span className="text-red-500">*</span></Label>
+                                                                 <Input 
+                                                                     value={newCamp.coordinates} 
+                                                                     onChange={e => setNewCamp({...newCamp, coordinates: e.target.value})} 
+                                                                     className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50" 
+                                                                     placeholder="25.2854, 51.5310" 
+                                                                 />
+                                                             </div>
+                                                             <div className="space-y-1.5">
+                                                                 <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Full Address <span className="text-red-500">*</span></Label>
+                                                                 <Input 
+                                                                     value={newCamp.address} 
+                                                                     onChange={e => setNewCamp({...newCamp, address: e.target.value})} 
+                                                                     className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50" 
+                                                                     placeholder="Street Name, Building Number, Zone" 
+                                                                 />
+                                                             </div>
+                                                             <div className="pt-3 border-t border-gray-50 flex flex-col-reverse sm:flex-row justify-end gap-2.5">
+                                                                 <Button variant="outline" size="sm" onClick={() => setIsCreatingCamp(false)} className="h-9 text-xs font-semibold w-full sm:w-auto">Cancel</Button>
+                                                                 <Button 
+                                                                     size="sm" 
+                                                                     className="h-9 text-xs font-bold bg-blue-600 hover:bg-blue-700 w-full sm:w-auto shadow-sm" 
+                                                                     onClick={() => {
+                                                                         if(newCamp.name && newCamp.coordinates && newCamp.address) {
+                                                                             const coords = newCamp.coordinates.split(',').map(s=>s.trim());
+                                                                             const lat = coords[0] || '';
+                                                                             const lng = coords[1] || '';
+                                                                             const newLoc = { id: Date.now().toString(), name: newCamp.name, latitude: lat, longitude: lng, fullAddress: newCamp.address };
+                                                                             setCampLocations([...campLocations, newLoc]);
+                                                                             setFormData({
+                                                                                 ...formData, 
+                                                                                 campName: newLoc.name, 
+                                                                                 latitude: newLoc.latitude, 
+                                                                                 longitude: newLoc.longitude, 
+                                                                                 fullAddress: newLoc.fullAddress 
+                                                                             });
+                                                                             setIsCreatingCamp(false);
+                                                                             setNewCamp({name:'', coordinates:'', address:''});
+                                                                             toast.success("Camp location created & assigned");
+                                                                         } else {
+                                                                             toast.error("Please fill all camp details");
+                                                                         }
+                                                                     }}
+                                                                 >
+                                                                     <Save className="h-3.5 w-3.5 mr-1.5" /> Save Location
+                                                                 </Button>
+                                                             </div>
+                                                         </div>
+                                                     </div>
+                                                 )}
+                                             </div>
+                                         )}
+
+                                         {formData.accommodationType === 'Self Accommodation' && (
+                                             <div className="space-y-5 animate-in fade-in slide-in-from-top-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 shadow-[inset_0_2px_10px_rgb(0,0,0,0.01)]">
+                                                 <div className="space-y-1.5">
+                                                     <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Coordinates (Latitude, Longitude) <span className="text-red-500">*</span></Label>
+                                                     <Input 
+                                                         disabled={!isEditing}
+                                                         value={(formData.latitude && formData.longitude) ? `${formData.latitude}, ${formData.longitude}` : (formData.latitude || '')} 
+                                                         onChange={e => {
+                                                             const parts = e.target.value.split(',').map(s=>s.trim());
+                                                             setFormData({...formData, latitude: parts[0] || e.target.value, longitude: parts[1] || ''});
+                                                         }} 
+                                                         placeholder="25.2854, 51.5310" 
+                                                         className="h-11 border-gray-200 font-medium bg-white hover:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all text-sm shadow-sm" 
+                                                     />
+                                                 </div>
+                                                 <div className="space-y-1.5">
+                                                     <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Full Address <span className="text-red-500">*</span></Label>
+                                                     <Input 
+                                                         disabled={!isEditing}
+                                                         value={formData.fullAddress || ''} 
+                                                         onChange={e => setFormData({...formData, fullAddress: e.target.value})} 
+                                                         placeholder="Street Name, Zone, Building" 
+                                                         className="h-11 border-gray-200 font-medium bg-white hover:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all text-sm shadow-sm" 
+                                                     />
+                                                 </div>
+                                             </div>
+                                         )}
+                                     </div>
+
                                      {/* Main Transport Select */}
                                      <div className="space-y-1.5">
                                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Arrangement <span className="text-red-500">*</span></Label>
@@ -1610,7 +1862,7 @@ export default function StaffPendingInviteDetails() {
                              {/* MOVED SCHEDULE SECTION HERE */}
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>8. Schedule & Availability</h3>
+            <h3 className={STYLES.sectionTitle}>Schedule & Availability</h3>
             <span className={STYLES.sectionDesc}>Working days, time slots, shift patterns, and availability constraints</span>
         </div>
 
@@ -1829,7 +2081,7 @@ export default function StaffPendingInviteDetails() {
                              <div className="space-y-6 relative overflow-hidden transition-all duration-300">
                                  {/* replaced */}
 <div className={STYLES.sectionHeader}>
-<h3 className={STYLES.sectionTitle}>9. Access & Security</h3>
+<h3 className={STYLES.sectionTitle}>Access & Security</h3>
 <span className={STYLES.sectionDesc}>System access levels, dashboard permissions, and security roles</span>
 </div>
                                  
@@ -2339,6 +2591,50 @@ export default function StaffPendingInviteDetails() {
             </div>
         </div>
       )}
+
+      {/* Activation Eligibility Prompt Dialog */}
+      <Dialog open={isActivationPromptOpen} onOpenChange={setIsActivationPromptOpen}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
+            <DialogHeader className="p-6 pb-4 border-b border-gray-100 bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center shrink-0">
+                        <AlertCircle className="h-5 w-5" />
+                    </div>
+                    <div>
+                        <DialogTitle className="text-lg font-bold text-gray-900">Not Eligible for Dispatch</DialogTitle>
+                        <span className="text-xs text-gray-500 mt-1 block">Missing criteria or non-company accommodation preventing dispatch.</span>
+                    </div>
+                </div>
+            </DialogHeader>
+            <div className="p-6 space-y-6">
+                <div className="text-sm text-gray-700 leading-relaxed">
+                    This staff member doesn't meet all requirements for immediate dispatch readiness. Please set their initial status in the system upon activation.
+                </div>
+                
+                <div className="space-y-3">
+                    <Label className="text-[13px] font-bold text-gray-900 tracking-tight">Initial Staff Status <span className="text-red-500">*</span></Label>
+                    <Select value={activationStatusSelect} onValueChange={(v: any) => setActivationStatusSelect(v)}>
+                        <SelectTrigger className="bg-white w-full h-[46px] border-gray-200 text-sm shadow-sm rounded-lg hover:border-gray-300">
+                            <SelectValue placeholder="Select Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="On Leave">On Leave</SelectItem>
+                            <SelectItem value="Inactive">Inactive</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+            <DialogFooter className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 sm:justify-between items-center flex-row">
+                <Button variant="ghost" className="h-10 text-gray-600 font-medium hover:bg-white" onClick={() => setIsActivationPromptOpen(false)}>
+                    Cancel
+                </Button>
+                <Button className="h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm px-6" onClick={handlePromptActivation}>
+                    Activate as {activationStatusSelect}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Success Dialog */}
       {isSuccessOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
@@ -2347,9 +2643,11 @@ export default function StaffPendingInviteDetails() {
                     <CheckCircle className="h-10 w-10 text-green-600" />
                 </div>
                 <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-gray-900">Activation Successful!</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">
+                        {isEligibleForDispatch() ? "Dispatch Ready!" : "Activation Successful!"}
+                    </h2>
                     <span className="block text-gray-500 text-[12px]">
-                        {data?.name || "The staff member"} has been successfully activated and is now ready for deployment.
+                        {data?.name || "The staff member"} has been successfully activated{isEligibleForDispatch() ? " and is now ready for deployment." : ` as ${activationStatusSelect}.`}
                     </span>
                 </div>
                 <div className="pt-2">

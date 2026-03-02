@@ -37,6 +37,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Download,
 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
@@ -236,6 +237,9 @@ export default function Workforce() {
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
   const [showInactive, setShowInactive] = useState(false);
 
+  // Selection state for export
+  const [selectedStaffIds, setSelectedStaffIds] = useState<Set<string>>(new Set());
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [isTableLoading, setIsTableLoading] = useState(false);
@@ -345,6 +349,29 @@ export default function Workforce() {
     currentPage * ITEMS_PER_PAGE
   );
 
+  const toggleSelectAll = (checked: boolean) => {
+    const newSelected = new Set(selectedStaffIds);
+    if (checked) {
+      paginatedStaff.forEach((s) => newSelected.add(s.id));
+    } else {
+      paginatedStaff.forEach((s) => newSelected.delete(s.id));
+    }
+    setSelectedStaffIds(newSelected);
+  };
+
+  const toggleSelectOne = (id: string, checked: boolean) => {
+    const newSelected = new Set(selectedStaffIds);
+    if (checked) {
+      newSelected.add(id);
+    } else {
+      newSelected.delete(id);
+    }
+    setSelectedStaffIds(newSelected);
+  };
+
+  const isAllVisibleSelected =
+    paginatedStaff.length > 0 && paginatedStaff.every((s) => selectedStaffIds.has(s.id));
+
   const handlePageChange = (page: number) => {
     setIsTableLoading(true);
     setCurrentPage(page);
@@ -354,6 +381,7 @@ export default function Workforce() {
   // Reset page when filters change
   useEffect(() => {
     setCurrentPage(1);
+    setSelectedStaffIds(new Set());
   }, [searchQuery, selectedStatus, selectedRole, showInactive]);
 
   // Pending Invites List
@@ -463,6 +491,23 @@ export default function Workforce() {
                         </Label>
                     </div>
 
+                    {selectedStaffIds.size > 0 && (
+                        <>
+                            <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
+                            <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="h-10 border-gray-200 text-gray-700 hover:bg-gray-50 gap-2 font-medium shadow-sm transition-all animate-in fade-in zoom-in-95"
+                                onClick={() => {
+                                    toast.success(`Exporting ${selectedStaffIds.size} selected workforce members...`);
+                                }}
+                            >
+                                <Download className="h-4 w-4 text-gray-500" />
+                                Export Selected ({selectedStaffIds.size})
+                            </Button>
+                        </>
+                    )}
+
                 </div>
 
                 {/* Main Content Split View */}
@@ -526,7 +571,11 @@ export default function Workforce() {
                                     <TableHeader className="bg-gray-50/90 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-200">
                                         <TableRow className="hover:bg-transparent">
                                             <TableHead className="w-12 px-5 py-4">
-                                                <Checkbox className="border-gray-300" />
+                                                <Checkbox 
+                                                    className="border-gray-300" 
+                                                    checked={isAllVisibleSelected}
+                                                    onCheckedChange={(checked) => toggleSelectAll(!!checked)}
+                                                />
                                             </TableHead>
                                             <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">Staff Member</TableHead>
                                             <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">Contact</TableHead>
@@ -564,7 +613,11 @@ export default function Workforce() {
                                                     onClick={() => setLocation(`/staff/${staff.id}`)}
                                                 >
                                                     <TableCell className="px-5 py-3.5" onClick={e => e.stopPropagation()}>
-                                                        <Checkbox className="border-gray-300" />
+                                                        <Checkbox 
+                                                            className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" 
+                                                            checked={selectedStaffIds.has(staff.id)}
+                                                            onCheckedChange={(checked) => toggleSelectOne(staff.id, !!checked)}
+                                                        />
                                                     </TableCell>
                                                     <TableCell className="px-5 py-3.5">
                                                         <div className="flex items-center gap-3">

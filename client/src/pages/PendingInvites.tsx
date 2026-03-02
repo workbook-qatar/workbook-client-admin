@@ -20,6 +20,14 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { StaffMember } from "./Workforce";
 
@@ -107,6 +115,12 @@ export default function PendingInvites() {
   const totalPages = Math.ceil(filteredInvites.length / ITEMS_PER_PAGE) || 1;
 
   useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
+  useEffect(() => {
     handlePageChange(1);
   }, [searchQuery, selectedRole, selectedStatus]);
 
@@ -151,10 +165,11 @@ export default function PendingInvites() {
     toast.success("Invite resent successfully");
   };
 
-  const handleCancelInvite = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    const confirmed = window.confirm("Are you sure you want to cancel this invite? This will remove the draft.");
-    if (!confirmed) return;
+  const [inviteToDelete, setInviteToDelete] = useState<{id: string, name: string} | null>(null);
+
+  const confirmDelete = () => {
+    if (!inviteToDelete) return;
+    const id = inviteToDelete.id;
 
     // Remove from local state
     setInvites(prev => prev.filter(s => s.id !== id));
@@ -166,7 +181,8 @@ export default function PendingInvites() {
         all = all.filter((s: any) => s.id !== id);
         localStorage.setItem("vendor_staff", JSON.stringify(all));
     }
-    toast.success("Invite cancelled and removed.");
+    toast.success("Invite deleted successfully");
+    setInviteToDelete(null);
   };
 
   return (
@@ -388,8 +404,11 @@ export default function PendingInvites() {
                                                             variant="outline" 
                                                             size="icon" 
                                                             className="h-8 w-8 text-red-600 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-700 hover:border-red-300 transition-colors"
-                                                            onClick={(e) => handleCancelInvite(staff.id, e)}
-                                                            title="Cancel Invite"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                setInviteToDelete({ id: staff.id, name: staff.name });
+                                                            }}
+                                                            title="Delete Invite"
                                                         >
                                                             <Trash2 className="h-3.5 w-3.5" />
                                                         </Button>
@@ -458,6 +477,45 @@ export default function PendingInvites() {
             </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!inviteToDelete} onOpenChange={(open) => !open && setInviteToDelete(null)}>
+        <AlertDialogContent className="sm:max-w-[440px] p-0 overflow-hidden border-0 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[24px] bg-white">
+          <div className="p-8 pb-7 flex flex-col items-center justify-center text-center relative selection:bg-red-100 selection:text-red-900">
+              <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-red-50/60 to-transparent pointer-events-none" />
+              
+              <div className="h-14 w-14 bg-red-50 rounded-[16px] flex items-center justify-center mb-6 ring-1 ring-red-100/50 shadow-sm relative transition-transform duration-300">
+                  <div className="absolute inset-0 bg-red-100/40 rounded-[16px]" />
+                  <Trash2 className="h-6 w-6 text-red-600 relative z-10" />
+              </div>
+              
+              <AlertDialogTitle className="text-xl font-bold text-gray-900 tracking-tight leading-none mb-3">
+                  Delete Invitation?
+              </AlertDialogTitle>
+              
+              <AlertDialogDescription className="text-sm text-gray-500 leading-relaxed max-w-[340px] mx-auto font-medium">
+                  You are about to delete the pending invite for <strong className="font-bold text-gray-900">{inviteToDelete?.name}</strong>. This action is irreversible and all associated data will be lost.
+              </AlertDialogDescription>
+          </div>
+          
+          <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100/60 flex flex-col-reverse sm:flex-row gap-3">
+            <AlertDialogCancel 
+                className="mt-0 sm:flex-1 h-11 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 rounded-xl text-[14px] font-semibold transition-all shadow-sm focus:ring-2 focus:ring-gray-200 outline-none"
+            >
+                Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmDelete}
+              className="mt-0 sm:flex-1 h-11 bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-xl text-[14px] font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.1)] overflow-hidden relative group transition-all focus:ring-2 focus:ring-red-500 outline-none"
+            >
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-center justify-center gap-2 relative z-10">
+                  <span>Delete Invite</span>
+              </div>
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 }
