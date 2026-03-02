@@ -206,7 +206,7 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
                 id="mobileNumber"
                 type="tel"
                 placeholder="+974 55687989"
-                value={data.mobileNumber || ""}
+                value={data.mobileNumber || "+974 "}
                 onChange={(e) => handleChange("mobileNumber", e.target.value)}
                 className={UNIFORM_INPUT_CLASSES}
               />

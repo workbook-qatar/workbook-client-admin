@@ -1689,7 +1689,7 @@ export default function DriverPendingInviteDetails({ initialData }: { initialDat
                          <div className="space-y-1.5">
                             <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobile Number</Label>
                             <Input 
-                                value={basicInfoForm.mobile} 
+                                value={basicInfoForm.mobile || "+974 "} 
                                 onChange={e => setBasicInfoForm({...basicInfoForm, mobile: e.target.value})} 
                                 className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                             />

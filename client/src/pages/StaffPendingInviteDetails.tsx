@@ -164,8 +164,10 @@ export default function StaffPendingInviteDetails() {
   const [isManualEntry, setIsManualEntry] = useState(false);
   
   // Activation State
-  const [isActivationPromptOpen, setIsActivationPromptOpen] = useState(false);
-  const [activationStatusSelect, setActivationStatusSelect] = useState<'On Leave' | 'Inactive'>('On Leave');
+  const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
+  const [finalStatus, setFinalStatus] = useState<'Active' | 'Inactive' | null>(null);
+  const [inactiveReason, setInactiveReason] = useState<string>('');
+  const [inactiveNote, setInactiveNote] = useState<string>('');
 
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
 
@@ -615,17 +617,21 @@ export default function StaffPendingInviteDetails() {
   };
 
   const handleActivate = () => {
-    if (isEligibleForDispatch()) {
-        processActivation('available', 'Active');
-    } else {
-        setIsActivationPromptOpen(true);
-    }
+      setIsActivationModalOpen(true);
   };
 
-  const handlePromptActivation = () => {
-    const statusVal = activationStatusSelect === 'On Leave' ? 'on-leave' : 'offline';
-    processActivation(statusVal as any, activationStatusSelect);
-    setIsActivationPromptOpen(false);
+  const handleConfirmActivation = () => {
+    if (!finalStatus) {
+        toast.error("Please select a final status.");
+        return;
+    }
+    if (finalStatus === 'Inactive' && !inactiveReason) {
+        toast.error("Please provide a reason for inactive status.");
+        return;
+    }
+    const statusVal = finalStatus === 'Active' ? 'available' : 'offline';
+    processActivation(statusVal as any, finalStatus);
+    setIsActivationModalOpen(false);
   };
 
   // Handlers for Right Panel Logic (Skills/Docs)
@@ -988,7 +994,7 @@ export default function StaffPendingInviteDetails() {
                                                 Mobile Number <span className="text-red-500">*</span>
                                             </Label>
                                             <Input 
-                                                value={formData.phone || ""} 
+                                                value={formData.phone || "+974 "} 
                                                 placeholder="+974 55687989"
                                                 className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                                                 onChange={e => setFormData({...formData, phone: e.target.value})} 
@@ -1630,12 +1636,75 @@ export default function StaffPendingInviteDetails() {
                              <div className={STYLES.sectionContainer}>
         <div className={STYLES.sectionHeader}>
             <h3 className={STYLES.sectionTitle}>Logistics</h3>
-            <span className={STYLES.sectionDesc}>Dispatch preferences, mobility details, and resource allocation inputs</span>
+            <span className={STYLES.sectionDesc}>Dispatch preferences and mobility details</span>
+        </div>
+
+                                 <div className="space-y-4">
+                                     {/* Main Transport Select */}
+                                     <div className="space-y-1.5">
+                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Arrangement <span className="text-red-500">*</span></Label>
+                                         <Select 
+                                             disabled={!isEditing} 
+                                             value={formData.transportationType} 
+                                             onValueChange={(v) => {
+                                                 setFormData({
+                                                     ...formData, 
+                                                     transportationType: v,
+                                                     assignedVehicle: "",
+                                                     vehicleType: "",
+                                                     plateNumber: "",
+                                                     primaryTransport: v === 'Flexible' ? formData.primaryTransport : "" 
+                                                 })
+                                             }}
+                                         >
+                                             <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
+                                                  <SelectValue placeholder="Select Transportation Type" />
+                                              </SelectTrigger>
+                                             <SelectContent>
+                                                 <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
+                                                 <SelectItem value="Self Drive">Self Drive</SelectItem>
+                                                 <SelectItem value="No Transportation">No Transportation</SelectItem>
+                                                 <SelectItem value="Flexible">Flexible</SelectItem>
+                                             </SelectContent>
+                                         </Select>
+                                     </div>
+
+                                     {/* Nested Dropdown for Flexible */}
+                                     {formData.transportationType === 'Flexible' && (
+                                         <div className="ml-4 pl-4 border-l-2 border-gray-100 space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                                             <Label className="text-xs font-semibold uppercase text-gray-400 tracking-wide">Default Transportation Mode <span className="text-red-500">*</span></Label>
+                                              <Select 
+                                                  disabled={!isEditing} 
+                                                  value={formData.primaryTransport} 
+                                                  onValueChange={(v) => setFormData({...formData, primaryTransport: v})}
+                                              >
+                                                  <SelectTrigger className="bg-white h-10 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full max-w-sm">
+                                                      <SelectValue placeholder="Select default mode" />
+                                                  </SelectTrigger>
+                                                  <SelectContent>
+                                                      <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
+                                                      <SelectItem value="Self Drive">Self Drive</SelectItem>
+                                                      <SelectItem value="No Transportation">No Transportation</SelectItem>
+                                                  </SelectContent>
+                                              </Select>
+                                         </div>
+                                     )}
+                                 </div>
+                             </div>
+
+
+
+
+                             {/* Section: Staff Base Location */}
+                             <div className={STYLES.sectionContainer}>
+        <div className={STYLES.sectionHeader}>
+            <h3 className={STYLES.sectionTitle}>Staff Base Location</h3>
+            <span className={STYLES.sectionDesc}>Accommodation details, camp assignment, and coordinates</span>
         </div>
 
                                  <div className="space-y-4">
                                      {/* Base Location Panel */}
-                                     <div className="pb-6 border-b border-gray-100 space-y-6">
+                                     <div className="space-y-6">
                                          <div className="space-y-3">
                                              <Label className="text-xs font-semibold uppercase text-gray-800 tracking-wide">Staff Base Location <span className="text-red-500">*</span></Label>
                                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1803,60 +1872,8 @@ export default function StaffPendingInviteDetails() {
                                          )}
                                      </div>
 
-                                     {/* Main Transport Select */}
-                                     <div className="space-y-1.5">
-                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Arrangement <span className="text-red-500">*</span></Label>
-                                         <Select 
-                                             disabled={!isEditing} 
-                                             value={formData.transportationType} 
-                                             onValueChange={(v) => {
-                                                 setFormData({
-                                                     ...formData, 
-                                                     transportationType: v,
-                                                     assignedVehicle: "",
-                                                     vehicleType: "",
-                                                     plateNumber: "",
-                                                     primaryTransport: v === 'Flexible' ? formData.primaryTransport : "" 
-                                                 })
-                                             }}
-                                         >
-                                             <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
-                                                  <SelectValue placeholder="Select Transportation Type" />
-                                              </SelectTrigger>
-                                             <SelectContent>
-                                                 <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
-                                                 <SelectItem value="Self Drive">Self Drive</SelectItem>
-                                                 <SelectItem value="No Transportation">No Transportation</SelectItem>
-                                                 <SelectItem value="Flexible">Flexible</SelectItem>
-                                             </SelectContent>
-                                         </Select>
-                                     </div>
-
-                                     {/* Nested Dropdown for Flexible */}
-                                     {formData.transportationType === 'Flexible' && (
-                                         <div className="ml-4 pl-4 border-l-2 border-gray-100 space-y-1.5 animate-in fade-in slide-in-from-top-1">
-                                             <Label className="text-xs font-semibold uppercase text-gray-400 tracking-wide">Default Transportation Mode <span className="text-red-500">*</span></Label>
-                                              <Select 
-                                                  disabled={!isEditing} 
-                                                  value={formData.primaryTransport} 
-                                                  onValueChange={(v) => setFormData({...formData, primaryTransport: v})}
-                                              >
-                                                  <SelectTrigger className="bg-white h-10 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full max-w-sm">
-                                                      <SelectValue placeholder="Select default mode" />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                      <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
-                                                      <SelectItem value="Self Drive">Self Drive</SelectItem>
-                                                      <SelectItem value="No Transportation">No Transportation</SelectItem>
-                                                  </SelectContent>
-                                              </Select>
-                                         </div>
-                                     )}
                                  </div>
                              </div>
-
-
-
 
 
                              {/* MOVED SCHEDULE SECTION HERE */}
@@ -2592,44 +2609,119 @@ export default function StaffPendingInviteDetails() {
         </div>
       )}
 
-      {/* Activation Eligibility Prompt Dialog */}
-      <Dialog open={isActivationPromptOpen} onOpenChange={setIsActivationPromptOpen}>
+      {/* Complete Activation Modal */}
+      <Dialog open={isActivationModalOpen} onOpenChange={setIsActivationModalOpen}>
         <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
             <DialogHeader className="p-6 pb-4 border-b border-gray-100 bg-gray-50/50">
                 <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center shrink-0">
-                        <AlertCircle className="h-5 w-5" />
+                    <div className="h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                        <User className="h-5 w-5" />
                     </div>
                     <div>
-                        <DialogTitle className="text-lg font-bold text-gray-900">Not Eligible for Dispatch</DialogTitle>
-                        <span className="text-xs text-gray-500 mt-1 block">Missing criteria or non-company accommodation preventing dispatch.</span>
+                        <DialogTitle className="text-lg font-bold text-gray-900">Complete Activation</DialogTitle>
+                        <span className="text-xs text-gray-500 mt-1 block">Finalize the operational status for {data?.name}.</span>
                     </div>
                 </div>
             </DialogHeader>
             <div className="p-6 space-y-6">
-                <div className="text-sm text-gray-700 leading-relaxed">
-                    This staff member doesn't meet all requirements for immediate dispatch readiness. Please set their initial status in the system upon activation.
+                {/* Staff Summary Snapshot */}
+                <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-4 flex items-center gap-4">
+                    <Avatar className="h-12 w-12 border border-blue-100">
+                        <AvatarImage src={data?.avatar} className="object-cover" />
+                        <AvatarFallback className="bg-blue-50 text-blue-700 font-bold">
+                            {data?.name?.substring(0, 2).toUpperCase()}
+                        </AvatarFallback>
+                    </Avatar>
+                    <div className="overflow-hidden">
+                        <div className="font-bold text-gray-900 truncate">{data?.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{data?.role} • {data?.department}</div>
+                    </div>
                 </div>
                 
                 <div className="space-y-3">
-                    <Label className="text-[13px] font-bold text-gray-900 tracking-tight">Initial Staff Status <span className="text-red-500">*</span></Label>
-                    <Select value={activationStatusSelect} onValueChange={(v: any) => setActivationStatusSelect(v)}>
-                        <SelectTrigger className="bg-white w-full h-[46px] border-gray-200 text-sm shadow-sm rounded-lg hover:border-gray-300">
-                            <SelectValue placeholder="Select Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="On Leave">On Leave</SelectItem>
-                            <SelectItem value="Inactive">Inactive</SelectItem>
-                        </SelectContent>
-                    </Select>
+                    <Label className="text-[13px] font-bold text-gray-900 tracking-tight">Set Final System Status <span className="text-red-500">*</span></Label>
+                    
+                    {/* Status Options - Segmented/Cards */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div 
+                            onClick={() => setFinalStatus('Active')}
+                            className={`
+                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
+                                ${finalStatus === 'Active' 
+                                    ? 'bg-green-50/50 border-green-500 text-green-700 shadow-sm' 
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'}
+                            `}
+                        >
+                            <div className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === 'Active' ? 'border-green-600' : 'border-gray-300'}`}>
+                                {finalStatus === 'Active' && <div className="h-2 w-2 rounded-full bg-green-600" />}
+                            </div>
+                            <CheckCircle className={`w-6 h-6 ${finalStatus === 'Active' ? 'text-green-600' : 'text-gray-400'}`} />
+                            <div>
+                                <div className="font-bold text-sm text-gray-900">Active</div>
+                                <span className="text-[10px] text-gray-500 mt-1 block leading-tight">Can receive assignments & be dispatched</span>
+                            </div>
+                        </div>
+
+                        <div 
+                            onClick={() => setFinalStatus('Inactive')}
+                            className={`
+                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
+                                ${finalStatus === 'Inactive' 
+                                    ? 'bg-orange-50/50 border-orange-500 text-orange-700 shadow-sm' 
+                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'}
+                            `}
+                        >
+                            <div className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === 'Inactive' ? 'border-orange-600' : 'border-gray-300'}`}>
+                                {finalStatus === 'Inactive' && <div className="h-2 w-2 rounded-full bg-orange-600" />}
+                            </div>
+                            <AlertCircle className={`w-6 h-6 ${finalStatus === 'Inactive' ? 'text-orange-600' : 'text-gray-400'}`} />
+                            <div>
+                                <div className="font-bold text-sm text-gray-900">Inactive</div>
+                                <span className="text-[10px] text-gray-500 mt-1 block leading-tight">Profile saved but cannot be scheduled</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+
+                {finalStatus === 'Inactive' && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-1 bg-orange-50/30 p-4 border border-orange-100 rounded-lg">
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">Reason for Inactive Status <span className="text-red-500">*</span></Label>
+                            <Select value={inactiveReason} onValueChange={(v) => setInactiveReason(v)}>
+                                <SelectTrigger className="bg-white w-full h-[46px] border-orange-200 text-sm shadow-sm rounded-lg hover:border-orange-300 focus:ring-orange-100">
+                                    <SelectValue placeholder="Select Reason" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="Pending Confirmation">Pending Confirmation</SelectItem>
+                                    <SelectItem value="Documentation Review">Documentation / Visa Review</SelectItem>
+                                    <SelectItem value="Joining Date Not Started">Joining Date Not Started</SelectItem>
+                                    <SelectItem value="Operational Approval Delay">Operational Approval Delay</SelectItem>
+                                    <SelectItem value="Other">Other</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">Additional Note <span className="text-gray-400 font-normal truncate">(Optional)</span></Label>
+                            <Input 
+                                placeholder="E.g., Waiting for QID renewal..."
+                                value={inactiveNote}
+                                onChange={(e) => setInactiveNote(e.target.value)}
+                                className="h-10 border-orange-200 bg-white"
+                            />
+                        </div>
+                    </div>
+                )}
+
             </div>
             <DialogFooter className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 sm:justify-between items-center flex-row">
-                <Button variant="ghost" className="h-10 text-gray-600 font-medium hover:bg-white" onClick={() => setIsActivationPromptOpen(false)}>
+                <Button variant="ghost" className="h-10 text-gray-600 font-medium hover:bg-white" onClick={() => setIsActivationModalOpen(false)}>
                     Cancel
                 </Button>
-                <Button className="h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm px-6" onClick={handlePromptActivation}>
-                    Activate as {activationStatusSelect}
+                <Button 
+                    className="h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm px-6" 
+                    onClick={handleConfirmActivation}
+                >
+                    Confirm & Update Status
                 </Button>
             </DialogFooter>
         </DialogContent>
@@ -2721,7 +2813,7 @@ export default function StaffPendingInviteDetails() {
                          <div className="space-y-1.5">
                             <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobile Number</Label>
                             <Input 
-                                value={basicInfoForm.mobile} 
+                                value={basicInfoForm.mobile || "+974 "} 
                                 onChange={e => setBasicInfoForm({...basicInfoForm, mobile: e.target.value})} 
                                 className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
                             />

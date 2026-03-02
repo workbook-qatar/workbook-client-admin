@@ -476,7 +476,7 @@ export default function AddWorkforceMember() {
                                     <Label className="text-xs font-semibold uppercase text-gray-500">Mobile Number</Label>
                                     <input className="w-full border rounded p-2 text-sm" 
                                         placeholder="+974 0000 0000" 
-                                        value={formData.mobileNumber || ''} onChange={e => updateFormData({mobileNumber: e.target.value})} />
+                                        value={formData.mobileNumber || '+974 '} onChange={e => updateFormData({mobileNumber: e.target.value})} />
                                 </div>
                                 <div className="space-y-1">
                                     <Label className="text-xs font-semibold uppercase text-gray-500">Department</Label>

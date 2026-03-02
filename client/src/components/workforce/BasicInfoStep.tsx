@@ -220,7 +220,7 @@ export default function BasicInfoStep({ data, onUpdate, onNext, onBack, isLastSt
                 id="mobileNumber"
                 type="tel"
                 placeholder="+974 55687989"
-                value={data.mobileNumber || ""}
+                value={data.mobileNumber || "+974 "}
                 onChange={(e) => handleChange("mobileNumber", e.target.value)}
                 className={UNIFORM_INPUT_CLASSES}
               />
