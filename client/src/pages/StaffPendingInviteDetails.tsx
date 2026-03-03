@@ -1158,7 +1158,7 @@ export default function StaffPendingInviteDetails() {
                   </div>
 
                   {/* Personal Information Section */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Personal Details"
                       desc="Core identity and contact details for official employment records."
@@ -1439,7 +1439,7 @@ export default function StaffPendingInviteDetails() {
               {currentStep === 1 && (
                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                   {/* Section: Role Information */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Role & Assignment"
                       desc="Organizational designation, department allocation, and employment status."
@@ -1541,7 +1541,7 @@ export default function StaffPendingInviteDetails() {
                   </div>
 
                   {/* Section: Compensation */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Compensation & Benefits"
                       desc="Salary structure, allowances, incentives, and payment terms."
@@ -1669,7 +1669,7 @@ export default function StaffPendingInviteDetails() {
                   </div>
 
                   {/* Section: Personal Background */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Background Information"
                       desc="Additional demographic details required for HR documentation and compliance."
