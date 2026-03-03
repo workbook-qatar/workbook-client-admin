@@ -1761,7 +1761,7 @@ export default function StaffPendingInviteDetails() {
               {currentStep === 2 && (
                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                   {/* Section: Professional Profile */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Skills & Certifications"
                       desc="Key competencies, mandatory certifications, and professional expertise."
@@ -1791,7 +1791,7 @@ export default function StaffPendingInviteDetails() {
                                     <Badge
                                       key={lang}
                                       variant="secondary"
-                                      className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200"
+                                      className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200 h-6 shrink-0"
                                     >
                                       {lang}
                                       {isEditing && (
@@ -1901,7 +1901,7 @@ export default function StaffPendingInviteDetails() {
                                     <Badge
                                       key={skill}
                                       variant="secondary"
-                                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200 h-6 shrink-0"
                                     >
                                       {skill}
                                       {isEditing && (
@@ -2218,7 +2218,7 @@ export default function StaffPendingInviteDetails() {
                   </div>
 
                   {/* Section: Operations Config */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Operational Scope"
                       desc="Service coverage areas and geographical dispatch constraints."
@@ -2420,7 +2420,7 @@ export default function StaffPendingInviteDetails() {
                   </div>
 
                   {/* Section: Logistics */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Logistics & Mobility"
                       desc="Transportation arrangements and assigned mobility resources."
@@ -2504,7 +2504,7 @@ export default function StaffPendingInviteDetails() {
                   </div>
 
                   {/* Section: Staff Base Location */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Accommodation Details"
                       desc="Residential assignment, camp location, and geographical coordinates."
@@ -2515,7 +2515,7 @@ export default function StaffPendingInviteDetails() {
                       {/* Base Location Panel */}
                       <div className="space-y-6">
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold uppercase text-gray-800 tracking-wide">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
                             Staff Base Location{" "}
                             <span className="text-red-500">*</span>
                           </Label>
@@ -2607,15 +2607,17 @@ export default function StaffPendingInviteDetails() {
                               </Select>
 
                               {!isCreatingCamp && (
-                                <div
-                                  className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-bold text-xs mt-2.5 cursor-pointer transition-colors w-max"
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="mt-2.5 h-8 px-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold text-xs border border-transparent hover:border-blue-100"
                                   onClick={() => {
                                     if (isEditing) setIsCreatingCamp(true);
                                   }}
                                 >
-                                  <Plus className="h-4 w-4" /> Create New Camp
-                                  Location
-                                </div>
+                                  <Plus className="h-3.5 w-3.5 mr-1" /> Create
+                                  New Camp Location
+                                </Button>
                               )}
                             </div>
 
@@ -2802,7 +2804,7 @@ export default function StaffPendingInviteDetails() {
                   </div>
 
                   {/* MOVED SCHEDULE SECTION HERE */}
-                  <div className={STYLES.sectionContainer}>
+                  <div className={STYLES.card}>
                     <SectionHeader
                       title="Schedule & Availability"
                       desc="Shift patterns, working hours, and operational availability constraints."
