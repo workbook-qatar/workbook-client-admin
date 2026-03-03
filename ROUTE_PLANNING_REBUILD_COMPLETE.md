@@ -76,6 +76,7 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
    - **If Assigned**: Driver info + "Reassign" button
 
 **Unassigned Booking Highlighting:**
+
 - Red background (bg-red-50)
 - Red border (border-red-200)
 - Makes it immediately obvious which bookings need attention
@@ -112,11 +113,13 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 **Triggered By**: Clicking "Assign Driver" button on any unassigned booking
 
 **Dialog Content:**
+
 - Title: "Assign Driver to Booking #BK003"
 - Description: Customer name and service type
 - List of all drivers (clickable cards)
 
 **Driver Selection Cards:**
+
 - Large clickable cards
 - Shows driver avatar, name, vehicle
 - Current bookings count
@@ -125,6 +128,7 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 - Click any driver to assign
 
 **Assignment Flow:**
+
 1. Click "Assign Driver" on booking
 2. Dialog opens with all drivers
 3. Click desired driver
@@ -178,6 +182,7 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 ## Data Structure
 
 ### Booking Object
+
 ```typescript
 {
   id: string (e.g., "#BK001")
@@ -197,17 +202,18 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 ```
 
 ### Driver Object
+
 ```typescript
 {
-  id: string
-  name: string
-  vehicle: string
-  plate: string
-  status: "available" | "busy" | "on_route"
-  currentBookings: number
-  completedToday: number
-  rating: number
-  phone: string
+  id: string;
+  name: string;
+  vehicle: string;
+  plate: string;
+  status: "available" | "busy" | "on_route";
+  currentBookings: number;
+  completedToday: number;
+  rating: number;
+  phone: string;
 }
 ```
 
@@ -216,22 +222,26 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 ### Status Colors
 
 **Unassigned (Red)**
+
 - Background: bg-red-100
 - Text: text-red-700
 - Border: border-red-300
 - Card Background: bg-red-50
 
 **Assigned (Blue)**
+
 - Background: bg-blue-100
 - Text: text-blue-700
 - Border: border-blue-300
 
 **In Transit (Green)**
+
 - Background: bg-green-100
 - Text: text-green-700
 - Border: border-green-300
 
 **Completed (Gray)**
+
 - Background: bg-gray-100
 - Text: text-gray-700
 - Border: border-gray-300
@@ -251,34 +261,40 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 ## User Experience Benefits
 
 ### 1. **Immediate Visibility**
+
 - Red highlighting makes unassigned bookings impossible to miss
 - Statistics at top show exactly what needs attention
 - "Needs Driver: 3" in red is urgent call-to-action
 
 ### 2. **Simple Assignment Process**
+
 - One click to open driver selection
 - One click to assign driver
 - Instant feedback with toast notification
 - No complex forms or multiple steps
 
 ### 3. **Comprehensive Information**
+
 - All booking details visible at a glance
 - Driver performance metrics help make informed decisions
 - Distance information helps assign nearest driver
 - Time information prevents scheduling conflicts
 
 ### 4. **Easy Reassignment**
+
 - "Reassign" button always visible on assigned bookings
 - Same simple process as initial assignment
 - Flexibility to change drivers anytime
 
 ### 5. **Progress Tracking**
+
 - Status badges show current state
 - Color coding makes status instantly recognizable
 - Statistics update in real-time
 - Easy to filter by status
 
 ### 6. **Driver Management**
+
 - See all drivers at a glance
 - Availability status immediately visible
 - Workload balancing with current bookings count
@@ -287,12 +303,14 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 ## Technical Implementation
 
 ### State Management
+
 - `useState` for bookings list
 - `useState` for selected filter
 - `useState` for dialog open/close
 - `useState` for selected booking
 
 ### Functions
+
 - `handleAssignDriver(driverId)` - Assigns driver to selected booking
 - `handleReassignDriver(booking)` - Opens dialog for reassignment
 - `getStatusColor(status)` - Returns color classes for status
@@ -302,6 +320,7 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 - `getDriverStatusLabel(status)` - Returns human-readable driver status
 
 ### Filtering
+
 - Filter bookings by status
 - Filter by date (Today, Tomorrow, This Week)
 - Automatic count updates based on filters
@@ -309,6 +328,7 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 ## Mock Data
 
 ### 5 Sample Bookings
+
 1. #BK001 - Mr. Mohammed Rashid - AC Cleaning - **Assigned** (Ahmed Al-Mansoori)
 2. #BK003 - Mr. Khalid Ibrahim - Plumbing Repair - **Unassigned** (High Priority)
 3. #BK009 - Mr. Jassim Al-Kuwari - AC Installation - **Unassigned**
@@ -316,6 +336,7 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 5. #BK015 - Mr. Abdullah Saeed - Electrical Work - **Unassigned** (High Priority)
 
 ### 4 Sample Drivers
+
 1. Ahmed Al-Mansoori - Toyota Hiace - **Busy** (1 booking, 2 completed, 4.8★)
 2. Khalid Ibrahim - Ford Transit - **On Route** (1 booking, 1 completed, 4.9★)
 3. Mohammed Hassan - Toyota Hiace - **Available** (0 bookings, 3 completed, 4.7★)
@@ -324,12 +345,14 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 ## Next Steps for Enhancement
 
 ### Real Data Integration
+
 - Connect to actual booking database
 - Fetch driver information from database
 - Real-time updates with WebSocket
 - Automatic status changes based on driver location
 
 ### Advanced Features
+
 - Drag-and-drop driver assignment
 - Map view showing driver and booking locations
 - Route optimization algorithm
@@ -341,12 +364,14 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
   - Historical performance
 
 ### Notifications
+
 - SMS/Email to driver when assigned
 - Push notifications for status changes
 - Alerts for delayed bookings
 - Daily route summary for drivers
 
 ### Analytics
+
 - Driver performance reports
 - Booking completion rates
 - Average assignment time
@@ -354,6 +379,7 @@ The Route Planning system has been completely rebuilt from scratch to focus on *
 - Route efficiency metrics
 
 ### Mobile Optimization
+
 - Responsive design for tablets
 - Mobile app for drivers
 - GPS tracking integration

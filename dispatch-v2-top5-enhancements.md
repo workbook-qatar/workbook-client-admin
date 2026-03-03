@@ -1,6 +1,7 @@
 # Dispatch V2 - Top 5 UI/UX Enhancements Implementation Plan
 
 ## Overview
+
 Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher workflow and operational efficiency.
 
 ---
@@ -8,6 +9,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 ## Enhancement #1: Drag-and-Drop Assignment 🎯
 
 ### Features
+
 - Drag unassigned booking cards onto trip cards
 - Visual feedback during drag (green = fits, red = conflict)
 - Drop zone highlighting on trip cards
@@ -16,6 +18,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Toast notification confirming assignment
 
 ### Implementation Details
+
 - Use `@dnd-kit/core` for drag-and-drop functionality
 - Add `useDraggable` hook to booking cards
 - Add `useDroppable` hook to trip cards
@@ -24,6 +27,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Show visual indicators (cursor, borders, shadows)
 
 ### UI Changes
+
 - Booking cards: Add drag handle icon, cursor changes to grab
 - Trip cards: Highlight border on drag-over, show capacity warning
 - Toast: "Booking BK015 added to Trip T001"
@@ -33,6 +37,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 ## Enhancement #2: Trip Capacity Indicators 📈
 
 ### Features
+
 - Visual progress bar showing seat utilization
 - Color coding: green (<75%), yellow (75-90%), red (>90%)
 - Tooltip showing detailed breakdown
@@ -40,6 +45,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Capacity warnings when approaching limit
 
 ### Implementation Details
+
 - Calculate total staff count vs vehicle capacity
 - Progress bar component with color thresholds
 - Tooltip: "4 of 7 seats used (57%)"
@@ -47,6 +53,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Warning badge when at 90%+ capacity
 
 ### UI Changes
+
 - Add progress bar under vehicle info in trip card
 - Color-coded bar with percentage
 - Small warning icon when near capacity
@@ -57,6 +64,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 ## Enhancement #3: Undo/Redo Actions ↩️
 
 ### Features
+
 - Track last 10 actions (assign driver, add booking, edit trip, etc.)
 - Undo/Redo buttons in header
 - Keyboard shortcuts: Ctrl+Z (undo), Ctrl+Y (redo)
@@ -64,6 +72,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Action history stack
 
 ### Implementation Details
+
 - Create action history state array
 - Record each action with: type, data, timestamp
 - Undo: reverse the action, move to redo stack
@@ -71,6 +80,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Supported actions: assign driver, add booking, create trip, edit trip
 
 ### UI Changes
+
 - Two icon buttons in header (undo/redo arrows)
 - Disabled state when no actions available
 - Tooltip: "Undo: Assigned driver to T001"
@@ -81,6 +91,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 ## Enhancement #4: Batch Operations Toolbar 🔧
 
 ### Features
+
 - Floating toolbar appears when bookings selected
 - Actions: "Create Trip from X", "Mark Priority", "Export", "Delete"
 - Shows selection count
@@ -88,6 +99,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Smooth slide-up animation
 
 ### Implementation Details
+
 - Monitor selectedBookings state
 - Show toolbar when length > 0
 - Position: fixed bottom, centered
@@ -95,6 +107,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Clear selection after action completes
 
 ### UI Changes
+
 - Floating toolbar at bottom center
 - Dark background with white text
 - Action buttons with icons
@@ -106,6 +119,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 ## Enhancement #5: Booking Priority Indicators 🚨
 
 ### Features
+
 - Color-coded left border (red=high, orange=medium, gray=normal)
 - Urgency countdown timer ("Due in 2 hours")
 - Pulsing animation for overdue bookings
@@ -113,6 +127,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Sort by priority option
 
 ### Implementation Details
+
 - Add priority field to booking data: "high" | "medium" | "normal"
 - Calculate time until due from booking time
 - Update countdown every minute
@@ -120,6 +135,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - Left border: 4px solid color
 
 ### UI Changes
+
 - Colored left border on booking cards
 - Priority badge in top-right
 - Countdown timer in red text when < 3 hours
@@ -141,6 +157,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 ## Testing Checklist
 
 ### Enhancement #1: Drag-and-Drop
+
 - [ ] Can drag booking card
 - [ ] Trip card highlights on drag-over
 - [ ] Shows green when capacity allows
@@ -150,6 +167,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - [ ] Booking removed from unassigned list
 
 ### Enhancement #2: Capacity Indicators
+
 - [ ] Progress bar shows correct percentage
 - [ ] Green when under 75%
 - [ ] Yellow when 75-90%
@@ -158,6 +176,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - [ ] Updates when booking added/removed
 
 ### Enhancement #3: Undo/Redo
+
 - [ ] Undo button works
 - [ ] Redo button works
 - [ ] Keyboard shortcuts work (Ctrl+Z, Ctrl+Y)
@@ -166,6 +185,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - [ ] Tooltip shows what will be undone
 
 ### Enhancement #4: Batch Toolbar
+
 - [ ] Toolbar appears when bookings selected
 - [ ] Shows correct count
 - [ ] "Create Trip" works with selected bookings
@@ -174,6 +194,7 @@ Implementing the top 5 most impactful UI/UX enhancements to improve dispatcher w
 - [ ] Smooth animation
 
 ### Enhancement #5: Priority Indicators
+
 - [ ] High priority shows red border
 - [ ] Medium priority shows orange border
 - [ ] Normal shows gray border

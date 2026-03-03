@@ -10,7 +10,8 @@ export default function Communication() {
         <div>
           <h1 className="text-3xl font-bold">Communication</h1>
           <p className="text-muted-foreground mt-2">
-            Centralized communication hub - replace scattered WhatsApp messages with one system
+            Centralized communication hub - replace scattered WhatsApp messages
+            with one system
           </p>
         </div>
 
@@ -20,9 +21,12 @@ export default function Communication() {
             <div className="flex items-start gap-4">
               <AlertCircle className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="font-semibold text-blue-900 mb-2">Module Under Development</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  Module Under Development
+                </h3>
                 <p className="text-sm text-blue-800 mb-4">
-                  The Communication module is currently being built. This feature will help you:
+                  The Communication module is currently being built. This
+                  feature will help you:
                 </p>
                 <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
                   <li>Communicate with customers (SMS/WhatsApp)</li>
@@ -44,7 +48,9 @@ export default function Communication() {
         <div className="grid gap-6 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Messages Sent</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Messages Sent
+              </CardTitle>
               <Send className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -55,7 +61,9 @@ export default function Communication() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Conversations</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Active Conversations
+              </CardTitle>
               <MessageSquare className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -77,7 +85,9 @@ export default function Communication() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Message History</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Message History
+              </CardTitle>
               <History className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>

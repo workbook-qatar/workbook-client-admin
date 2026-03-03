@@ -37,7 +37,11 @@ export default function EmploymentStep({
 
   // Load Configuration
   useEffect(() => {
-    const loadConfig = (key: string, setter: (val: any[]) => void, defaults: any[]) => {
+    const loadConfig = (
+      key: string,
+      setter: (val: any[]) => void,
+      defaults: any[]
+    ) => {
       const stored = localStorage.getItem(key);
       if (stored) {
         setter(JSON.parse(stored));
@@ -47,22 +51,28 @@ export default function EmploymentStep({
     };
 
     loadConfig("vendor_job_titles", setJobTitles, [
-      { name: "Cleaner" }, { name: "Driver" }, { name: "Supervisor" }
+      { name: "Cleaner" },
+      { name: "Driver" },
+      { name: "Supervisor" },
     ]);
-    
+
     loadConfig("vendor_departments", setDepartments, [
-      { name: "Operations" }, { name: "Sales" }, { name: "HR" }
+      { name: "Operations" },
+      { name: "Sales" },
+      { name: "HR" },
     ]);
 
     loadConfig("vendor_employment_types", setEmploymentTypes, [
-      { name: "Full Time" }, { name: "Part Time" }, { name: "Contract" }
+      { name: "Full Time" },
+      { name: "Part Time" },
+      { name: "Contract" },
     ]);
 
     loadConfig("vendor_salary_structures", setSalaryStructures, [
       { code: "fixed-monthly", name: "Fixed Monthly" },
       { code: "commission-based", name: "Commission Based" },
       { code: "hourly-rate", name: "Hourly Rate" },
-      { code: "fixed-commission", name: "Fixed + Commission" }
+      { code: "fixed-commission", name: "Fixed + Commission" },
     ]);
   }, []);
 
@@ -85,7 +95,13 @@ export default function EmploymentStep({
 
   const canContinue = () => {
     // Basic fields validation
-    if (!data.position || !data.department || !data.employmentType || !data.startDate || !data.salaryType) {
+    if (
+      !data.position ||
+      !data.department ||
+      !data.employmentType ||
+      !data.startDate ||
+      !data.salaryType
+    ) {
       return false;
     }
 
@@ -109,7 +125,9 @@ export default function EmploymentStep({
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <DollarSign className="h-5 w-5 text-gray-600" />
-          <h2 className="text-xl font-semibold text-gray-900">Employment Details</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Employment Details
+          </h2>
         </div>
         <p className="text-gray-600">
           Specify the employment information and compensation details
@@ -125,14 +143,16 @@ export default function EmploymentStep({
             </Label>
             <Select
               value={data.position || ""}
-              onValueChange={(value) => handleChange("position", value)}
+              onValueChange={value => handleChange("position", value)}
             >
               <SelectTrigger className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
                 <SelectValue placeholder="Select position" />
               </SelectTrigger>
               <SelectContent>
                 {jobTitles.map((job: any) => (
-                  <SelectItem key={job.name} value={job.name}>{job.name}</SelectItem>
+                  <SelectItem key={job.name} value={job.name}>
+                    {job.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -143,14 +163,16 @@ export default function EmploymentStep({
             </Label>
             <Select
               value={data.department || ""}
-              onValueChange={(value) => handleChange("department", value)}
+              onValueChange={value => handleChange("department", value)}
             >
               <SelectTrigger className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
                 <SelectValue placeholder="Select department" />
               </SelectTrigger>
               <SelectContent>
                 {departments.map((dept: any) => (
-                  <SelectItem key={dept.name} value={dept.name}>{dept.name}</SelectItem>
+                  <SelectItem key={dept.name} value={dept.name}>
+                    {dept.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -165,14 +187,16 @@ export default function EmploymentStep({
             </Label>
             <Select
               value={data.employmentType || ""}
-              onValueChange={(value) => handleChange("employmentType", value)}
+              onValueChange={value => handleChange("employmentType", value)}
             >
               <SelectTrigger className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors">
                 <SelectValue placeholder="Select employment type" />
               </SelectTrigger>
               <SelectContent>
                 {employmentTypes.map((type: any) => (
-                  <SelectItem key={type.name} value={type.name}>{type.name}</SelectItem>
+                  <SelectItem key={type.name} value={type.name}>
+                    {type.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -185,17 +209,15 @@ export default function EmploymentStep({
               id="startDate"
               type="date"
               value={data.startDate || ""}
-              onChange={(e) => handleChange("startDate", e.target.value)}
+              onChange={e => handleChange("startDate", e.target.value)}
               className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
             />
           </div>
         </div>
 
-
-
         {/* Row 3: Salary Type */}
         <div>
-           <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5">
             <Label htmlFor="salaryType">
               Salary Type <span className="text-red-500">*</span>
             </Label>
@@ -209,7 +231,7 @@ export default function EmploymentStep({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-           </div>
+          </div>
           <Select
             value={data.salaryType || ""}
             onValueChange={handleSalaryTypeChange}
@@ -219,7 +241,9 @@ export default function EmploymentStep({
             </SelectTrigger>
             <SelectContent>
               {salaryStructures.map((structure: any) => (
-                <SelectItem key={structure.code} value={structure.code}>{structure.name}</SelectItem>
+                <SelectItem key={structure.code} value={structure.code}>
+                  {structure.name}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -244,7 +268,7 @@ export default function EmploymentStep({
                   type="number"
                   placeholder="e.g. 3500"
                   value={data.monthlySalary || ""}
-                  onChange={(e) => handleChange("monthlySalary", e.target.value)}
+                  onChange={e => handleChange("monthlySalary", e.target.value)}
                   className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                 />
               </div>
@@ -255,14 +279,17 @@ export default function EmploymentStep({
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <Label htmlFor="commissionPercentage">
-                    Commission Percentage <span className="text-red-500">*</span>
+                    Commission Percentage{" "}
+                    <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="commissionPercentage"
                     type="number"
                     placeholder="e.g. 15"
                     value={data.commissionPercentage || ""}
-                    onChange={(e) => handleChange("commissionPercentage", e.target.value)}
+                    onChange={e =>
+                      handleChange("commissionPercentage", e.target.value)
+                    }
                     className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                   />
                 </div>
@@ -273,7 +300,7 @@ export default function EmploymentStep({
                     type="number"
                     placeholder="e.g. 1000"
                     value={data.baseRate || ""}
-                    onChange={(e) => handleChange("baseRate", e.target.value)}
+                    onChange={e => handleChange("baseRate", e.target.value)}
                     className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                   />
                 </div>
@@ -291,7 +318,7 @@ export default function EmploymentStep({
                   type="number"
                   placeholder="e.g. 25"
                   value={data.hourlyRate || ""}
-                  onChange={(e) => handleChange("hourlyRate", e.target.value)}
+                  onChange={e => handleChange("hourlyRate", e.target.value)}
                   className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                 />
               </div>
@@ -309,7 +336,9 @@ export default function EmploymentStep({
                     type="number"
                     placeholder="e.g. 2500"
                     value={data.fixedMonthlySalary || ""}
-                    onChange={(e) => handleChange("fixedMonthlySalary", e.target.value)}
+                    onChange={e =>
+                      handleChange("fixedMonthlySalary", e.target.value)
+                    }
                     className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                   />
                 </div>
@@ -322,7 +351,9 @@ export default function EmploymentStep({
                     type="number"
                     placeholder="e.g. 10"
                     value={data.commissionPercent || ""}
-                    onChange={(e) => handleChange("commissionPercent", e.target.value)}
+                    onChange={e =>
+                      handleChange("commissionPercent", e.target.value)
+                    }
                     className="mt-1.5 w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-700 placeholder:text-gray-400 hover:border-gray-400 focus:outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
                   />
                 </div>

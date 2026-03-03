@@ -1,6 +1,7 @@
 # Dispatch V2 - Trip Type System Implementation TODO
 
 ## Goal
+
 Implement OUTBOUND/RETURN trip type system where different drivers can handle pickup and return, solving the real-world operational challenge.
 
 ---
@@ -174,7 +175,7 @@ Implement OUTBOUND/RETURN trip type system where different drivers can handle pi
 ✅ Visual indicators clearly show trip types  
 ✅ All existing features continue to work  
 ✅ Professional UI/UX maintained  
-✅ No errors or bugs  
+✅ No errors or bugs
 
 ---
 

@@ -56,7 +56,10 @@ function Router() {
 
       <Route path="/dispatch" component={Dispatch} />
       <Route path="/workforce/pending" component={PendingInvites} />
-      <Route path="/workforce/pending/:id" component={PendingInviteDispatcher} />
+      <Route
+        path="/workforce/pending/:id"
+        component={PendingInviteDispatcher}
+      />
       <Route path="/workforce" component={Workforce} />
       <Route path="/workforce/add" component={AddWorkforceMember} />
       <Route path="/staff/:id" component={StaffDetails} />
@@ -74,7 +77,10 @@ function Router() {
       <Route path="/integrations" component={Integrations} />
       <Route path="/settings" component={Settings} />
       <Route path="/settings/service-areas" component={ServiceAreasList} />
-      <Route path="/settings/service-areas/create" component={CreateServiceArea} />
+      <Route
+        path="/settings/service-areas/create"
+        component={CreateServiceArea}
+      />
       <Route path="/settings/skills" component={SkillsSettings} />
       <Route path="/settings/organization" component={OrganizationStructure} />
       <Route path="/settings/employment" component={EmploymentRules} />
@@ -84,7 +90,7 @@ function Router() {
 
       <Route path="/services/directory" component={ServiceDirectory} />
       <Route path="/support" component={Support} />
-      
+
       <Route path="/organizations" component={OrganizationHub} />
       <Route path="/organizations/create" component={CreateOrganization} />
 

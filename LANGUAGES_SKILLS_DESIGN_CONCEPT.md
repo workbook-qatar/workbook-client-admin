@@ -32,6 +32,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 **Purpose:** Clickable area that opens the dropdown menu
 
 **Design Specifications:**
+
 - **Border:** `border border-gray-300` (light gray, 1px)
 - **Border Radius:** `rounded-lg` (0.5rem)
 - **Padding:** `px-3 py-2` (horizontal: 0.75rem, vertical: 0.5rem)
@@ -42,11 +43,13 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 - **Width:** Full width of parent container
 
 **Text:**
+
 - Placeholder: "Select languages..." or "Select skills..."
 - Color: `text-gray-500` (muted gray)
 - Font Size: `text-sm` (0.875rem / 14px)
 
 **Icon:**
+
 - Chevron Down icon on the right
 - Color: `text-gray-400`
 - Size: `h-4 w-4` (16px)
@@ -60,10 +63,12 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 **Design Specifications:**
 
 #### **Container:**
+
 - **Layout:** `flex flex-wrap gap-2` (horizontal wrap with 0.5rem spacing)
 - **Margin Top:** `mt-2` (0.5rem spacing from dropdown)
 
 #### **Individual Tag (Language):**
+
 - **Background:** `bg-gray-100` (light gray)
 - **Text Color:** `text-gray-700` (dark gray)
 - **Border:** `border border-gray-300`
@@ -73,7 +78,8 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 - **Font Weight:** `font-medium`
 - **Display:** `inline-flex items-center gap-1.5`
 
-**Example:** 
+**Example:**
+
 ```
 ┌──────────┐
 │ English ×│  ← Gray background
@@ -81,6 +87,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 ```
 
 #### **Individual Tag (Skill):**
+
 - **Background:** `bg-blue-50` (very light blue)
 - **Text Color:** `text-blue-700` (darker blue)
 - **Border:** `border border-blue-200`
@@ -91,6 +98,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 - **Display:** `inline-flex items-center gap-1.5`
 
 **Example:**
+
 ```
 ┌──────────────┐
 │ AC mechanic ×│  ← Blue background
@@ -98,6 +106,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 ```
 
 #### **Remove Button (×):**
+
 - **Icon:** X icon from lucide-react
 - **Size:** `h-3.5 w-3.5` (14px)
 - **Color:** `text-gray-400` (languages) or `text-blue-400` (skills)
@@ -114,6 +123,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 **Design Specifications:**
 
 #### **Container:**
+
 - **Position:** Absolute, positioned below trigger
 - **Background:** `bg-white`
 - **Border:** `border border-gray-200`
@@ -126,11 +136,12 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 - **Width:** Same as trigger box
 
 #### **Menu Item:**
+
 - **Padding:** `px-4 py-2.5` (horizontal: 1rem, vertical: 0.625rem)
 - **Font Size:** `text-sm`
 - **Color:** `text-gray-700`
 - **Cursor:** `cursor-pointer`
-- **Hover State:** 
+- **Hover State:**
   - Background: `hover:bg-gray-100`
   - Text: `hover:text-gray-900`
 - **Selected State:**
@@ -141,6 +152,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 **Available Options:**
 
 **Languages:**
+
 - English
 - Hindi
 - Arabic
@@ -151,6 +163,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 - Malayalam
 
 **Skills & Expertise:**
+
 - AC mechanic
 - Plumbing
 - Electrical
@@ -173,7 +186,7 @@ The **Languages** and **Skills & Expertise** fields in the Additional Informatio
 
 ### **Why Different Colors for Languages vs Skills?**
 
-1. **Visual Differentiation:** 
+1. **Visual Differentiation:**
    - Gray tags = Languages (neutral, universal)
    - Blue tags = Skills (professional, technical)
 
@@ -215,54 +228,64 @@ const addLanguage = (language: string) => {
 // Remove Language
 const removeLanguage = (language: string) => {
   const current = data.languages || [];
-  onUpdate({ languages: current.filter((l) => l !== language) });
+  onUpdate({ languages: current.filter(l => l !== language) });
 };
 ```
 
 ### **Rendering Logic:**
 
 ```tsx
-{/* Dropdown Trigger */}
+{
+  /* Dropdown Trigger */
+}
 <div
   onClick={() => setShowLanguageDropdown(!showLanguageDropdown)}
   className="border border-gray-300 rounded-lg px-3 py-2 cursor-pointer hover:border-gray-400 bg-white flex items-center justify-between h-10"
 >
   <span className="text-sm text-gray-500">Select languages...</span>
   <ChevronDown className="h-4 w-4 text-gray-400" />
-</div>
+</div>;
 
-{/* Selected Tags */}
-{data.languages && data.languages.length > 0 && (
-  <div className="flex flex-wrap gap-2 mt-2">
-    {data.languages.map((lang) => (
-      <span
-        key={lang}
-        className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded-md text-sm font-medium"
-      >
-        {lang}
-        <X
-          className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-pointer"
-          onClick={() => removeLanguage(lang)}
-        />
-      </span>
-    ))}
-  </div>
-)}
+{
+  /* Selected Tags */
+}
+{
+  data.languages && data.languages.length > 0 && (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {data.languages.map(lang => (
+        <span
+          key={lang}
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 border border-gray-300 rounded-md text-sm font-medium"
+        >
+          {lang}
+          <X
+            className="h-3.5 w-3.5 text-gray-400 hover:text-gray-600 cursor-pointer"
+            onClick={() => removeLanguage(lang)}
+          />
+        </span>
+      ))}
+    </div>
+  );
+}
 
-{/* Dropdown Menu */}
-{showLanguageDropdown && (
-  <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto py-2">
-    {availableLanguages.map((language) => (
-      <div
-        key={language}
-        onClick={() => addLanguage(language)}
-        className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
-      >
-        {language}
-      </div>
-    ))}
-  </div>
-)}
+{
+  /* Dropdown Menu */
+}
+{
+  showLanguageDropdown && (
+    <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto py-2">
+      {availableLanguages.map(language => (
+        <div
+          key={language}
+          onClick={() => addLanguage(language)}
+          className="px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-100 hover:text-gray-900 cursor-pointer"
+        >
+          {language}
+        </div>
+      ))}
+    </div>
+  );
+}
 ```
 
 ---
@@ -272,7 +295,7 @@ const removeLanguage = (language: string) => {
 ### **Interaction Steps:**
 
 1. **User clicks dropdown trigger** → Dropdown menu opens
-2. **User clicks an option** (e.g., "English") → 
+2. **User clicks an option** (e.g., "English") →
    - Option is added to selection
    - Gray tag appears below dropdown
    - Dropdown closes automatically
@@ -293,6 +316,7 @@ const removeLanguage = (language: string) => {
 ## 🔄 Comparison with Standard Dropdowns
 
 ### **Standard Single-Select Dropdown (Employment fields):**
+
 ```
 ┌─────────────────────────────┐
 │ Select                   ▼ │  ← Shows only selected value
@@ -300,11 +324,13 @@ const removeLanguage = (language: string) => {
 ```
 
 **Characteristics:**
+
 - Shows only ONE selected value
 - Clicking opens dropdown to change selection
 - Simple, compact, familiar
 
 ### **Multi-Select with Tags (Languages/Skills):**
+
 ```
 ┌─────────────────────────────┐
 │ Select languages...      ▼ │  ← Trigger
@@ -315,6 +341,7 @@ const removeLanguage = (language: string) => {
 ```
 
 **Characteristics:**
+
 - Shows ALL selected values as tags
 - Can add multiple items
 - Can remove individual items easily
@@ -325,11 +352,13 @@ const removeLanguage = (language: string) => {
 ## 📱 Responsive Behavior
 
 ### **Desktop (>768px):**
+
 - Tags display in horizontal rows
 - Dropdown full width
 - Hover states active
 
 ### **Mobile (<768px):**
+
 - Tags wrap to multiple lines
 - Dropdown full width
 - Touch-optimized (larger tap targets)
@@ -361,6 +390,7 @@ const removeLanguage = (language: string) => {
 ## 🎨 Color Palette Reference
 
 ### **Languages (Gray Theme):**
+
 - Tag Background: `#F3F4F6` (gray-100)
 - Tag Text: `#374151` (gray-700)
 - Tag Border: `#D1D5DB` (gray-300)
@@ -368,6 +398,7 @@ const removeLanguage = (language: string) => {
 - Remove Icon Hover: `#4B5563` (gray-600)
 
 ### **Skills (Blue Theme):**
+
 - Tag Background: `#EFF6FF` (blue-50)
 - Tag Text: `#1D4ED8` (blue-700)
 - Tag Border: `#BFDBFE` (blue-200)
@@ -375,6 +406,7 @@ const removeLanguage = (language: string) => {
 - Remove Icon Hover: `#2563EB` (blue-600)
 
 ### **Dropdown:**
+
 - Trigger Border: `#D1D5DB` (gray-300)
 - Trigger Border Hover: `#9CA3AF` (gray-400)
 - Menu Background: `#FFFFFF` (white)
@@ -399,6 +431,7 @@ const removeLanguage = (language: string) => {
 The multi-select tag design provides an **intuitive, visual, and efficient** way to select multiple languages and skills. The color differentiation (gray for languages, blue for skills) helps users quickly distinguish between the two types of selections, while the tag-based display makes it easy to review and modify choices without reopening dropdowns.
 
 This design pattern is:
+
 - ✅ **User-friendly:** Familiar pattern from popular apps
 - ✅ **Efficient:** Quick to add/remove selections
 - ✅ **Scalable:** Works with any number of selections

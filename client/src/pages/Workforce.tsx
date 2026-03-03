@@ -222,9 +222,9 @@ const SAMPLE_STAFF: StaffMember[] = [
 ];
 
 const ROLE_CATEGORIES = [
-  { id: 'Field Service', name: 'Field Service Staff', icon: UserCheck },
-  { id: 'driver', name: 'Driver', icon: Truck },
-  { id: 'Internal Staff', name: 'Internal Staff', icon: Briefcase },
+  { id: "Field Service", name: "Field Service Staff", icon: UserCheck },
+  { id: "driver", name: "Driver", icon: Truck },
+  { id: "Internal Staff", name: "Internal Staff", icon: Briefcase },
 ];
 
 export default function Workforce() {
@@ -238,7 +238,9 @@ export default function Workforce() {
   const [showInactive, setShowInactive] = useState(false);
 
   // Selection state for export
-  const [selectedStaffIds, setSelectedStaffIds] = useState<Set<string>>(new Set());
+  const [selectedStaffIds, setSelectedStaffIds] = useState<Set<string>>(
+    new Set()
+  );
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -247,7 +249,11 @@ export default function Workforce() {
 
   // Invite Modal State
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [inviteData, setInviteData] = useState({ name: "", email: "", role: "" });
+  const [inviteData, setInviteData] = useState({
+    name: "",
+    email: "",
+    role: "",
+  });
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -266,7 +272,12 @@ export default function Workforce() {
         ...s,
         membershipStatus: s.membershipStatus || "active", // Default legacy to active
         employmentStatus: s.employmentStatus || "Active",
-        roleType: s.roleType === "field" ? "Field Service" : s.roleType === "office" ? "Internal Staff" : s.roleType
+        roleType:
+          s.roleType === "field"
+            ? "Field Service"
+            : s.roleType === "office"
+              ? "Internal Staff"
+              : s.roleType,
       }));
       setStaff(parsedStaff);
     } else {
@@ -292,7 +303,12 @@ export default function Workforce() {
       staffId: "",
       name: inviteData.name,
       role: inviteData.role,
-      roleType: inviteData.role === "Driver" ? "driver" : inviteData.role === "Internal Staff" ? "Internal Staff" : "Field Service",
+      roleType:
+        inviteData.role === "Driver"
+          ? "driver"
+          : inviteData.role === "Internal Staff"
+            ? "Internal Staff"
+            : "Field Service",
       email: inviteData.email,
       phone: "",
       location: "",
@@ -320,8 +336,8 @@ export default function Workforce() {
   const activeWorkforce = staff.filter(s => s.membershipStatus === "active");
 
   const categoriesWithCounts = ROLE_CATEGORIES.map(rc => ({
-      ...rc,
-      count: activeWorkforce.filter(p => p.roleType === rc.id).length
+    ...rc,
+    count: activeWorkforce.filter(p => p.roleType === rc.id).length,
   }));
 
   const filteredActiveStaff = activeWorkforce.filter(s => {
@@ -343,7 +359,8 @@ export default function Workforce() {
   });
 
   // Derived Pagination
-  const totalPages = Math.ceil(filteredActiveStaff.length / ITEMS_PER_PAGE) || 1;
+  const totalPages =
+    Math.ceil(filteredActiveStaff.length / ITEMS_PER_PAGE) || 1;
   const paginatedStaff = filteredActiveStaff.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
@@ -352,9 +369,9 @@ export default function Workforce() {
   const toggleSelectAll = (checked: boolean) => {
     const newSelected = new Set(selectedStaffIds);
     if (checked) {
-      paginatedStaff.forEach((s) => newSelected.add(s.id));
+      paginatedStaff.forEach(s => newSelected.add(s.id));
     } else {
-      paginatedStaff.forEach((s) => newSelected.delete(s.id));
+      paginatedStaff.forEach(s => newSelected.delete(s.id));
     }
     setSelectedStaffIds(newSelected);
   };
@@ -370,7 +387,8 @@ export default function Workforce() {
   };
 
   const isAllVisibleSelected =
-    paginatedStaff.length > 0 && paginatedStaff.every((s) => selectedStaffIds.has(s.id));
+    paginatedStaff.length > 0 &&
+    paginatedStaff.every(s => selectedStaffIds.has(s.id));
 
   const handlePageChange = (page: number) => {
     setIsTableLoading(true);
@@ -418,332 +436,438 @@ export default function Workforce() {
   };
 
   const STYLES = {
-      card: "bg-white border-gray-200 shadow-sm transition-shadow",
+    card: "bg-white border-gray-200 shadow-sm transition-shadow",
   };
 
   return (
     <DashboardLayout>
       <div className="h-[calc(100vh-64px)] overflow-hidden flex flex-col bg-gray-50/50">
-        
         {/* Page Header */}
         <div className="px-8 py-6 border-b bg-white flex items-center justify-between sticky top-0 z-20 shrink-0">
-            <div>
-                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Workforce Management</h1>
-                <p className="text-muted-foreground text-sm mt-1">Manage active workforce members and assignments</p>
-            </div>
-            <div className="flex gap-3 items-center">
-                 <Button variant="outline" onClick={() => setLocation("/workforce/pending")} className="h-10 gap-2 font-medium text-gray-600 hover:text-gray-900">
-                    <Mail className="h-4 w-4" /> Pending Invites
-                    {stats.pending > 0 && (
-                        <span className="ml-1 bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-bold">{stats.pending}</span>
-                    )}
-                 </Button>
-                 <Button onClick={() => setIsInviteOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 px-4 h-10 gap-2">
-                    <Plus className="h-4 w-4" /> Invite User
-                 </Button>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+              Workforce Management
+            </h1>
+            <p className="text-muted-foreground text-sm mt-1">
+              Manage active workforce members and assignments
+            </p>
+          </div>
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="outline"
+              onClick={() => setLocation("/workforce/pending")}
+              className="h-10 gap-2 font-medium text-gray-600 hover:text-gray-900"
+            >
+              <Mail className="h-4 w-4" /> Pending Invites
+              {stats.pending > 0 && (
+                <span className="ml-1 bg-amber-100 text-amber-700 text-xs px-2 py-0.5 rounded-full font-bold">
+                  {stats.pending}
+                </span>
+              )}
+            </Button>
+            <Button
+              onClick={() => setIsInviteOpen(true)}
+              className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20 px-4 h-10 gap-2"
+            >
+              <Plus className="h-4 w-4" /> Invite User
+            </Button>
+          </div>
         </div>
 
         {/* Scrollable Main Workspace */}
         <div className="flex-1 overflow-auto p-8">
-            <div className="max-w-[1600px] mx-auto flex flex-col gap-6 h-full min-h-0">
+          <div className="max-w-[1600px] mx-auto flex flex-col gap-6 h-full min-h-0">
+            {/* Filters Row */}
+            <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-xl border border-gray-200 shadow-sm shrink-0">
+              <div className="relative max-w-sm flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search name, phone..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10 bg-white border-gray-200 focus-visible:ring-1 focus-visible:ring-blue-500 shadow-sm transition-all"
+                />
+              </div>
 
-                {/* Filters Row */}
-                <div className="flex flex-wrap items-center gap-4 bg-white p-3 rounded-xl border border-gray-200 shadow-sm shrink-0">
-                    <div className="relative max-w-sm flex-1">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                            placeholder="Search name, phone..."
-                            value={searchQuery}
-                            onChange={e => setSearchQuery(e.target.value)}
-                            className="pl-10 h-10 bg-white border-gray-200 focus-visible:ring-1 focus-visible:ring-blue-500 shadow-sm transition-all"
-                        />
-                    </div>
-                    
-                    <div className="h-6 w-px bg-gray-200 mx-1"></div>
+              <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
-                    <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                        <SelectTrigger className="w-[160px] h-10 border-gray-200 text-gray-600 shadow-sm bg-white">
-                            <SelectValue placeholder="Work Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="all">All Status</SelectItem>
-                            <SelectItem value="available">Available</SelectItem>
-                            <SelectItem value="on-job">On Job</SelectItem>
-                            <SelectItem value="on-leave">On Leave</SelectItem>
-                            <SelectItem value="offline">Offline</SelectItem>
-                        </SelectContent>
-                    </Select>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-[160px] h-10 border-gray-200 text-gray-600 shadow-sm bg-white">
+                  <SelectValue placeholder="Work Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="available">Available</SelectItem>
+                  <SelectItem value="on-job">On Job</SelectItem>
+                  <SelectItem value="on-leave">On Leave</SelectItem>
+                  <SelectItem value="offline">Offline</SelectItem>
+                </SelectContent>
+              </Select>
 
-                    <div className="h-6 w-px bg-gray-200 mx-1"></div>
+              <div className="h-6 w-px bg-gray-200 mx-1"></div>
 
-                    <div className="flex items-center space-x-3 px-2">
-                        <Switch
-                            id="show-inactive"
-                            checked={showInactive}
-                            onCheckedChange={setShowInactive}
-                        />
-                        <Label
-                            htmlFor="show-inactive"
-                            className="text-sm cursor-pointer font-medium text-gray-600"
-                        >
-                            Show Inactive
-                        </Label>
-                    </div>
+              <div className="flex items-center space-x-3 px-2">
+                <Switch
+                  id="show-inactive"
+                  checked={showInactive}
+                  onCheckedChange={setShowInactive}
+                />
+                <Label
+                  htmlFor="show-inactive"
+                  className="text-sm cursor-pointer font-medium text-gray-600"
+                >
+                  Show Inactive
+                </Label>
+              </div>
 
-                    {selectedStaffIds.size > 0 && (
-                        <>
-                            <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
-                            <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className="h-10 border-gray-200 text-gray-700 hover:bg-gray-50 gap-2 font-medium shadow-sm transition-all animate-in fade-in zoom-in-95"
-                                onClick={() => {
-                                    toast.success(`Exporting ${selectedStaffIds.size} selected workforce members...`);
-                                }}
-                            >
-                                <Download className="h-4 w-4 text-gray-500" />
-                                Export Selected ({selectedStaffIds.size})
-                            </Button>
-                        </>
-                    )}
-
-                </div>
-
-                {/* Main Content Split View */}
-                <div className="flex-1 min-h-[400px] flex gap-6">
-                    
-                    {/* LEFT PANEL: Role Categories (Matching Pending Invites / Services) */}
-                    <Card className={`w-[280px] flex flex-col flex-none ${STYLES.card} h-full overflow-hidden rounded-xl border border-gray-200 shadow-sm`}>
-                        <div className="p-4 border-b flex items-center justify-between bg-gray-50/80 backdrop-blur-sm">
-                            <h3 className="font-bold text-gray-900 tracking-wide uppercase text-xs">Role Selection</h3>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-3 space-y-1 bg-white">
-                            <button
-                                onClick={() => setSelectedRole(null)}
-                                className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
-                                    selectedRole === null ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'
-                                }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <Layers className="h-4 w-4 opacity-70" />
-                                    <span>All Roles</span>
-                                </div>
-                                <span className={`text-xs px-2 py-0.5 rounded-full ${selectedRole === null ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                                    {activeWorkforce.length}
-                                </span>
-                            </button>
-                            
-                            {categoriesWithCounts.map(cat => (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setSelectedRole(cat.id)}
-                                    className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
-                                        selectedRole === cat.id ? 'bg-blue-50 text-blue-700 font-semibold' : 'text-gray-600 hover:bg-gray-50 font-medium'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <cat.icon className="h-4 w-4 opacity-70" />
-                                        <span>{cat.name}</span>
-                                    </div>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${selectedRole === cat.id ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                                        {cat.count}
-                                    </span>
-                                </button>
-                            ))}
-                        </div>
-                    </Card>
-
-                    {/* RIGHT PANEL: List Data */}
-                    <Card className={`flex-1 flex flex-col ${STYLES.card} h-full overflow-hidden rounded-xl border border-gray-200 shadow-sm`}>
-                        <div className="flex-1 overflow-auto bg-white p-0">
-                            
-                            {filteredActiveStaff.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-white pb-12">
-                                    <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
-                                        <Users className="h-8 w-8 text-gray-300" />
-                                    </div>
-                                    <p className="text-gray-500 font-medium">No workforce members found.</p>
-                                    <p className="text-sm text-gray-400 mt-1">Try changing your active filters.</p>
-                                </div>
-                            ) : (
-                                <Table>
-                                    <TableHeader className="bg-gray-50/90 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-200">
-                                        <TableRow className="hover:bg-transparent">
-                                            <TableHead className="w-12 px-5 py-4">
-                                                <Checkbox 
-                                                    className="border-gray-300" 
-                                                    checked={isAllVisibleSelected}
-                                                    onCheckedChange={(checked) => toggleSelectAll(!!checked)}
-                                                />
-                                            </TableHead>
-                                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">Staff Member</TableHead>
-                                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">Contact</TableHead>
-                                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">Role</TableHead>
-                                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">Status</TableHead>
-                                            <TableHead className="text-end text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">Actions</TableHead>
-                                        </TableRow>
-                                    </TableHeader>
-                                    <TableBody>
-                                        {isTableLoading ? (
-                                            Array.from({ length: Math.min(ITEMS_PER_PAGE, filteredActiveStaff.length) || ITEMS_PER_PAGE }).map((_, idx) => (
-                                                <TableRow key={`skeleton-${idx}`}>
-                                                    <TableCell colSpan={6} className="h-[76px] px-5 py-4">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="h-10 w-10 rounded-full bg-gray-100 animate-pulse shrink-0" />
-                                                            <div className="space-y-2 flex-1">
-                                                                <div className="h-4 w-1/4 bg-gray-100 animate-pulse rounded" />
-                                                                <div className="h-3 w-1/5 bg-gray-50 animate-pulse rounded" />
-                                                            </div>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        ) : paginatedStaff.length === 0 ? (
-                                            <TableRow>
-                                                 <TableCell colSpan={6} className="h-32 text-center text-gray-500">
-                                                    No results found for this page.
-                                                 </TableCell>
-                                            </TableRow>
-                                        ) : (
-                                            paginatedStaff.map(staff => (
-                                                <TableRow 
-                                                    key={staff.id} 
-                                                    className={`group hover:bg-blue-50/40 border-b border-gray-100 cursor-pointer transition-colors ${staff.employmentStatus === "Inactive" ? "bg-gray-50/50 opacity-70" : "bg-white"}`}
-                                                    onClick={() => setLocation(`/staff/${staff.id}`)}
-                                                >
-                                                    <TableCell className="px-5 py-3.5" onClick={e => e.stopPropagation()}>
-                                                        <Checkbox 
-                                                            className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600" 
-                                                            checked={selectedStaffIds.has(staff.id)}
-                                                            onCheckedChange={(checked) => toggleSelectOne(staff.id, !!checked)}
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-3.5">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className={`h-10 w-10 rounded-full ${staff.avatarColor || 'bg-gray-200'} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm border-2 border-white`}>
-                                                                {staff.avatar || staff.name.substring(0, 2).toUpperCase()}
-                                                            </div>
-                                                            <div className="flex flex-col py-0.5">
-                                                                <span className={`font-semibold text-sm leading-tight truncate max-w-[200px] ${staff.employmentStatus === "Inactive" ? "text-gray-500 line-through" : "text-gray-900"}`}>{staff.name}</span>
-                                                                <span className="text-xs text-muted-foreground mt-0.5 font-medium">{staff.staffId ? `ID: ${staff.staffId}` : '---'}</span>
-                                                            </div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-3.5">
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
-                                                                <Mail className="h-3.5 w-3.5 text-gray-400" />
-                                                                <span className="truncate max-w-[180px]">{staff.email}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
-                                                                <Phone className="h-3.5 w-3.5 text-gray-400" />
-                                                                <span>{staff.phone || "---"}</span>
-                                                            </div>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-3.5">
-                                                        <div className="flex flex-col gap-1.5 justify-center py-1">
-                                                            <span className="text-sm text-gray-900 font-semibold truncate max-w-[150px]">
-                                                                {staff.role || "Unassigned"}
-                                                            </span>
-                                                            {staff.roleType && (
-                                                                <div className="flex items-center">
-                                                                    <Badge variant="outline" className="text-[10px] font-semibold text-gray-500 bg-gray-50 border-gray-200 shadow-none px-1.5 py-0 capitalize tracking-wide">
-                                                                        {staff.roleType === 'Field Service' ? 'Field Service Staff' : staff.roleType === 'Internal Staff' ? 'Internal Staff' : staff.roleType}
-                                                                    </Badge>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="px-5 py-3.5">
-                                                        <div className="flex items-center">
-                                                            <span className={`inline-flex items-center lowercase text-xs font-medium tracking-wide ${getStatusBadge(staff.status, staff.employmentStatus)}`}>
-                                                                {staff.employmentStatus === "Active" ? staff.status : staff.employmentStatus}
-                                                            </span>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="text-end px-5 py-3.5">
-                                                        <div className="flex justify-end gap-1.5 transition-opacity" onClick={e => e.stopPropagation()}>
-                                                            <Button 
-                                                                variant="outline" 
-                                                                size="icon" 
-                                                                className="h-8 w-8 text-gray-500 border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-colors shadow-sm"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setLocation(`/staff/${staff.id}`)
-                                                                }}
-                                                                title="View User"
-                                                            >
-                                                                <Eye className="h-3.5 w-3.5" />
-                                                            </Button>
-                                                        </div>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))
-                                        )}
-                                    </TableBody>
-                                </Table>
-                            )}
-                        </div>
-
-                        {/* Pagination Footer */}
-                        {filteredActiveStaff.length > 0 && (
-                            <div className="border-t border-gray-200 bg-gray-50 p-3 flex items-center justify-between shrink-0">
-                                <div className="text-xs text-gray-500 font-medium">
-                                    Showing <span className="font-bold text-gray-900">{filteredActiveStaff.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}</span> to <span className="font-bold text-gray-900">{Math.min(filteredActiveStaff.length, currentPage * ITEMS_PER_PAGE)}</span> of <span className="font-bold text-gray-900">{filteredActiveStaff.length}</span> results
-                                </div>
-                                <div className="flex items-center gap-1.5">
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
-                                        onClick={() => handlePageChange(1)}
-                                        disabled={currentPage === 1 || isTableLoading}
-                                    >
-                                        <ChevronsLeft className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
-                                        onClick={() => handlePageChange(Math.max(1, currentPage - 1))}
-                                        disabled={currentPage === 1 || isTableLoading}
-                                    >
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </Button>
-                                    <div className="text-xs font-semibold px-3 min-w-[4rem] text-center text-gray-700 flex items-center justify-center">
-                                        {isTableLoading ? (
-                                            <span className="animate-pulse bg-gray-200 rounded h-4 w-10 inline-block"/>
-                                        ) : (
-                                            `Page ${currentPage} of ${totalPages}`
-                                        )}
-                                    </div>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
-                                        onClick={() => handlePageChange(Math.min(totalPages, currentPage + 1))}
-                                        disabled={currentPage === totalPages || isTableLoading}
-                                    >
-                                        <ChevronRight className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="icon"
-                                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
-                                        onClick={() => handlePageChange(totalPages)}
-                                        disabled={currentPage === totalPages || isTableLoading}
-                                    >
-                                        <ChevronsRight className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            </div>
-                        )}
-                    </Card>
-                </div>
-
+              {selectedStaffIds.size > 0 && (
+                <>
+                  <div className="h-6 w-px bg-gray-200 mx-1 hidden sm:block"></div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-10 border-gray-200 text-gray-700 hover:bg-gray-50 gap-2 font-medium shadow-sm transition-all animate-in fade-in zoom-in-95"
+                    onClick={() => {
+                      toast.success(
+                        `Exporting ${selectedStaffIds.size} selected workforce members...`
+                      );
+                    }}
+                  >
+                    <Download className="h-4 w-4 text-gray-500" />
+                    Export Selected ({selectedStaffIds.size})
+                  </Button>
+                </>
+              )}
             </div>
+
+            {/* Main Content Split View */}
+            <div className="flex-1 min-h-[400px] flex gap-6">
+              {/* LEFT PANEL: Role Categories (Matching Pending Invites / Services) */}
+              <Card
+                className={`w-[280px] flex flex-col flex-none ${STYLES.card} h-full overflow-hidden rounded-xl border border-gray-200 shadow-sm`}
+              >
+                <div className="p-4 border-b flex items-center justify-between bg-gray-50/80 backdrop-blur-sm">
+                  <h3 className="font-bold text-gray-900 tracking-wide uppercase text-xs">
+                    Role Selection
+                  </h3>
+                </div>
+                <div className="flex-1 overflow-y-auto p-3 space-y-1 bg-white">
+                  <button
+                    onClick={() => setSelectedRole(null)}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
+                      selectedRole === null
+                        ? "bg-blue-50 text-blue-700 font-semibold"
+                        : "text-gray-600 hover:bg-gray-50 font-medium"
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Layers className="h-4 w-4 opacity-70" />
+                      <span>All Roles</span>
+                    </div>
+                    <span
+                      className={`text-xs px-2 py-0.5 rounded-full ${selectedRole === null ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}
+                    >
+                      {activeWorkforce.length}
+                    </span>
+                  </button>
+
+                  {categoriesWithCounts.map(cat => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setSelectedRole(cat.id)}
+                      className={`w-full flex items-center justify-between px-3 py-2.5 text-sm rounded-lg transition-all ${
+                        selectedRole === cat.id
+                          ? "bg-blue-50 text-blue-700 font-semibold"
+                          : "text-gray-600 hover:bg-gray-50 font-medium"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <cat.icon className="h-4 w-4 opacity-70" />
+                        <span>{cat.name}</span>
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full ${selectedRole === cat.id ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}
+                      >
+                        {cat.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </Card>
+
+              {/* RIGHT PANEL: List Data */}
+              <Card
+                className={`flex-1 flex flex-col ${STYLES.card} h-full overflow-hidden rounded-xl border border-gray-200 shadow-sm`}
+              >
+                <div className="flex-1 overflow-auto bg-white p-0">
+                  {filteredActiveStaff.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-white pb-12">
+                      <div className="h-16 w-16 rounded-full bg-gray-50 flex items-center justify-center mb-4">
+                        <Users className="h-8 w-8 text-gray-300" />
+                      </div>
+                      <p className="text-gray-500 font-medium">
+                        No workforce members found.
+                      </p>
+                      <p className="text-sm text-gray-400 mt-1">
+                        Try changing your active filters.
+                      </p>
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader className="bg-gray-50/90 backdrop-blur-sm sticky top-0 z-10 border-b border-gray-200">
+                        <TableRow className="hover:bg-transparent">
+                          <TableHead className="w-12 px-5 py-4">
+                            <Checkbox
+                              className="border-gray-300"
+                              checked={isAllVisibleSelected}
+                              onCheckedChange={checked =>
+                                toggleSelectAll(!!checked)
+                              }
+                            />
+                          </TableHead>
+                          <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">
+                            Staff Member
+                          </TableHead>
+                          <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">
+                            Contact
+                          </TableHead>
+                          <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">
+                            Role
+                          </TableHead>
+                          <TableHead className="text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">
+                            Status
+                          </TableHead>
+                          <TableHead className="text-end text-xs font-semibold uppercase tracking-wider text-gray-500 py-4 px-5">
+                            Actions
+                          </TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {isTableLoading ? (
+                          Array.from({
+                            length:
+                              Math.min(
+                                ITEMS_PER_PAGE,
+                                filteredActiveStaff.length
+                              ) || ITEMS_PER_PAGE,
+                          }).map((_, idx) => (
+                            <TableRow key={`skeleton-${idx}`}>
+                              <TableCell
+                                colSpan={6}
+                                className="h-[76px] px-5 py-4"
+                              >
+                                <div className="flex items-center gap-4">
+                                  <div className="h-10 w-10 rounded-full bg-gray-100 animate-pulse shrink-0" />
+                                  <div className="space-y-2 flex-1">
+                                    <div className="h-4 w-1/4 bg-gray-100 animate-pulse rounded" />
+                                    <div className="h-3 w-1/5 bg-gray-50 animate-pulse rounded" />
+                                  </div>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        ) : paginatedStaff.length === 0 ? (
+                          <TableRow>
+                            <TableCell
+                              colSpan={6}
+                              className="h-32 text-center text-gray-500"
+                            >
+                              No results found for this page.
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          paginatedStaff.map(staff => (
+                            <TableRow
+                              key={staff.id}
+                              className={`group hover:bg-blue-50/40 border-b border-gray-100 cursor-pointer transition-colors ${staff.employmentStatus === "Inactive" ? "bg-gray-50/50 opacity-70" : "bg-white"}`}
+                              onClick={() => setLocation(`/staff/${staff.id}`)}
+                            >
+                              <TableCell
+                                className="px-5 py-3.5"
+                                onClick={e => e.stopPropagation()}
+                              >
+                                <Checkbox
+                                  className="border-gray-300 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                  checked={selectedStaffIds.has(staff.id)}
+                                  onCheckedChange={checked =>
+                                    toggleSelectOne(staff.id, !!checked)
+                                  }
+                                />
+                              </TableCell>
+                              <TableCell className="px-5 py-3.5">
+                                <div className="flex items-center gap-3">
+                                  <div
+                                    className={`h-10 w-10 rounded-full ${staff.avatarColor || "bg-gray-200"} flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-sm border-2 border-white`}
+                                  >
+                                    {staff.avatar ||
+                                      staff.name.substring(0, 2).toUpperCase()}
+                                  </div>
+                                  <div className="flex flex-col py-0.5">
+                                    <span
+                                      className={`font-semibold text-sm leading-tight truncate max-w-[200px] ${staff.employmentStatus === "Inactive" ? "text-gray-500 line-through" : "text-gray-900"}`}
+                                    >
+                                      {staff.name}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground mt-0.5 font-medium">
+                                      {staff.staffId
+                                        ? `ID: ${staff.staffId}`
+                                        : "---"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-3.5">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                                    <Mail className="h-3.5 w-3.5 text-gray-400" />
+                                    <span className="truncate max-w-[180px]">
+                                      {staff.email}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs font-medium text-gray-600">
+                                    <Phone className="h-3.5 w-3.5 text-gray-400" />
+                                    <span>{staff.phone || "---"}</span>
+                                  </div>
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-3.5">
+                                <div className="flex flex-col gap-1.5 justify-center py-1">
+                                  <span className="text-sm text-gray-900 font-semibold truncate max-w-[150px]">
+                                    {staff.role || "Unassigned"}
+                                  </span>
+                                  {staff.roleType && (
+                                    <div className="flex items-center">
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[10px] font-semibold text-gray-500 bg-gray-50 border-gray-200 shadow-none px-1.5 py-0 capitalize tracking-wide"
+                                      >
+                                        {staff.roleType === "Field Service"
+                                          ? "Field Service Staff"
+                                          : staff.roleType === "Internal Staff"
+                                            ? "Internal Staff"
+                                            : staff.roleType}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </div>
+                              </TableCell>
+                              <TableCell className="px-5 py-3.5">
+                                <div className="flex items-center">
+                                  <span
+                                    className={`inline-flex items-center lowercase text-xs font-medium tracking-wide ${getStatusBadge(staff.status, staff.employmentStatus)}`}
+                                  >
+                                    {staff.employmentStatus === "Active"
+                                      ? staff.status
+                                      : staff.employmentStatus}
+                                  </span>
+                                </div>
+                              </TableCell>
+                              <TableCell className="text-end px-5 py-3.5">
+                                <div
+                                  className="flex justify-end gap-1.5 transition-opacity"
+                                  onClick={e => e.stopPropagation()}
+                                >
+                                  <Button
+                                    variant="outline"
+                                    size="icon"
+                                    className="h-8 w-8 text-gray-500 border-gray-200 bg-white hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 transition-colors shadow-sm"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      setLocation(`/staff/${staff.id}`);
+                                    }}
+                                    title="View User"
+                                  >
+                                    <Eye className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            </TableRow>
+                          ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  )}
+                </div>
+
+                {/* Pagination Footer */}
+                {filteredActiveStaff.length > 0 && (
+                  <div className="border-t border-gray-200 bg-gray-50 p-3 flex items-center justify-between shrink-0">
+                    <div className="text-xs text-gray-500 font-medium">
+                      Showing{" "}
+                      <span className="font-bold text-gray-900">
+                        {filteredActiveStaff.length > 0
+                          ? (currentPage - 1) * ITEMS_PER_PAGE + 1
+                          : 0}
+                      </span>{" "}
+                      to{" "}
+                      <span className="font-bold text-gray-900">
+                        {Math.min(
+                          filteredActiveStaff.length,
+                          currentPage * ITEMS_PER_PAGE
+                        )}
+                      </span>{" "}
+                      of{" "}
+                      <span className="font-bold text-gray-900">
+                        {filteredActiveStaff.length}
+                      </span>{" "}
+                      results
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
+                        onClick={() => handlePageChange(1)}
+                        disabled={currentPage === 1 || isTableLoading}
+                      >
+                        <ChevronsLeft className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
+                        onClick={() =>
+                          handlePageChange(Math.max(1, currentPage - 1))
+                        }
+                        disabled={currentPage === 1 || isTableLoading}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <div className="text-xs font-semibold px-3 min-w-[4rem] text-center text-gray-700 flex items-center justify-center">
+                        {isTableLoading ? (
+                          <span className="animate-pulse bg-gray-200 rounded h-4 w-10 inline-block" />
+                        ) : (
+                          `Page ${currentPage} of ${totalPages}`
+                        )}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
+                        onClick={() =>
+                          handlePageChange(
+                            Math.min(totalPages, currentPage + 1)
+                          )
+                        }
+                        disabled={currentPage === totalPages || isTableLoading}
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm"
+                        onClick={() => handlePageChange(totalPages)}
+                        disabled={currentPage === totalPages || isTableLoading}
+                      >
+                        <ChevronsRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </Card>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -756,22 +880,28 @@ export default function Workforce() {
                 <Mail className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold text-gray-900">Invite New Staff</DialogTitle>
-                <p className="text-xs text-gray-500 mt-1">Send an invitation link to onboard a new team member.</p>
+                <DialogTitle className="text-lg font-bold text-gray-900">
+                  Invite New Staff
+                </DialogTitle>
+                <p className="text-xs text-gray-500 mt-1">
+                  Send an invitation link to onboard a new team member.
+                </p>
               </div>
             </div>
           </DialogHeader>
-          
+
           <div className="px-8 py-6 bg-white">
             <div className="grid grid-cols-1 gap-5">
               <div className="flex flex-col h-full">
                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
                   Full Name <span className="text-red-500">*</span>
                 </Label>
-                <Input 
-                  value={inviteData.name} 
+                <Input
+                  value={inviteData.name}
                   placeholder="e.g. John Doe"
-                  onChange={e => setInviteData({...inviteData, name: e.target.value})}
+                  onChange={e =>
+                    setInviteData({ ...inviteData, name: e.target.value })
+                  }
                   className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                 />
               </div>
@@ -780,11 +910,13 @@ export default function Workforce() {
                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
                   Email Address <span className="text-red-500">*</span>
                 </Label>
-                <Input 
+                <Input
                   type="email"
                   placeholder="e.g. john@example.com"
-                  value={inviteData.email} 
-                  onChange={e => setInviteData({...inviteData, email: e.target.value})}
+                  value={inviteData.email}
+                  onChange={e =>
+                    setInviteData({ ...inviteData, email: e.target.value })
+                  }
                   className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
                 />
               </div>
@@ -793,33 +925,40 @@ export default function Workforce() {
                 <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
                   Role <span className="text-red-500">*</span>
                 </Label>
-                <Select value={inviteData.role} onValueChange={v => setInviteData({...inviteData, role: v})}>
+                <Select
+                  value={inviteData.role}
+                  onValueChange={v => setInviteData({ ...inviteData, role: v })}
+                >
                   <SelectTrigger className="mt-auto bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 text-gray-600">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Field Service Staff">Field Service Staff</SelectItem>
+                    <SelectItem value="Field Service Staff">
+                      Field Service Staff
+                    </SelectItem>
                     <SelectItem value="Driver">Driver</SelectItem>
-                    <SelectItem value="Internal Staff">Internal Staff</SelectItem>
+                    <SelectItem value="Internal Staff">
+                      Internal Staff
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
-          
+
           <DialogFooter className="px-8 py-5 border-t border-gray-100 bg-gray-50/80 flex items-center justify-between sm:justify-between">
-            <Button 
-                variant="ghost" 
-                className="h-10 px-6 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-semibold transition-colors" 
-                onClick={() => setIsInviteOpen(false)}
+            <Button
+              variant="ghost"
+              className="h-10 px-6 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-semibold transition-colors"
+              onClick={() => setIsInviteOpen(false)}
             >
-                Cancel
+              Cancel
             </Button>
-            <Button 
-                className="h-10 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all rounded-xl font-bold flex items-center gap-2 text-white text-sm" 
-                onClick={handleInviteSubmit}
+            <Button
+              className="h-10 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all rounded-xl font-bold flex items-center gap-2 text-white text-sm"
+              onClick={handleInviteSubmit}
             >
-                Send Invite <ArrowRight className="w-4 h-4" />
+              Send Invite <ArrowRight className="w-4 h-4" />
             </Button>
           </DialogFooter>
         </DialogContent>

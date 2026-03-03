@@ -1,6 +1,12 @@
 import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, TrendingUp, CreditCard, Receipt, AlertCircle } from "lucide-react";
+import {
+  DollarSign,
+  TrendingUp,
+  CreditCard,
+  Receipt,
+  AlertCircle,
+} from "lucide-react";
 
 export default function Finance() {
   return (
@@ -10,7 +16,8 @@ export default function Finance() {
         <div>
           <h1 className="text-3xl font-bold">Finance</h1>
           <p className="text-muted-foreground mt-2">
-            Simple money health overview - track revenue, payouts, refunds, and reconciliation
+            Simple money health overview - track revenue, payouts, refunds, and
+            reconciliation
           </p>
         </div>
 
@@ -20,9 +27,12 @@ export default function Finance() {
             <div className="flex items-start gap-4">
               <AlertCircle className="h-6 w-6 text-blue-600 flex-shrink-0 mt-1" />
               <div>
-                <h3 className="font-semibold text-blue-900 mb-2">Module Under Development</h3>
+                <h3 className="font-semibold text-blue-900 mb-2">
+                  Module Under Development
+                </h3>
                 <p className="text-sm text-blue-800 mb-4">
-                  The Finance module is currently being built. This feature will help you:
+                  The Finance module is currently being built. This feature will
+                  help you:
                 </p>
                 <ul className="text-sm text-blue-800 space-y-1 list-disc list-inside">
                   <li>Track revenue and earnings</li>
@@ -32,7 +42,8 @@ export default function Finance() {
                   <li>See "how much I made" at a glance</li>
                 </ul>
                 <p className="text-sm text-blue-800 mt-4 font-medium">
-                  Note: This is not accounting software - it's financial clarity for operations
+                  Note: This is not accounting software - it's financial clarity
+                  for operations
                 </p>
               </div>
             </div>
@@ -43,7 +54,9 @@ export default function Finance() {
         <div className="grid gap-6 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Total Revenue
+              </CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -54,7 +67,9 @@ export default function Finance() {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
+              <CardTitle className="text-sm font-medium">
+                Pending Payouts
+              </CardTitle>
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>

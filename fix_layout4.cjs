@@ -1,41 +1,89 @@
-const fs = require('fs');
-const file = 'client/src/pages/StaffPendingInviteDetails.tsx';
-let content = fs.readFileSync(file, 'utf8');
+const fs = require("fs");
+const file = "client/src/pages/StaffPendingInviteDetails.tsx";
+let content = fs.readFileSync(file, "utf8");
 
-if (!content.includes('const STYLES = {')) {
+if (!content.includes("const STYLES = {")) {
   content = content.replace(
-    'export default function StaffPendingInviteDetails() {',
+    "export default function StaffPendingInviteDetails() {",
     'const STYLES = {\n  sectionTitle: "text-[16px] font-semibold text-gray-900 mb-5 relative pl-3 before:absolute before:left-0 before:top-1 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-full",\n  label: "text-[13px] text-gray-600 font-medium mb-1.5 block",\n  input: "w-full h-[38px] text-sm bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg transition-all",\n  card: "bg-white p-6 shadow-sm border border-gray-100/50 rounded-xl hover:shadow-md transition-shadow duration-200",\n};\n\nexport default function StaffPendingInviteDetails() {'
   );
 }
 
 // Map the precise long input and label classes
-content = content.replace(/className=\"text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1\.5 block\"/g, 'className={STYLES.label}');
-content = content.replace(/className=\"text-xs font-semibold text-gray-500 mb-1\.5 block\"/g, 'className={STYLES.label}');
-content = content.replace(/className=\"text-xs font-[^"]*text-gray-500[^"]*\"/g, (match, p1) => {
-    if (match.includes("mb-1.5") || match.includes("tracking-wide")) return "className={STYLES.label}";
+content = content.replace(
+  /className=\"text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1\.5 block\"/g,
+  "className={STYLES.label}"
+);
+content = content.replace(
+  /className=\"text-xs font-semibold text-gray-500 mb-1\.5 block\"/g,
+  "className={STYLES.label}"
+);
+content = content.replace(
+  /className=\"text-xs font-[^"]*text-gray-500[^"]*\"/g,
+  (match, p1) => {
+    if (match.includes("mb-1.5") || match.includes("tracking-wide"))
+      return "className={STYLES.label}";
     return match;
-});
+  }
+);
 
 // Inputs
-content = content.replace(/className=\"(mt-auto )?h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100( placeholder:text-gray-400)?\"/g, 'className={STYLES.input}');
-content = content.replace(/className=\"(mt-auto )?h-10 w-full border-gray-200 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400\"/g, 'className={STYLES.input}');
-content = content.replace(/className=\"(mt-auto )?bg-(white|gray-50) w-full h-10 border-gray-200 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100 text-gray-600\"/g, 'className={STYLES.input}');
-content = content.replace(/className=\"mt-auto bg-gray-50 w-full h-10 border-gray-200 transition-all text-\[13px\] rounded-lg text-gray-500\"/g, 'className={STYLES.input}');
-content = content.replace(/className=\"(mt-auto )?bg-gray-50 w-full h-10 border-gray-200 text-gray-500 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100\"/g, 'className={STYLES.input}');
-content = content.replace(/className=\"w-full text-left font-normal bg-white h-10 border-gray-200 text-\[13px\]\"\n/g, 'className={`w-full text-left font-normal justify-between ${STYLES.input}`}\n');
-content = content.replace(/className=\"w-full flex justify-between items-center text-left font-normal bg-white h-10 border-gray-200 text-\[13px\]\"/g, 'className={`w-full flex justify-between items-center text-left font-normal ${STYLES.input}`}');
-content = content.replace(/className=\"h-10 text-[13px] border-gray-200 bg-white\"/g, 'className={STYLES.input}');
-content = content.replace(/className=\"min-h-\[100px\] text-\[13px\] resize-none bg-gray-50 border-gray-200 mt-1\"/g, 'className={STYLES.input + " min-h-[100px] resize-none"}');
-content = content.replace(/className=\"text-xs file:text-xs file:font-medium file:text-blue-600 file:bg-blue-50 file:border-0 file:mr-3 file:px-2 file:py-1 file:rounded-md h-10 w-full bg-gray-50 border-gray-200 hover:border-blue-300 transition-all\"/g, 'className={STYLES.input + " file:text-xs file:font-medium file:text-blue-600 file:bg-blue-50 file:border-0 file:mr-3 file:px-2 file:py-1 file:rounded-md"}');
-content = content.replace(/<SelectTrigger className=".*h-10.*"/g, `<SelectTrigger className={STYLES.input}`);
+content = content.replace(
+  /className=\"(mt-auto )?h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100( placeholder:text-gray-400)?\"/g,
+  "className={STYLES.input}"
+);
+content = content.replace(
+  /className=\"(mt-auto )?h-10 w-full border-gray-200 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400\"/g,
+  "className={STYLES.input}"
+);
+content = content.replace(
+  /className=\"(mt-auto )?bg-(white|gray-50) w-full h-10 border-gray-200 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100 text-gray-600\"/g,
+  "className={STYLES.input}"
+);
+content = content.replace(
+  /className=\"mt-auto bg-gray-50 w-full h-10 border-gray-200 transition-all text-\[13px\] rounded-lg text-gray-500\"/g,
+  "className={STYLES.input}"
+);
+content = content.replace(
+  /className=\"(mt-auto )?bg-gray-50 w-full h-10 border-gray-200 text-gray-500 transition-all text-\[13px\] rounded-lg focus:ring-2 focus:ring-blue-100\"/g,
+  "className={STYLES.input}"
+);
+content = content.replace(
+  /className=\"w-full text-left font-normal bg-white h-10 border-gray-200 text-\[13px\]\"\n/g,
+  "className={`w-full text-left font-normal justify-between ${STYLES.input}`}\n"
+);
+content = content.replace(
+  /className=\"w-full flex justify-between items-center text-left font-normal bg-white h-10 border-gray-200 text-\[13px\]\"/g,
+  "className={`w-full flex justify-between items-center text-left font-normal ${STYLES.input}`}"
+);
+content = content.replace(
+  /className=\"h-10 text-[13px] border-gray-200 bg-white\"/g,
+  "className={STYLES.input}"
+);
+content = content.replace(
+  /className=\"min-h-\[100px\] text-\[13px\] resize-none bg-gray-50 border-gray-200 mt-1\"/g,
+  'className={STYLES.input + " min-h-[100px] resize-none"}'
+);
+content = content.replace(
+  /className=\"text-xs file:text-xs file:font-medium file:text-blue-600 file:bg-blue-50 file:border-0 file:mr-3 file:px-2 file:py-1 file:rounded-md h-10 w-full bg-gray-50 border-gray-200 hover:border-blue-300 transition-all\"/g,
+  'className={STYLES.input + " file:text-xs file:font-medium file:text-blue-600 file:bg-blue-50 file:border-0 file:mr-3 file:px-2 file:py-1 file:rounded-md"}'
+);
+content = content.replace(
+  /<SelectTrigger className=".*h-10.*"/g,
+  `<SelectTrigger className={STYLES.input}`
+);
 
 // Buttons
-const primaryBtnTarget = 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50';
-content = content.replace(/className=\"h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2\"/g, 
-  `className="${primaryBtnTarget} h-10 flex items-center justify-center"`);
-content = content.replace(/className=\"w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600\/20 transition-all flex items-center justify-center gap-2 mt-8\"/g, 
-  `className="${primaryBtnTarget} w-full h-10 flex items-center justify-center mt-8"`);
+const primaryBtnTarget =
+  "bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50";
+content = content.replace(
+  /className=\"h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2\"/g,
+  `className="${primaryBtnTarget} h-10 flex items-center justify-center"`
+);
+content = content.replace(
+  /className=\"w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600\/20 transition-all flex items-center justify-center gap-2 mt-8\"/g,
+  `className="${primaryBtnTarget} w-full h-10 flex items-center justify-center mt-8"`
+);
 
 // Remove Sidebar & Apply Container wrapper
 const topHtml = `<div className="flex flex-col h-[calc(100vh-64px)] bg-gray-50/50">
@@ -67,50 +115,115 @@ const topHtml = `<div className="flex flex-col h-[calc(100vh-64px)] bg-gray-50/5
 
 // Safely cut out existing Dashboard Layout space-y-6 wrapper up to 0. BASIC INFORMATION
 const startMatch = '<div className="space-y-6">';
-const endMatch = '{/* 0. BASIC INFORMATION */}';
+const endMatch = "{/* 0. BASIC INFORMATION */}";
 const startIndex = content.indexOf(startMatch);
 const endIndex = content.indexOf(endMatch);
 if (startIndex !== -1 && endIndex !== -1) {
-    content = content.substring(0, startIndex) + topHtml + '\n' + content.substring(endIndex);
+  content =
+    content.substring(0, startIndex) +
+    topHtml +
+    "\n" +
+    content.substring(endIndex);
 }
 
 // Carefully remove exact "Summary & Activation" block text.
-const summaryRegex = /<div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent[^>]*>\s*<div[^>]*>\s*<ShieldCheck[^>]*>\s*<\/div>\s*<h2[^>]*>Review & Activate<\/h2>\s*<p[^>]*>\s*Finalize the staff member's profile for deployment.\s*<\/p>\s*<\/div>/g;
+const summaryRegex =
+  /<div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent[^>]*>\s*<div[^>]*>\s*<ShieldCheck[^>]*>\s*<\/div>\s*<h2[^>]*>Review & Activate<\/h2>\s*<p[^>]*>\s*Finalize the staff member's profile for deployment.\s*<\/p>\s*<\/div>/g;
 
-content = content.replace(summaryRegex, `<div className={STYLES.card}><h3 className={STYLES.sectionTitle}>Summary</h3><div className="mb-6"><p className="text-sm text-gray-500">Review the finalized staff member's profile for deployment.</p></div></div>`);
+content = content.replace(
+  summaryRegex,
+  `<div className={STYLES.card}><h3 className={STYLES.sectionTitle}>Summary</h3><div className="mb-6"><p className="text-sm text-gray-500">Review the finalized staff member's profile for deployment.</p></div></div>`
+);
 
 // Replace closing layout tags precisely
-content = content.replace(/<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/DashboardLayout>/, '</div></div></div></DashboardLayout>');
-content = content.replace(/<\/div>\s*<\/div>\s*<\/DashboardLayout>/, '</div></div></DashboardLayout>');
+content = content.replace(
+  /<\/div>\s*<\/div>\s*<\/div>\s*<\/div>\s*<\/DashboardLayout>/,
+  "</div></div></div></DashboardLayout>"
+);
+content = content.replace(
+  /<\/div>\s*<\/div>\s*<\/DashboardLayout>/,
+  "</div></div></DashboardLayout>"
+);
 
 // Convert all top-level step wrappers into just divs
-content = content.replace(/{currentStep === 0 && \(/g, '<div className="space-y-8">');
-content = content.replace(/{currentStep === 1 && \(/g, '<div className="space-y-8">');
-content = content.replace(/{currentStep === 2 && \(/g, '<div className="space-y-8">');
-content = content.replace(/{currentStep === 3 && \(/g, '<div className="space-y-8">');
-content = content.replace(/{currentStep === 4 && \(/g, '<div className="space-y-8">');
-content = content.replace(/{currentStep === 99 && \(/g, '<div className="space-y-8">');
+content = content.replace(
+  /{currentStep === 0 && \(/g,
+  '<div className="space-y-8">'
+);
+content = content.replace(
+  /{currentStep === 1 && \(/g,
+  '<div className="space-y-8">'
+);
+content = content.replace(
+  /{currentStep === 2 && \(/g,
+  '<div className="space-y-8">'
+);
+content = content.replace(
+  /{currentStep === 3 && \(/g,
+  '<div className="space-y-8">'
+);
+content = content.replace(
+  /{currentStep === 4 && \(/g,
+  '<div className="space-y-8">'
+);
+content = content.replace(
+  /{currentStep === 99 && \(/g,
+  '<div className="space-y-8">'
+);
 
-content = content.replace(/\n\s{20,24}\)\}/g, '\n                    </div>');
+content = content.replace(/\n\s{20,24}\)\}/g, "\n                    </div>");
 
 // Map container boxes style to Cards exactly
-content = content.replace(/<div className="bg-white border text-center p-8 rounded-2xl shadow-\[0_2px_10px_rgb\(0,0,0,0\.02\)\] hover:shadow-md transition-shadow relative overflow-hidden group">/g, '<div className={STYLES.card + " text-center relative overflow-hidden group border-blue-100"}>');
-content = content.replace(/<div className="bg-white border border-gray-100 rounded-2xl shadow-\[0_2px_10px_rgb\(0,0,0,0\.02\)\] p-6 space-y-6 relative overflow-hidden transition-all duration-300">/g, '<div className={STYLES.card + " space-y-6 relative overflow-hidden transition-all duration-300"}>');
-content = content.replace(/<div className="bg-white border border-gray-100 rounded-2xl shadow-\[0_2px_10px_rgb\(0,0,0,0\.02\)\] p-6 space-y-6 relative overflow-hidden">/g, '<div className={STYLES.card + " space-y-6 relative overflow-hidden"}>');
+content = content.replace(
+  /<div className="bg-white border text-center p-8 rounded-2xl shadow-\[0_2px_10px_rgb\(0,0,0,0\.02\)\] hover:shadow-md transition-shadow relative overflow-hidden group">/g,
+  '<div className={STYLES.card + " text-center relative overflow-hidden group border-blue-100"}>'
+);
+content = content.replace(
+  /<div className="bg-white border border-gray-100 rounded-2xl shadow-\[0_2px_10px_rgb\(0,0,0,0\.02\)\] p-6 space-y-6 relative overflow-hidden transition-all duration-300">/g,
+  '<div className={STYLES.card + " space-y-6 relative overflow-hidden transition-all duration-300"}>'
+);
+content = content.replace(
+  /<div className="bg-white border border-gray-100 rounded-2xl shadow-\[0_2px_10px_rgb\(0,0,0,0\.02\)\] p-6 space-y-6 relative overflow-hidden">/g,
+  '<div className={STYLES.card + " space-y-6 relative overflow-hidden"}>'
+);
 
 // Destroy footer buttons
-content = content.replace(/<div className="pt-8 border-t border-gray-100 flex items-center justify-between">[\s\S]*?<\/div>\n\s*<\/div>/g, '</div>');
-content = content.replace(/<div className="pt-4 flex items-center justify-between">[\s\S]*?<\/div>\n\s*<\/div>/g, '</div>');
+content = content.replace(
+  /<div className="pt-8 border-t border-gray-100 flex items-center justify-between">[\s\S]*?<\/div>\n\s*<\/div>/g,
+  "</div>"
+);
+content = content.replace(
+  /<div className="pt-4 flex items-center justify-between">[\s\S]*?<\/div>\n\s*<\/div>/g,
+  "</div>"
+);
 
 // Map headers directly to STYLES.sectionTitle avoiding nested <div>
-content = content.replace(/<div className="flex items-center gap-3 pb-3 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Personal Details<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g, '<h3 className={STYLES.sectionTitle}>Personal Details</h3>');
-content = content.replace(/<div className="flex items-center gap-3 pb-2 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Role Information<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g, '<h3 className={STYLES.sectionTitle}>Role Information</h3>');
-content = content.replace(/<div className="flex items-center gap-3 pb-2 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Compensation<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g, '<h3 className={STYLES.sectionTitle}>Compensation</h3>');
-content = content.replace(/<div className="flex items-center gap-3 pb-2 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Professional Profile<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g, '<h3 className={STYLES.sectionTitle}>Professional Profile</h3>');
-content = content.replace(/<div className="flex items-center gap-3 pb-4 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Access & Security<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g, '<h3 className={STYLES.sectionTitle}>Access & Security</h3>');
+content = content.replace(
+  /<div className="flex items-center gap-3 pb-3 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Personal Details<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g,
+  "<h3 className={STYLES.sectionTitle}>Personal Details</h3>"
+);
+content = content.replace(
+  /<div className="flex items-center gap-3 pb-2 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Role Information<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g,
+  "<h3 className={STYLES.sectionTitle}>Role Information</h3>"
+);
+content = content.replace(
+  /<div className="flex items-center gap-3 pb-2 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Compensation<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g,
+  "<h3 className={STYLES.sectionTitle}>Compensation</h3>"
+);
+content = content.replace(
+  /<div className="flex items-center gap-3 pb-2 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Professional Profile<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g,
+  "<h3 className={STYLES.sectionTitle}>Professional Profile</h3>"
+);
+content = content.replace(
+  /<div className="flex items-center gap-3 pb-4 border-b border-gray-100">\s*<div.*?<\/div>\s*<div>\s*<h3 className="text-lg font-bold text-gray-900">Access & Security<\/h3>\s*<p className="text-xs text-gray-500">.*?<\/p>\s*<\/div>\s*<\/div>/g,
+  "<h3 className={STYLES.sectionTitle}>Access & Security</h3>"
+);
 
 // Quick fixes for currentStep warnings
-content = content.replace(/const \[currentStep, setCurrentStep\] = useState\(0\);/g, 'const currentStep = 0;');
+content = content.replace(
+  /const \[currentStep, setCurrentStep\] = useState\(0\);/g,
+  "const currentStep = 0;"
+);
 
 fs.writeFileSync(file, content);
 console.log("Success");

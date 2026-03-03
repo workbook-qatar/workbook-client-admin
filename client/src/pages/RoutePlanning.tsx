@@ -1,5 +1,24 @@
 import { useState } from "react";
-import { Calendar, Users, AlertCircle, CheckCircle, Car, Briefcase, Clock, MapPin, User, Filter, TrendingUp, X, Phone, Mail, MapPinned, ChevronRight, ChevronLeft, Check } from "lucide-react";
+import {
+  Calendar,
+  Users,
+  AlertCircle,
+  CheckCircle,
+  Car,
+  Briefcase,
+  Clock,
+  MapPin,
+  User,
+  Filter,
+  TrendingUp,
+  X,
+  Phone,
+  Mail,
+  MapPinned,
+  ChevronRight,
+  ChevronLeft,
+  Check,
+} from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -41,7 +60,7 @@ const initialBookings = [
     priority: "normal" as const,
     distance: "12.5 km",
     lat: 25.2854,
-    lng: 51.5310,
+    lng: 51.531,
   },
   {
     id: "#BK003",
@@ -78,8 +97,8 @@ const initialBookings = [
     staffAssigned: "Tariq Hassan",
     priority: "normal" as const,
     distance: "8.7 km",
-    lat: 25.3180,
-    lng: 51.5310,
+    lat: 25.318,
+    lng: 51.531,
   },
   {
     id: "#BK012",
@@ -97,8 +116,8 @@ const initialBookings = [
     staffAssigned: "Ali Hassan",
     priority: "normal" as const,
     distance: "15.2 km",
-    lat: 25.3700,
-    lng: 51.5400,
+    lat: 25.37,
+    lng: 51.54,
   },
   {
     id: "#BK015",
@@ -116,8 +135,8 @@ const initialBookings = [
     staffAssigned: "Mohammed Youssef",
     priority: "high" as const,
     distance: "22.1 km",
-    lat: 25.3210,
-    lng: 51.5280,
+    lat: 25.321,
+    lng: 51.528,
   },
   {
     id: "#BK020",
@@ -173,8 +192,8 @@ const initialBookings = [
     staffAssigned: "Ahmed Ali",
     priority: "normal" as const,
     distance: "14.8 km",
-    lat: 25.2760,
-    lng: 51.5260,
+    lat: 25.276,
+    lng: 51.526,
   },
 ];
 
@@ -190,7 +209,7 @@ const drivers = [
     completedToday: 2,
     totalKm: 45.3,
     currentLat: 25.2854,
-    currentLng: 51.5310,
+    currentLng: 51.531,
   },
   {
     id: "driver2",
@@ -202,8 +221,8 @@ const drivers = [
     rating: 4.9,
     completedToday: 1,
     totalKm: 28.7,
-    currentLat: 25.3700,
-    currentLng: 51.5400,
+    currentLat: 25.37,
+    currentLng: 51.54,
   },
   {
     id: "driver3",
@@ -239,8 +258,12 @@ export default function RoutePlanning() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [timeFilter, setTimeFilter] = useState("all");
-  const [selectedDrivers, setSelectedDrivers] = useState<string[]>(drivers.map(d => d.id));
-  const [selectedBooking, setSelectedBooking] = useState<typeof initialBookings[0] | null>(null);
+  const [selectedDrivers, setSelectedDrivers] = useState<string[]>(
+    drivers.map(d => d.id)
+  );
+  const [selectedBooking, setSelectedBooking] = useState<
+    (typeof initialBookings)[0] | null
+  >(null);
   const [isMapOpen, setIsMapOpen] = useState(true);
   const [isDriverFilterOpen, setIsDriverFilterOpen] = useState(false);
 
@@ -248,7 +271,12 @@ export default function RoutePlanning() {
   const stats = {
     total: bookings.length,
     needsDriver: bookings.filter(b => !b.assignedDriver).length,
-    assigned: bookings.filter(b => b.assignedDriver && b.bookingStatus !== "completed" && b.bookingStatus !== "ongoing").length,
+    assigned: bookings.filter(
+      b =>
+        b.assignedDriver &&
+        b.bookingStatus !== "completed" &&
+        b.bookingStatus !== "ongoing"
+    ).length,
     inTransit: bookings.filter(b => b.bookingStatus === "ongoing").length,
     completed: bookings.filter(b => b.bookingStatus === "completed").length,
     availableDrivers: drivers.filter(d => d.status === "available").length,
@@ -257,19 +285,21 @@ export default function RoutePlanning() {
   // Get bookings for a specific driver or unassigned
   const getBookingsForDriver = (driverId: string | null) => {
     let filtered = bookings.filter(b => b.assignedDriver === driverId);
-    
+
     // Apply driver filter
     if (driverId && !selectedDrivers.includes(driverId)) {
       return [];
     }
-    
+
     // Sort: pending/ongoing first, completed last
     filtered.sort((a, b) => {
-      if (a.bookingStatus === "completed" && b.bookingStatus !== "completed") return 1;
-      if (a.bookingStatus !== "completed" && b.bookingStatus === "completed") return -1;
+      if (a.bookingStatus === "completed" && b.bookingStatus !== "completed")
+        return 1;
+      if (a.bookingStatus !== "completed" && b.bookingStatus === "completed")
+        return -1;
       return 0;
     });
-    
+
     return filtered;
   };
 
@@ -280,7 +310,12 @@ export default function RoutePlanning() {
     if (statusFilter === "unassigned") {
       filtered = filtered.filter(b => !b.assignedDriver);
     } else if (statusFilter === "assigned") {
-      filtered = filtered.filter(b => b.assignedDriver !== null && b.bookingStatus !== "completed" && b.bookingStatus !== "ongoing");
+      filtered = filtered.filter(
+        b =>
+          b.assignedDriver !== null &&
+          b.bookingStatus !== "completed" &&
+          b.bookingStatus !== "ongoing"
+      );
     } else if (statusFilter === "intransit") {
       filtered = filtered.filter(b => b.bookingStatus === "ongoing");
     } else if (statusFilter === "completed") {
@@ -321,28 +356,33 @@ export default function RoutePlanning() {
   const handleDropOnDriver = (e: React.DragEvent, driverId: string | null) => {
     e.preventDefault();
     const bookingId = e.dataTransfer.getData("bookingId");
-    
-    setBookings(prev => prev.map(booking => {
-      if (booking.id === bookingId) {
-        if (driverId === null) {
-          toast.info(`Booking ${bookingId} moved to unassigned`);
-          return {
-            ...booking,
-            assignedDriver: null,
-            bookingStatus: "pending" as any,
-          };
-        } else {
-          const driver = drivers.find(d => d.id === driverId);
-          toast.success(`Booking ${bookingId} assigned to ${driver?.name}`);
-          return {
-            ...booking,
-            assignedDriver: driverId,
-            bookingStatus: booking.bookingStatus === "completed" ? "completed" : "pending" as any,
-          };
+
+    setBookings(prev =>
+      prev.map(booking => {
+        if (booking.id === bookingId) {
+          if (driverId === null) {
+            toast.info(`Booking ${bookingId} moved to unassigned`);
+            return {
+              ...booking,
+              assignedDriver: null,
+              bookingStatus: "pending" as any,
+            };
+          } else {
+            const driver = drivers.find(d => d.id === driverId);
+            toast.success(`Booking ${bookingId} assigned to ${driver?.name}`);
+            return {
+              ...booking,
+              assignedDriver: driverId,
+              bookingStatus:
+                booking.bookingStatus === "completed"
+                  ? "completed"
+                  : ("pending" as any),
+            };
+          }
         }
-      }
-      return booking;
-    }));
+        return booking;
+      })
+    );
   };
 
   // Handle drag over
@@ -392,17 +432,30 @@ export default function RoutePlanning() {
   };
 
   // Booking Card Component
-  const BookingCard = ({ booking }: { booking: typeof initialBookings[0] }) => {
+  const BookingCard = ({
+    booking,
+  }: {
+    booking: (typeof initialBookings)[0];
+  }) => {
     const statusConfig = {
-      pending: { label: "Pending", color: "bg-gray-100 text-gray-700 border-gray-300" },
-      ongoing: { label: "Ongoing", color: "bg-blue-100 text-blue-700 border-blue-300" },
-      completed: { label: "Completed", color: "bg-green-100 text-green-700 border-green-300" },
+      pending: {
+        label: "Pending",
+        color: "bg-gray-100 text-gray-700 border-gray-300",
+      },
+      ongoing: {
+        label: "Ongoing",
+        color: "bg-blue-100 text-blue-700 border-blue-300",
+      },
+      completed: {
+        label: "Completed",
+        color: "bg-green-100 text-green-700 border-green-300",
+      },
     };
 
     return (
       <div
         draggable
-        onDragStart={(e) => handleDragStart(e, booking.id)}
+        onDragStart={e => handleDragStart(e, booking.id)}
         onClick={() => setSelectedBooking(booking)}
         className={`bg-white border rounded-lg p-3 cursor-pointer hover:shadow-md transition-all ${
           booking.priority === "high" ? "border-l-4 border-l-orange-500" : ""
@@ -410,7 +463,9 @@ export default function RoutePlanning() {
       >
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1">
-            <h4 className="font-semibold text-sm text-gray-900">{booking.customer}</h4>
+            <h4 className="font-semibold text-sm text-gray-900">
+              {booking.customer}
+            </h4>
             <span className="text-xs text-gray-500">{booking.id}</span>
           </div>
           <div className="flex flex-col gap-1 items-end">
@@ -419,7 +474,9 @@ export default function RoutePlanning() {
                 High
               </span>
             )}
-            <span className={`text-xs px-2 py-0.5 rounded border font-medium ${statusConfig[booking.bookingStatus].color}`}>
+            <span
+              className={`text-xs px-2 py-0.5 rounded border font-medium ${statusConfig[booking.bookingStatus].color}`}
+            >
               {statusConfig[booking.bookingStatus].label}
             </span>
           </div>
@@ -459,21 +516,29 @@ export default function RoutePlanning() {
     <div className="flex flex-col h-screen bg-gray-50">
       {/* Header */}
       <div className="p-6 border-b bg-white">
-        <h1 className="text-2xl font-bold text-gray-900">Route Planning & Driver Assignment</h1>
-        <p className="text-gray-600 mt-1">Drag bookings between columns to assign drivers</p>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Route Planning & Driver Assignment
+        </h1>
+        <p className="text-gray-600 mt-1">
+          Drag bookings between columns to assign drivers
+        </p>
       </div>
 
       {/* Statistics Cards - Clickable */}
       <div className="px-6 py-4 bg-white border-b">
         <div className="grid grid-cols-6 gap-3">
-          <div 
+          <div
             onClick={() => handleStatClick("all")}
             className="bg-white border-2 border-gray-200 rounded-lg p-3 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 font-medium">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                <p className="text-xs text-gray-600 font-medium">
+                  Total Bookings
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.total}
+                </p>
               </div>
               <div className="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center">
                 <Briefcase className="h-5 w-5 text-blue-600" />
@@ -481,14 +546,18 @@ export default function RoutePlanning() {
             </div>
           </div>
 
-          <div 
+          <div
             onClick={() => handleStatClick("needsDriver")}
             className="bg-white border-2 border-orange-200 rounded-lg p-3 cursor-pointer hover:border-orange-400 hover:shadow-md transition-all"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-orange-700 font-semibold">Unassigned</p>
-                <p className="text-2xl font-bold text-orange-700">{stats.needsDriver}</p>
+                <p className="text-xs text-orange-700 font-semibold">
+                  Unassigned
+                </p>
+                <p className="text-2xl font-bold text-orange-700">
+                  {stats.needsDriver}
+                </p>
               </div>
               <div className="h-10 w-10 bg-orange-50 rounded-lg flex items-center justify-center">
                 <AlertCircle className="h-5 w-5 text-orange-600" />
@@ -496,14 +565,16 @@ export default function RoutePlanning() {
             </div>
           </div>
 
-          <div 
+          <div
             onClick={() => handleStatClick("assigned")}
             className="bg-white border-2 border-blue-200 rounded-lg p-3 cursor-pointer hover:border-blue-400 hover:shadow-md transition-all"
           >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-blue-600 font-semibold">Assigned</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.assigned}</p>
+                <p className="text-2xl font-bold text-blue-600">
+                  {stats.assigned}
+                </p>
               </div>
               <div className="h-10 w-10 bg-blue-50 rounded-lg flex items-center justify-center">
                 <CheckCircle className="h-5 w-5 text-blue-600" />
@@ -511,14 +582,18 @@ export default function RoutePlanning() {
             </div>
           </div>
 
-          <div 
+          <div
             onClick={() => handleStatClick("intransit")}
             className="bg-white border-2 border-purple-200 rounded-lg p-3 cursor-pointer hover:border-purple-400 hover:shadow-md transition-all"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-purple-600 font-semibold">In Transit</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.inTransit}</p>
+                <p className="text-xs text-purple-600 font-semibold">
+                  In Transit
+                </p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {stats.inTransit}
+                </p>
               </div>
               <div className="h-10 w-10 bg-purple-50 rounded-lg flex items-center justify-center">
                 <Car className="h-5 w-5 text-purple-600" />
@@ -526,14 +601,18 @@ export default function RoutePlanning() {
             </div>
           </div>
 
-          <div 
+          <div
             onClick={() => handleStatClick("completed")}
             className="bg-white border-2 border-green-200 rounded-lg p-3 cursor-pointer hover:border-green-400 hover:shadow-md transition-all"
           >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-green-600 font-semibold">Completed</p>
-                <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
+                <p className="text-xs text-green-600 font-semibold">
+                  Completed
+                </p>
+                <p className="text-2xl font-bold text-green-600">
+                  {stats.completed}
+                </p>
               </div>
               <div className="h-10 w-10 bg-green-50 rounded-lg flex items-center justify-center">
                 <CheckCircle className="h-5 w-5 text-green-600" />
@@ -544,8 +623,12 @@ export default function RoutePlanning() {
           <div className="bg-white border-2 border-gray-200 rounded-lg p-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-600 font-semibold">Available Drivers</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.availableDrivers}</p>
+                <p className="text-xs text-gray-600 font-semibold">
+                  Available Drivers
+                </p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {stats.availableDrivers}
+                </p>
               </div>
               <div className="h-10 w-10 bg-gray-50 rounded-lg flex items-center justify-center">
                 <Users className="h-5 w-5 text-gray-600" />
@@ -625,7 +708,10 @@ export default function RoutePlanning() {
           <div className="flex items-center gap-2 ml-auto">
             <Users className="h-4 w-4 text-gray-500" />
             <span className="text-sm text-gray-600 font-medium">Drivers:</span>
-            <Popover open={isDriverFilterOpen} onOpenChange={setIsDriverFilterOpen}>
+            <Popover
+              open={isDriverFilterOpen}
+              onOpenChange={setIsDriverFilterOpen}
+            >
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
@@ -635,8 +721,8 @@ export default function RoutePlanning() {
                     {selectedDrivers.length === drivers.length
                       ? "All Drivers"
                       : selectedDrivers.length === 0
-                      ? "No Drivers"
-                      : `${selectedDrivers.length} Selected`}
+                        ? "No Drivers"
+                        : `${selectedDrivers.length} Selected`}
                   </span>
                   <Filter className="ml-2 h-4 w-4 opacity-50" />
                 </Button>
@@ -702,15 +788,15 @@ export default function RoutePlanning() {
                             driver.status === "available"
                               ? "bg-green-100 text-green-700"
                               : driver.status === "busy"
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-purple-100 text-purple-700"
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-purple-100 text-purple-700"
                           }`}
                         >
                           {driver.status === "available"
                             ? "Available"
                             : driver.status === "busy"
-                            ? "Busy"
-                            : "On Route"}
+                              ? "Busy"
+                              : "On Route"}
                         </span>
                       </div>
                     </div>
@@ -725,32 +811,40 @@ export default function RoutePlanning() {
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Kanban Board */}
-        <div className={`flex-1 overflow-x-auto overflow-y-hidden transition-all ${isMapOpen ? 'mr-0' : 'mr-0'}`}>
-          <div className="flex h-full gap-4 p-4" style={{ minWidth: 'max-content' }}>
-            
+        <div
+          className={`flex-1 overflow-x-auto overflow-y-hidden transition-all ${isMapOpen ? "mr-0" : "mr-0"}`}
+        >
+          <div
+            className="flex h-full gap-4 p-4"
+            style={{ minWidth: "max-content" }}
+          >
             {/* Unassigned Bookings Column */}
             <div
               className="flex-shrink-0 w-80 bg-white border-2 border-gray-300 rounded-lg flex flex-col shadow-sm"
-              onDrop={(e) => handleDropOnDriver(e, null)}
+              onDrop={e => handleDropOnDriver(e, null)}
               onDragOver={handleDragOver}
             >
               <div className="p-4 border-b border-gray-200 bg-gray-50">
                 <div className="flex items-center justify-between mb-1">
-                  <h3 className="font-bold text-gray-900">Unassigned Bookings</h3>
+                  <h3 className="font-bold text-gray-900">
+                    Unassigned Bookings
+                  </h3>
                   <span className="text-sm font-bold text-orange-700 bg-orange-100 px-2.5 py-1 rounded-full">
                     {unassignedBookings.length}
                   </span>
                 </div>
                 <p className="text-xs text-gray-600">Drag to assign driver →</p>
               </div>
-              
+
               <div className="flex-1 overflow-y-auto p-3 space-y-2 bg-gray-50">
                 {unassignedBookings.map(booking => (
                   <BookingCard key={booking.id} booking={booking} />
                 ))}
                 {unassignedBookings.length === 0 && (
                   <div className="text-center text-gray-500 text-sm py-8">
-                    {statusFilter !== "all" ? "No bookings match filters" : "All bookings assigned!"}
+                    {statusFilter !== "all"
+                      ? "No bookings match filters"
+                      : "All bookings assigned!"}
                   </div>
                 )}
               </div>
@@ -758,7 +852,9 @@ export default function RoutePlanning() {
 
             {/* Driver Columns */}
             {visibleDrivers.map(driver => {
-              const driverBookings = applyFilters(getBookingsForDriver(driver.id));
+              const driverBookings = applyFilters(
+                getBookingsForDriver(driver.id)
+              );
               const statusColors = {
                 available: "bg-green-50 text-green-700",
                 busy: "bg-blue-50 text-blue-700",
@@ -769,44 +865,71 @@ export default function RoutePlanning() {
                 <div
                   key={driver.id}
                   className="flex-shrink-0 w-80 bg-white border-2 border-gray-200 rounded-lg flex flex-col shadow-sm"
-                  onDrop={(e) => handleDropOnDriver(e, driver.id)}
+                  onDrop={e => handleDropOnDriver(e, driver.id)}
                   onDragOver={handleDragOver}
                 >
                   <div className="p-4 border-b border-gray-200 bg-gray-50">
                     <div className="flex items-start gap-3 mb-3">
                       <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-lg shadow-sm">
-                        {driver.name.split(' ').map(n => n[0]).join('')}
+                        {driver.name
+                          .split(" ")
+                          .map(n => n[0])
+                          .join("")}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-sm text-gray-900 truncate">{driver.name}</h3>
-                        <p className="text-xs text-gray-600">{driver.vehicle}</p>
-                        <p className="text-xs text-gray-500">{driver.capacity}</p>
+                        <h3 className="font-bold text-sm text-gray-900 truncate">
+                          {driver.name}
+                        </h3>
+                        <p className="text-xs text-gray-600">
+                          {driver.vehicle}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {driver.capacity}
+                        </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2 mb-3">
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-semibold ${statusColors[driver.status]}`}>
-                        {driver.status === "available" ? "Available" : driver.status === "busy" ? "Busy" : "On Route"}
+                      <span
+                        className={`text-xs px-2.5 py-1 rounded-full font-semibold ${statusColors[driver.status]}`}
+                      >
+                        {driver.status === "available"
+                          ? "Available"
+                          : driver.status === "busy"
+                            ? "Busy"
+                            : "On Route"}
                       </span>
-                      <span className="text-xs text-gray-600">⭐ {driver.rating}</span>
+                      <span className="text-xs text-gray-600">
+                        ⭐ {driver.rating}
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div className="bg-white rounded-lg px-2 py-1.5 border border-gray-200">
                         <div className="text-gray-500 text-xs">Current</div>
-                        <div className="font-bold text-gray-900">{driverBookings.filter(b => b.bookingStatus !== "completed").length}</div>
+                        <div className="font-bold text-gray-900">
+                          {
+                            driverBookings.filter(
+                              b => b.bookingStatus !== "completed"
+                            ).length
+                          }
+                        </div>
                       </div>
                       <div className="bg-white rounded-lg px-2 py-1.5 border border-gray-200">
                         <div className="text-gray-500 text-xs">Done</div>
-                        <div className="font-bold text-green-600">{driver.completedToday}</div>
+                        <div className="font-bold text-green-600">
+                          {driver.completedToday}
+                        </div>
                       </div>
                       <div className="bg-white rounded-lg px-2 py-1.5 border border-gray-200">
                         <div className="text-gray-500 text-xs">KM</div>
-                        <div className="font-bold text-blue-600">{driver.totalKm}</div>
+                        <div className="font-bold text-blue-600">
+                          {driver.totalKm}
+                        </div>
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex-1 overflow-y-auto p-3 space-y-2">
                     {driverBookings.map(booking => (
                       <BookingCard key={booking.id} booking={booking} />
@@ -840,13 +963,15 @@ export default function RoutePlanning() {
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
-            
+
             <div className="flex-1 relative bg-gray-100 flex items-center justify-center">
               {/* Map Placeholder */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center p-8">
                   <MapPinned className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                  <h4 className="font-semibold text-gray-700 mb-2">Interactive Route Map</h4>
+                  <h4 className="font-semibold text-gray-700 mb-2">
+                    Interactive Route Map
+                  </h4>
                   <p className="text-sm text-gray-600 mb-4">
                     View all booking locations and driver routes
                   </p>
@@ -892,34 +1017,47 @@ export default function RoutePlanning() {
       </div>
 
       {/* Booking Details Dialog */}
-      <Dialog open={!!selectedBooking} onOpenChange={() => setSelectedBooking(null)}>
+      <Dialog
+        open={!!selectedBooking}
+        onOpenChange={() => setSelectedBooking(null)}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-xl">Booking Details {selectedBooking?.id}</DialogTitle>
+            <DialogTitle className="text-xl">
+              Booking Details {selectedBooking?.id}
+            </DialogTitle>
           </DialogHeader>
-          
+
           {selectedBooking && (
             <div className="space-y-6">
               {/* Customer Information */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-3">Customer Information</h4>
+                <h4 className="font-semibold text-gray-900 mb-3">
+                  Customer Information
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-gray-600">Name</p>
-                    <p className="font-medium text-gray-900">{selectedBooking.customer}</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedBooking.customer}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">Phone</p>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-gray-500" />
-                      <p className="font-medium text-gray-900">{selectedBooking.phone}</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedBooking.phone}
+                      </p>
                     </div>
                   </div>
                   <div className="col-span-2">
                     <p className="text-xs text-gray-600">Email</p>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-gray-500" />
-                      <p className="font-medium text-gray-900">{selectedBooking.email}</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedBooking.email}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -927,31 +1065,45 @@ export default function RoutePlanning() {
 
               {/* Service Details */}
               <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-3">Service Details</h4>
+                <h4 className="font-semibold text-gray-900 mb-3">
+                  Service Details
+                </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-xs text-gray-600">Service</p>
-                    <p className="font-medium text-gray-900">{selectedBooking.service}</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedBooking.service}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">Staff Assigned</p>
-                    <p className="font-medium text-gray-900">{selectedBooking.staffAssigned}</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedBooking.staffAssigned}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">Date & Time</p>
-                    <p className="font-medium text-gray-900">{selectedBooking.date} at {selectedBooking.time}</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedBooking.date} at {selectedBooking.time}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">Duration</p>
-                    <p className="font-medium text-gray-900">{selectedBooking.duration}</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedBooking.duration}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">Status</p>
-                    <p className="font-medium text-gray-900 capitalize">{selectedBooking.bookingStatus}</p>
+                    <p className="font-medium text-gray-900 capitalize">
+                      {selectedBooking.bookingStatus}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-600">Priority</p>
-                    <p className="font-medium text-gray-900 capitalize">{selectedBooking.priority}</p>
+                    <p className="font-medium text-gray-900 capitalize">
+                      {selectedBooking.priority}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -962,8 +1114,12 @@ export default function RoutePlanning() {
                 <div className="flex items-start gap-2">
                   <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
                   <div>
-                    <p className="font-medium text-gray-900">{selectedBooking.address}</p>
-                    <p className="text-sm text-gray-600 mt-1">Distance: {selectedBooking.distance}</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedBooking.address}
+                    </p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Distance: {selectedBooking.distance}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -971,17 +1127,31 @@ export default function RoutePlanning() {
               {/* Driver Assignment */}
               {selectedBooking.assignedDriver && (
                 <div className="bg-blue-50 rounded-lg p-4">
-                  <h4 className="font-semibold text-gray-900 mb-3">Assigned Driver</h4>
+                  <h4 className="font-semibold text-gray-900 mb-3">
+                    Assigned Driver
+                  </h4>
                   <div className="flex items-center gap-3">
                     <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center text-white font-bold">
-                      {drivers.find(d => d.id === selectedBooking.assignedDriver)?.name.split(' ').map(n => n[0]).join('')}
+                      {drivers
+                        .find(d => d.id === selectedBooking.assignedDriver)
+                        ?.name.split(" ")
+                        .map(n => n[0])
+                        .join("")}
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900">
-                        {drivers.find(d => d.id === selectedBooking.assignedDriver)?.name}
+                        {
+                          drivers.find(
+                            d => d.id === selectedBooking.assignedDriver
+                          )?.name
+                        }
                       </p>
                       <p className="text-sm text-gray-600">
-                        {drivers.find(d => d.id === selectedBooking.assignedDriver)?.vehicle}
+                        {
+                          drivers.find(
+                            d => d.id === selectedBooking.assignedDriver
+                          )?.vehicle
+                        }
                       </p>
                     </div>
                   </div>

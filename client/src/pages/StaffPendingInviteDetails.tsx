@@ -7,11 +7,47 @@ import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import { 
-  ArrowLeft, CheckCircle, ShieldCheck, Mail, Phone, Calendar, 
-  MapPin, Wrench, FileText, User, Hash, Flag, Globe, Upload, Trash2, X, Plus, AlertCircle, Briefcase, Banknote, ArrowRight, Award, Edit2, Save, Clock, Truck, Car, Bus, Layers, Check, ChevronDown, Info 
+import {
+  ArrowLeft,
+  CheckCircle,
+  ShieldCheck,
+  Mail,
+  Phone,
+  Calendar,
+  MapPin,
+  Wrench,
+  FileText,
+  User,
+  Hash,
+  Flag,
+  Globe,
+  Upload,
+  Trash2,
+  X,
+  Plus,
+  AlertCircle,
+  Briefcase,
+  Banknote,
+  ArrowRight,
+  Award,
+  Edit2,
+  Save,
+  Clock,
+  Truck,
+  Car,
+  Bus,
+  Layers,
+  Check,
+  ChevronDown,
+  Info,
 } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Command,
   CommandEmpty,
@@ -26,130 +62,167 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { StaffMember } from "./Workforce";
 import DriverPendingInviteDetails from "./DriverPendingInviteDetails";
 
 // Helper Functions for Time Grid
 const formatTimeLabel = (time: string) => {
-    const [h] = time.split(':');
-    const hour = parseInt(h);
-    const suffix = hour >= 12 ? 'PM' : 'AM';
-    const displayHour = hour % 12 || 12;
-    return `${displayHour} ${suffix}`;
+  const [h] = time.split(":");
+  const hour = parseInt(h);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour} ${suffix}`;
 };
 
 const isHourActive = (current: string, start: string, end: string) => {
-    return current >= start && current < end;
+  return current >= start && current < end;
 };
 
 const incrementHour = (time: string) => {
-    const [h] = time.split(':');
-    let hour = parseInt(h) + 1;
-    return `${hour.toString().padStart(2, '0')}:00`;
+  const [h] = time.split(":");
+  let hour = parseInt(h) + 1;
+  return `${hour.toString().padStart(2, "0")}:00`;
 };
 
 const decrementHour = (time: string) => {
-    const [h] = time.split(':');
-    let hour = parseInt(h) - 1;
-    return `${hour.toString().padStart(2, '0')}:00`;
+  const [h] = time.split(":");
+  let hour = parseInt(h) - 1;
+  return `${hour.toString().padStart(2, "0")}:00`;
 };
 
 const calculateExperience = (startDateStr?: string) => {
-    if (!startDateStr) return "0 Years 0 Months";
-    const start = new Date(startDateStr);
-    const now = new Date();
-    if (start > now || isNaN(start.getTime())) return "0 Years 0 Months";
-    
-    let years = now.getFullYear() - start.getFullYear();
-    let months = now.getMonth() - start.getMonth();
-    
-    if (months < 0) {
-        years--;
-        months += 12;
-    }
-    
-    return `${years} Year${years !== 1 ? 's' : ''} ${months} Month${months !== 1 ? 's' : ''}`;
+  if (!startDateStr) return "0 Years 0 Months";
+  const start = new Date(startDateStr);
+  const now = new Date();
+  if (start > now || isNaN(start.getTime())) return "0 Years 0 Months";
+
+  let years = now.getFullYear() - start.getFullYear();
+  let months = now.getMonth() - start.getMonth();
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  return `${years} Year${years !== 1 ? "s" : ""} ${months} Month${months !== 1 ? "s" : ""}`;
 };
 
 // Extended interface for local usage
 interface ExtendedStaffMember extends StaffMember {
-    nickname?: string;
-    qid?: string;
-    dob?: string;
-    nationality?: string;
-    gender?: 'Male' | 'Female';
-    department?: string;
-    employmentType?: 'Full Time' | 'Part Time' | 'Contract' | 'Temporary';
-    startDate?: string;
-    salaryType?: 'Fixed Monthly' | 'Commission-Based' | 'Hourly-Rate' | 'Fixed + Commission';
-    salaryAmount?: string;
-    commissionRate?: string;
-    hourlyRate?: string;
-    languages?: string[];
-    religion?: string;
-    maritalStatus?: string;
-    skills?: string[];
-    serviceArea?: string;
-    emergencyContact?: string;
-    emergencyPhone?: string;
-    documents?: { name: string; type: string; status: 'valid' | 'pending'; expiryDate?: string }[];
-    // Shift Setup
-    shiftSystem?: 'Fixed' | 'Rotational' | 'Flexible';
-    workingDays?: string[];
-    workHoursStart?: string;
-    workHoursEnd?: string;
-    rotationalSchedule?: Record<string, { start: string; end: string }[]>;
-    // Transport
-    transportationType?: string;
-    primaryTransport?: string; // For Hybrid
-    transportVaries?: boolean; // For Hybrid
-    // Driver specific / Transport Logic
-    assignedVehicle?: string; 
-    vehicleType?: string; // For Self
-    plateNumber?: string; // For Self
-    licenseCategory?: string;
-    licenseNumber?: string;
-    licenseExpiry?: string;
-    experienceStartDate?: string;
-    accommodationType?: 'Company Accommodation' | 'Self Accommodation' | string;
-    latitude?: string;
-    longitude?: string;
-    campName?: string;
-    fullAddress?: string;
-    serviceScope?: 'all' | 'specific';
-    serviceAreas?: string[];
-    // Access & Security
-    dashboardAccess?: boolean;
-    systemRole?: string;
-    permissionScope?: string;
+  nickname?: string;
+  qid?: string;
+  dob?: string;
+  nationality?: string;
+  gender?: "Male" | "Female";
+  department?: string;
+  employmentType?: "Full Time" | "Part Time" | "Contract" | "Temporary";
+  startDate?: string;
+  salaryType?:
+    | "Fixed Monthly"
+    | "Commission-Based"
+    | "Hourly-Rate"
+    | "Fixed + Commission";
+  salaryAmount?: string;
+  commissionRate?: string;
+  hourlyRate?: string;
+  languages?: string[];
+  religion?: string;
+  maritalStatus?: string;
+  skills?: string[];
+  serviceArea?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  documents?: {
+    name: string;
+    type: string;
+    status: "valid" | "pending";
+    expiryDate?: string;
+  }[];
+  // Shift Setup
+  shiftSystem?: "Fixed" | "Rotational" | "Flexible";
+  workingDays?: string[];
+  workHoursStart?: string;
+  workHoursEnd?: string;
+  rotationalSchedule?: Record<string, { start: string; end: string }[]>;
+  // Transport
+  transportationType?: string;
+  primaryTransport?: string; // For Hybrid
+  transportVaries?: boolean; // For Hybrid
+  // Driver specific / Transport Logic
+  assignedVehicle?: string;
+  vehicleType?: string; // For Self
+  plateNumber?: string; // For Self
+  licenseCategory?: string;
+  licenseNumber?: string;
+  licenseExpiry?: string;
+  experienceStartDate?: string;
+  accommodationType?: "Company Accommodation" | "Self Accommodation" | string;
+  latitude?: string;
+  longitude?: string;
+  campName?: string;
+  fullAddress?: string;
+  serviceScope?: "all" | "specific";
+  serviceAreas?: string[];
+  // Access & Security
+  dashboardAccess?: boolean;
+  systemRole?: string;
+  permissionScope?: string;
 }
 
 const MOCK_SERVICE_AREAS = [
-    { id: "sa-1", name: "Doha Central" },
-    { id: "sa-2", name: "West Bay" },
-    { id: "sa-3", name: "The Pearl" },
-    { id: "sa-4", name: "Al Rayyan" },
-    { id: "sa-5", name: "Al Wakrah" },
-    { id: "sa-6", name: "Lusail" },
+  { id: "sa-1", name: "Doha Central" },
+  { id: "sa-2", name: "West Bay" },
+  { id: "sa-3", name: "The Pearl" },
+  { id: "sa-4", name: "Al Rayyan" },
+  { id: "sa-5", name: "Al Wakrah" },
+  { id: "sa-6", name: "Lusail" },
 ];
 
 const MOCK_COMPANY_VEHICLES = [
-    { id: "v1", name: "Toyota HiAce - V001" },
-    { id: "v2", name: "Nissan Urvan - V002" },
-    { id: "v3", name: "Mitsubishi Canter - T001" },
+  { id: "v1", name: "Toyota HiAce - V001" },
+  { id: "v2", name: "Nissan Urvan - V002" },
+  { id: "v3", name: "Mitsubishi Canter - T001" },
 ];
 
 const STYLES = {
   sectionContainer: "mb-8",
-  sectionHeader: "mb-5",
-  sectionTitle: "text-[16px] font-semibold text-gray-900 relative pl-3 before:absolute before:left-0 before:top-1 before:w-[3px] before:h-4 before:bg-blue-600 before:rounded-full",
-  sectionDesc: "text-[12.5px] text-gray-400 mt-1.5 block",
   label: "text-[13px] text-gray-600 font-medium mb-1.5 block",
-  input: "w-full h-[38px] text-sm bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg transition-all",
-  card: "bg-white p-6 shadow-sm border border-gray-100/50 rounded-xl hover:shadow-md transition-shadow duration-200"
+  input:
+    "w-full h-[38px] text-sm bg-gray-50/50 border-gray-200 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 rounded-lg transition-all",
+  card: "bg-white p-6 shadow-sm border border-gray-100/50 rounded-xl hover:shadow-md transition-shadow duration-200",
 };
+
+const SectionHeader = ({
+  title,
+  desc,
+  icon: Icon,
+}: {
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+}) => (
+  <div className="flex items-start gap-4 mb-6 relative group">
+    <div className="h-10 w-10 text-blue-600 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 border border-blue-100/50 shadow-[inset_0_2px_4px_rgb(255,255,255,0.5)] group-hover:scale-105 transition-transform duration-300">
+      <Icon className="h-5 w-5" />
+    </div>
+    <div className="flex-1 mt-0.5">
+      <h3 className="text-base font-bold text-gray-900 tracking-tight">
+        {title}
+      </h3>
+      <span className="text-[13px] text-gray-400 mt-1 block leading-relaxed">
+        {desc}
+      </span>
+    </div>
+  </div>
+);
 
 export default function StaffPendingInviteDetails() {
   const [, params] = useRoute("/workforce/pending/:id");
@@ -157,138 +230,181 @@ export default function StaffPendingInviteDetails() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Ops&Skills, 2=Summary
   const [isEditing, setIsEditing] = useState(false);
-  
+
   // Basic Info - UI States
   const [isExtractingQID, setIsExtractingQID] = useState(false);
   const [isQIDExtracted, setIsQIDExtracted] = useState(false);
   const [isManualEntry, setIsManualEntry] = useState(false);
-  
+
   // Activation State
   const [isActivationModalOpen, setIsActivationModalOpen] = useState(false);
-  const [finalStatus, setFinalStatus] = useState<'Active' | 'Inactive' | null>(null);
-  const [inactiveReason, setInactiveReason] = useState<string>('');
-  const [inactiveNote, setInactiveNote] = useState<string>('');
+  const [finalStatus, setFinalStatus] = useState<"Active" | "Inactive" | null>(
+    null
+  );
+  const [inactiveReason, setInactiveReason] = useState<string>("");
+  const [inactiveNote, setInactiveNote] = useState<string>("");
 
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
 
   const handleProfilePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0];
-      if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-      if (!['image/jpeg', 'image/png'].includes(file.type)) {
-          toast.error("Invalid file type. Please upload a JPG or PNG image.");
-          return;
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      toast.error("Invalid file type. Please upload a JPG or PNG image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File is too large. Maximum size is 5MB.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = event => {
+      const base64String = event.target?.result as string;
+      if (formData) {
+        setFormData({ ...formData, avatar: base64String });
+      } else if (data) {
+        setFormData({ ...data, avatar: base64String });
       }
+      toast.success("Profile photo uploaded successfully");
 
-      if (file.size > 5 * 1024 * 1024) {
-          toast.error("File is too large. Maximum size is 5MB.");
-          return;
+      if (profilePhotoInputRef.current) {
+        profilePhotoInputRef.current.value = "";
       }
-
-      const reader = new FileReader();
-      reader.onload = (event) => {
-          const base64String = event.target?.result as string;
-          if (formData) {
-              setFormData({ ...formData, avatar: base64String });
-          } else if (data) {
-              setFormData({ ...data, avatar: base64String });
-          }
-          toast.success("Profile photo uploaded successfully");
-          
-          if (profilePhotoInputRef.current) {
-              profilePhotoInputRef.current.value = '';
-          }
-      };
-      reader.readAsDataURL(file);
+    };
+    reader.readAsDataURL(file);
   };
-  
+
   // Cert Form State (To be removed/ignored in new flow, but keeping for safety for now)
   const [isAddingCert, setIsAddingCert] = useState(false);
   const [tempCert, setTempCert] = useState({ name: "", expiry: "" });
-  
+
   // "Committed" Data (Display)
   const [data, setData] = useState<ExtendedStaffMember | null>(null);
-  
+
   // "Draft" Data (Form)
   const [formData, setFormData] = useState<ExtendedStaffMember | null>(null);
 
   // Camp Location State
   const [campLocations, setCampLocations] = useState<any[]>([
-      { id: '1', name: 'Camp A - Industrial Area', latitude: '25.1854', longitude: '51.3310', fullAddress: 'Street 41, Industrial Area' },
-      { id: '2', name: 'Camp B - Al Wakrah', latitude: '25.1768', longitude: '51.5975', fullAddress: 'Building 12, Wakrah' },
-      { id: '3', name: 'Camp C - West Bay', latitude: '25.3182', longitude: '51.5296', fullAddress: 'Tower 4, West Bay' },
+    {
+      id: "1",
+      name: "Camp A - Industrial Area",
+      latitude: "25.1854",
+      longitude: "51.3310",
+      fullAddress: "Street 41, Industrial Area",
+    },
+    {
+      id: "2",
+      name: "Camp B - Al Wakrah",
+      latitude: "25.1768",
+      longitude: "51.5975",
+      fullAddress: "Building 12, Wakrah",
+    },
+    {
+      id: "3",
+      name: "Camp C - West Bay",
+      latitude: "25.3182",
+      longitude: "51.5296",
+      fullAddress: "Tower 4, West Bay",
+    },
   ]);
   const [isCreatingCamp, setIsCreatingCamp] = useState(false);
-  const [newCamp, setNewCamp] = useState({ name: '', coordinates: '', address: '' });
-  
+  const [newCamp, setNewCamp] = useState({
+    name: "",
+    coordinates: "",
+    address: "",
+  });
+
   // Basic Info Edit Components
   const [isBasicInfoOpen, setIsBasicInfoOpen] = useState(false);
   const [basicInfoForm, setBasicInfoForm] = useState<{
-      nickname: string;
-      mobile: string;
-      email: string;
-      gender: 'Male' | 'Female';
-      avatar?: string;
+    nickname: string;
+    mobile: string;
+    email: string;
+    gender: "Male" | "Female";
+    avatar?: string;
   } | null>(null);
 
   // Initialize basic info form when opening modal
   useEffect(() => {
-      if (isBasicInfoOpen && data) {
-          setBasicInfoForm({
-              nickname: data.nickname || "",
-              mobile: data.phone || "",
-              email: data.email || "",
-              gender: data.gender || "Male",
-              avatar: data.avatar
-          });
-      }
+    if (isBasicInfoOpen && data) {
+      setBasicInfoForm({
+        nickname: data.nickname || "",
+        mobile: data.phone || "",
+        email: data.email || "",
+        gender: data.gender || "Male",
+        avatar: data.avatar,
+      });
+    }
   }, [isBasicInfoOpen, data]);
 
   const [activeDayModal, setActiveDayModal] = useState<string | null>(null);
-  
+
   // Settings Data
   const [availableSkills, setAvailableSkills] = useState<any[]>([]);
   const [departmentOptions, setDepartmentOptions] = useState<string[]>([]);
   const [positionOptions, setPositionOptions] = useState<string[]>([]);
-  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<string[]>([]);
+  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<string[]>(
+    []
+  );
   const [transportationConfigs, setTransportationConfigs] = useState<any[]>([]); // Store full config objects
-  const [serviceAreaConfigs, setServiceAreaConfigs] = useState<any[]>(MOCK_SERVICE_AREAS); // Default to mocks
+  const [serviceAreaConfigs, setServiceAreaConfigs] =
+    useState<any[]>(MOCK_SERVICE_AREAS); // Default to mocks
   const [enabledShiftSystems, setEnabledShiftSystems] = useState<string[]>([]);
   const [shiftTemplateOptions, setShiftTemplateOptions] = useState<any[]>([]);
 
   // Dialog State for "Add Shift Block" -> "Create Template"
   const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
-  const [newTemplateData, setNewTemplateData] = useState({ name: "", startTime: "", endTime: "" });
+  const [newTemplateData, setNewTemplateData] = useState({
+    name: "",
+    startTime: "",
+    endTime: "",
+  });
 
   const handleSaveNewTemplate = () => {
     if (!formData) return;
-    if (!newTemplateData.name || !newTemplateData.startTime || !newTemplateData.endTime) {
-        toast.error("Please fill all fields");
-        return;
+    if (
+      !newTemplateData.name ||
+      !newTemplateData.startTime ||
+      !newTemplateData.endTime
+    ) {
+      toast.error("Please fill all fields");
+      return;
     }
     const newTemplate = {
-        id: `custom-${Date.now()}`,
-        name: newTemplateData.name,
-        startTime: newTemplateData.startTime,
-        endTime: newTemplateData.endTime
+      id: `custom-${Date.now()}`,
+      name: newTemplateData.name,
+      startTime: newTemplateData.startTime,
+      endTime: newTemplateData.endTime,
     };
-    
+
     // 1. Update List
     const updated = [...shiftTemplateOptions, newTemplate];
     setShiftTemplateOptions(updated);
     localStorage.setItem("vendor_shift_templates", JSON.stringify(updated));
-    
+
     // 2. Add to Current Day (since user clicked "Add Shift Block")
     if (activeDayModal) {
-         const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
-         currentSlots.push({ start: newTemplate.startTime, end: newTemplate.endTime });
-          setFormData({
-             ...formData,
-             rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
-          });
-          toast.success("Template created and shift added");
+      const currentSlots = [
+        ...(formData.rotationalSchedule?.[activeDayModal] || []),
+      ];
+      currentSlots.push({
+        start: newTemplate.startTime,
+        end: newTemplate.endTime,
+      });
+      setFormData({
+        ...formData,
+        rotationalSchedule: {
+          ...formData.rotationalSchedule,
+          [activeDayModal]: currentSlots,
+        },
+      });
+      toast.success("Template created and shift added");
     } else {
-        toast.success("Shift template created");
+      toast.success("Shift template created");
     }
 
     setIsCreateTemplateOpen(false);
@@ -300,363 +416,528 @@ export default function StaffPendingInviteDetails() {
     // 1. Load Skills
     const storedSkills = localStorage.getItem("vendor_skills");
     if (storedSkills) {
-        setAvailableSkills(JSON.parse(storedSkills));
+      setAvailableSkills(JSON.parse(storedSkills));
     } else {
-        setAvailableSkills([
-             { name: "HVAC Repair", requiresCert: true, certName: "HVAC Technician Certificate" },
-             { name: "Electrical", requiresCert: true, certName: "Electrician Certification" },
-             { name: "Plumbing", requiresCert: true, certName: "Plumbing License" },
-             { name: "Deep Cleaning", requiresCert: false },
-             { name: "Carpentry", requiresCert: false },
-             { name: "Beautician", requiresCert: true, certName: "Cosmetology License" }
-        ]);
+      setAvailableSkills([
+        {
+          name: "HVAC Repair",
+          requiresCert: true,
+          certName: "HVAC Technician Certificate",
+        },
+        {
+          name: "Electrical",
+          requiresCert: true,
+          certName: "Electrician Certification",
+        },
+        { name: "Plumbing", requiresCert: true, certName: "Plumbing License" },
+        { name: "Deep Cleaning", requiresCert: false },
+        { name: "Carpentry", requiresCert: false },
+        {
+          name: "Beautician",
+          requiresCert: true,
+          certName: "Cosmetology License",
+        },
+      ]);
     }
 
     // 2. Load Organization & Employment Settings
     setDepartmentOptions([
-        "Operations",
-        "Dispatch",
-        "Quality",
-        "Customer Support",
-        "HR & Admin",
-        "Finance",
-        "Logistics"
+      "Operations",
+      "Dispatch",
+      "Quality",
+      "Customer Support",
+      "HR & Admin",
+      "Finance",
+      "Logistics",
     ]);
 
     setPositionOptions([
-        "Cleaner",
-        "Team Leader",
-        "Dispatcher",
-        "QA Inspector",
-        "Driver",
-        "Accountant",
-        "HR Officer"
+      "Cleaner",
+      "Team Leader",
+      "Dispatcher",
+      "QA Inspector",
+      "Driver",
+      "Accountant",
+      "HR Officer",
     ]);
 
     const storedEmpTypes = localStorage.getItem("vendor_employment_types");
     if (storedEmpTypes) {
-        setEmploymentTypeOptions(JSON.parse(storedEmpTypes).filter((e: any) => e.isActive !== false).map((e: any) => e.name));
+      setEmploymentTypeOptions(
+        JSON.parse(storedEmpTypes)
+          .filter((e: any) => e.isActive !== false)
+          .map((e: any) => e.name)
+      );
     } else {
-        setEmploymentTypeOptions(["Full Time", "Part Time", "Contract"]);
+      setEmploymentTypeOptions(["Full Time", "Part Time", "Contract"]);
     }
 
     const storedTransport = localStorage.getItem("vendor_transportation_types");
     const NEW_TRANSPORT_DEFAULTS = [
-      { id: "tt1", name: "Company Provides Transportation (With Driver)", description: "Staff will be transported by company driver/route", status: "active", category: "company_driver" },
-      { id: "tt2", name: "Company Provides Vehicle (Staff Drives)", description: "Company assigned vehicle (Car/Van)", status: "active", category: "company_vehicle" },
-      { id: "tt3", name: "Self – Own Vehicle", description: "Employee uses personal vehicle", status: "active", category: "self_vehicle" },
-      { id: "tt4", name: "Public / Ride Transport", description: "Staff uses taxi/uber/public transport", status: "active", category: "public" },
-      { id: "tt5", name: "Hybrid / Flexible", description: "Varies by shift/day", status: "active", category: "hybrid" },
+      {
+        id: "tt1",
+        name: "Company Provides Transportation (With Driver)",
+        description: "Staff will be transported by company driver/route",
+        status: "active",
+        category: "company_driver",
+      },
+      {
+        id: "tt2",
+        name: "Company Provides Vehicle (Staff Drives)",
+        description: "Company assigned vehicle (Car/Van)",
+        status: "active",
+        category: "company_vehicle",
+      },
+      {
+        id: "tt3",
+        name: "Self – Own Vehicle",
+        description: "Employee uses personal vehicle",
+        status: "active",
+        category: "self_vehicle",
+      },
+      {
+        id: "tt4",
+        name: "Public / Ride Transport",
+        description: "Staff uses taxi/uber/public transport",
+        status: "active",
+        category: "public",
+      },
+      {
+        id: "tt5",
+        name: "Hybrid / Flexible",
+        description: "Varies by shift/day",
+        status: "active",
+        category: "hybrid",
+      },
     ];
 
     if (storedTransport) {
-        let loaded = JSON.parse(storedTransport);
-        // FORCE MIGRATION: Check if using old names
-        if (loaded.some((t: any) => t.name === "Company-Provided Transportation" || t.name === "Company Vehicle (Self Drive)")) {
-            loaded = NEW_TRANSPORT_DEFAULTS;
-            localStorage.setItem("vendor_transportation_types", JSON.stringify(loaded));
-        }
-        setTransportationConfigs(loaded.filter((t: any) => t.status === 'active'));
+      let loaded = JSON.parse(storedTransport);
+      // FORCE MIGRATION: Check if using old names
+      if (
+        loaded.some(
+          (t: any) =>
+            t.name === "Company-Provided Transportation" ||
+            t.name === "Company Vehicle (Self Drive)"
+        )
+      ) {
+        loaded = NEW_TRANSPORT_DEFAULTS;
+        localStorage.setItem(
+          "vendor_transportation_types",
+          JSON.stringify(loaded)
+        );
+      }
+      setTransportationConfigs(
+        loaded.filter((t: any) => t.status === "active")
+      );
     } else {
-        setTransportationConfigs(NEW_TRANSPORT_DEFAULTS);
-        localStorage.setItem("vendor_transportation_types", JSON.stringify(NEW_TRANSPORT_DEFAULTS));
+      setTransportationConfigs(NEW_TRANSPORT_DEFAULTS);
+      localStorage.setItem(
+        "vendor_transportation_types",
+        JSON.stringify(NEW_TRANSPORT_DEFAULTS)
+      );
     }
 
-    const storedShiftConfig = localStorage.getItem("vendor_shift_types_enabled");
+    const storedShiftConfig = localStorage.getItem(
+      "vendor_shift_types_enabled"
+    );
     if (storedShiftConfig) {
-        const config = JSON.parse(storedShiftConfig);
-        const enabled = [];
-        if (config.fixed) enabled.push("Fixed");
-        if (config.rotational) enabled.push("Rotational");
-        if (config.flexible) enabled.push("Flexible");
-        setEnabledShiftSystems(enabled);
+      const config = JSON.parse(storedShiftConfig);
+      const enabled = [];
+      if (config.fixed) enabled.push("Fixed");
+      if (config.rotational) enabled.push("Rotational");
+      if (config.flexible) enabled.push("Flexible");
+      setEnabledShiftSystems(enabled);
     } else {
-        setEnabledShiftSystems(["Fixed", "Rotational", "Flexible"]);
+      setEnabledShiftSystems(["Fixed", "Rotational", "Flexible"]);
     }
 
     const storedTemplates = localStorage.getItem("vendor_shift_templates");
     if (storedTemplates) {
-        setShiftTemplateOptions(JSON.parse(storedTemplates));
+      setShiftTemplateOptions(JSON.parse(storedTemplates));
     }
 
     const storedAreas = localStorage.getItem("vendor_service_areas");
     if (storedAreas) {
-        const areas = JSON.parse(storedAreas);
-        if (areas.length > 0) setServiceAreaConfigs(areas);
+      const areas = JSON.parse(storedAreas);
+      if (areas.length > 0) setServiceAreaConfigs(areas);
     }
-
 
     const stored = localStorage.getItem("vendor_staff");
     if (stored && params?.id) {
-        const list = JSON.parse(stored);
-        const found = list.find((s: any) => s.id === params.id || s.id === parseInt(params.id));
-        if (found) {
-            // Mock Data Enrichment if missing
-            const initialized: ExtendedStaffMember = { 
-                ...found, 
-                nickname: found.nickname || "N/A",
-                role: "", // Ensure role starts empty for manual selection
-                qid: found.qid || "28535638494",
-                dob: found.dob || "1995-04-12",
-                nationality: found.nationality || "Qatar",
-                gender: found.gender || "Male",
-                department: found.department || "",
-                employmentType: found.employmentType || "",
-                startDate: found.startDate || "",
-                salaryType: found.salaryType || "",
-                salaryAmount: found.salaryAmount || "",
-                commissionRate: found.commissionRate || "",
-                hourlyRate: found.hourlyRate || "",
-                languages: [],
-                religion: "",
-                maritalStatus: "",
-                emergencyPhone: "",
-                skills: [], 
-                documents: found.documents || [],
-                shiftSystem: "" as any,
-                workingDays: [],
-                workHoursStart: "",
-                workHoursEnd: "",
-                rotationalSchedule: {},
-                transportationType: found.transportationType || "",
-                assignedVehicle: found.assignedVehicle || "",
-                vehicleType: found.vehicleType || "",
-                plateNumber: found.plateNumber || "",
-                primaryTransport: found.primaryTransport || "",
-                transportVaries: found.transportVaries || false,
-                licenseCategory: found.licenseCategory || "",
-                licenseNumber: found.licenseNumber || "",
-                licenseExpiry: found.licenseExpiry || "",
-                serviceAreas: found.serviceAreas || [],
-                experienceStartDate: found.experienceStartDate || "",
-                accommodationType: found.accommodationType || "Company Accommodation",
-                latitude: found.latitude || "",
-                longitude: found.longitude || "",
-                campName: found.campName || "",
-                fullAddress: found.fullAddress || "",
-                dashboardAccess: found.dashboardAccess ?? false,
-                systemRole: found.systemRole || "Manager",
-                permissionScope: found.permissionScope || "Full Access (Role Default)"
-            };
-            
-            // Check for Default Business Hours override if new/empty
-            const storedBizHours = localStorage.getItem("vendor_business_hours");
-            if (storedBizHours && (!found.workHoursStart || found.workHoursStart === "08:00")) {
-                 const biz = JSON.parse(storedBizHours);
-                 initialized.workHoursStart = biz.start;
-                 initialized.workHoursEnd = biz.end;
-            }
+      const list = JSON.parse(stored);
+      const found = list.find(
+        (s: any) => s.id === params.id || s.id === parseInt(params.id)
+      );
+      if (found) {
+        // Mock Data Enrichment if missing
+        const initialized: ExtendedStaffMember = {
+          ...found,
+          nickname: found.nickname || "N/A",
+          role: "", // Ensure role starts empty for manual selection
+          qid: found.qid || "28535638494",
+          dob: found.dob || "1995-04-12",
+          nationality: found.nationality || "Qatar",
+          gender: found.gender || "Male",
+          department: found.department || "",
+          employmentType: found.employmentType || "",
+          startDate: found.startDate || "",
+          salaryType: found.salaryType || "",
+          salaryAmount: found.salaryAmount || "",
+          commissionRate: found.commissionRate || "",
+          hourlyRate: found.hourlyRate || "",
+          languages: [],
+          religion: "",
+          maritalStatus: "",
+          emergencyPhone: "",
+          skills: [],
+          documents: found.documents || [],
+          shiftSystem: "" as any,
+          workingDays: [],
+          workHoursStart: "",
+          workHoursEnd: "",
+          rotationalSchedule: {},
+          transportationType: found.transportationType || "",
+          assignedVehicle: found.assignedVehicle || "",
+          vehicleType: found.vehicleType || "",
+          plateNumber: found.plateNumber || "",
+          primaryTransport: found.primaryTransport || "",
+          transportVaries: found.transportVaries || false,
+          licenseCategory: found.licenseCategory || "",
+          licenseNumber: found.licenseNumber || "",
+          licenseExpiry: found.licenseExpiry || "",
+          serviceAreas: found.serviceAreas || [],
+          experienceStartDate: found.experienceStartDate || "",
+          accommodationType: found.accommodationType || "Company Accommodation",
+          latitude: found.latitude || "",
+          longitude: found.longitude || "",
+          campName: found.campName || "",
+          fullAddress: found.fullAddress || "",
+          dashboardAccess: found.dashboardAccess ?? false,
+          systemRole: found.systemRole || "Manager",
+          permissionScope:
+            found.permissionScope || "Full Access (Role Default)",
+        };
 
-            setData(initialized);
-            setFormData(initialized);
-            // Auto-enter edit mode for onboarding review if data is "fresh"
-            setIsEditing(true); 
+        // Check for Default Business Hours override if new/empty
+        const storedBizHours = localStorage.getItem("vendor_business_hours");
+        if (
+          storedBizHours &&
+          (!found.workHoursStart || found.workHoursStart === "08:00")
+        ) {
+          const biz = JSON.parse(storedBizHours);
+          initialized.workHoursStart = biz.start;
+          initialized.workHoursEnd = biz.end;
         }
+
+        setData(initialized);
+        setFormData(initialized);
+        // Auto-enter edit mode for onboarding review if data is "fresh"
+        setIsEditing(true);
+      }
     }
   }, [params?.id]);
 
-  if (!data || !formData) return <DashboardLayout><div>Loading...</div></DashboardLayout>;
+  if (!data || !formData)
+    return (
+      <DashboardLayout>
+        <div>Loading...</div>
+      </DashboardLayout>
+    );
 
-  if (data.role === 'Driver') {
-      return <DriverPendingInviteDetails initialData={data as any} />;
+  if (data.role === "Driver") {
+    return <DriverPendingInviteDetails initialData={data as any} />;
   }
 
   // --- Logic Helpers ---
   const handleQIDUploadClick = () => {
-      setIsExtractingQID(true);
-      // Simulate extraction process
-      setTimeout(() => {
-          setIsExtractingQID(false);
-          setIsQIDExtracted(true);
-          setIsManualEntry(false);
-          setFormData(prev => prev ? {
+    setIsExtractingQID(true);
+    // Simulate extraction process
+    setTimeout(() => {
+      setIsExtractingQID(false);
+      setIsQIDExtracted(true);
+      setIsManualEntry(false);
+      setFormData(prev =>
+        prev
+          ? {
               ...prev,
               name: "Ahmed Hassan",
               nickname: "Ahmed Hassan",
               qid: "28535638494",
               dob: "1985-05-15",
               nationality: "Qatar",
-              gender: "Male"
-          } : null);
-          toast.success("Details extracted from QID successfully");
-      }, 1500);
+              gender: "Male",
+            }
+          : null
+      );
+      toast.success("Details extracted from QID successfully");
+    }, 1500);
   };
 
   const handleManualEntryClick = () => {
-      setIsQIDExtracted(false);
-      setIsManualEntry(true);
-      setFormData(prev => prev ? {
-          ...prev,
-          name: "John Doe",
-          nickname: "John Doe",
-          qid: "29012345678",
-          dob: "1990-01-01",
-          nationality: "India",
-          gender: "Male"
-      } : null);
-      toast.success("Manual entry mode enabled. Dummy data populated.");
+    setIsQIDExtracted(false);
+    setIsManualEntry(true);
+    setFormData(prev =>
+      prev
+        ? {
+            ...prev,
+            name: "John Doe",
+            nickname: "John Doe",
+            qid: "29012345678",
+            dob: "1990-01-01",
+            nationality: "India",
+            gender: "Male",
+          }
+        : null
+    );
+    toast.success("Manual entry mode enabled. Dummy data populated.");
   };
 
   const handleEditToggle = () => {
-      if (isEditing) {
-          setFormData(data); // Revert
-          setIsEditing(false);
-          setIsAddingCert(false);
-      } else {
-          setFormData(data); // Sync
-          setIsEditing(true);
-      }
+    if (isEditing) {
+      setFormData(data); // Revert
+      setIsEditing(false);
+      setIsAddingCert(false);
+    } else {
+      setFormData(data); // Sync
+      setIsEditing(true);
+    }
   };
 
   const saveChanges = (advanceStep = false) => {
-      const stored = localStorage.getItem("vendor_staff");
-      if (stored) {
-          const list = JSON.parse(stored);
-          const index = list.findIndex((s: any) => s.id === data.id);
-          if (index !== -1 && formData) {
-              list[index] = { ...list[index], ...formData };
-              localStorage.setItem("vendor_staff", JSON.stringify(list));
-              setData(formData);
-              toast.success("Changes saved successfully");
-              if (advanceStep) setCurrentStep(prev => prev + 1);
-          }
+    const stored = localStorage.getItem("vendor_staff");
+    if (stored) {
+      const list = JSON.parse(stored);
+      const index = list.findIndex((s: any) => s.id === data.id);
+      if (index !== -1 && formData) {
+        list[index] = { ...list[index], ...formData };
+        localStorage.setItem("vendor_staff", JSON.stringify(list));
+        setData(formData);
+        toast.success("Changes saved successfully");
+        if (advanceStep) setCurrentStep(prev => prev + 1);
       }
+    }
   };
 
   const handleSaveBasicInfo = () => {
-        if (!basicInfoForm || !data) return;
-        
-        const updatedData = {
-            ...data,
-            nickname: basicInfoForm.nickname,
-            phone: basicInfoForm.mobile,
-            email: basicInfoForm.email,
-            gender: basicInfoForm.gender,
-            avatar: basicInfoForm.avatar || data.avatar
-        };
+    if (!basicInfoForm || !data) return;
 
-        const stored = localStorage.getItem("vendor_staff");
-        if (stored) {
-            const list = JSON.parse(stored);
-            const index = list.findIndex((s: any) => s.id === data.id);
-            if (index !== -1) {
-                list[index] = updatedData;
-                localStorage.setItem("vendor_staff", JSON.stringify(list));
-                setData(updatedData as ExtendedStaffMember);
-                // Also update local formData to reflect changes immediately
-                setFormData(prev => prev ? { ...prev, ...updatedData } : null);
-                setIsBasicInfoOpen(false);
-                toast.success("Basic Info updated successfully");
-            }
-        }
+    const updatedData = {
+      ...data,
+      nickname: basicInfoForm.nickname,
+      phone: basicInfoForm.mobile,
+      email: basicInfoForm.email,
+      gender: basicInfoForm.gender,
+      avatar: basicInfoForm.avatar || data.avatar,
     };
 
-  const handleAddCert = () => {
-      if (!formData) return; // Basic check
-      if (!tempCert.name) {
-          toast.error("Certificate name is required");
-          return;
+    const stored = localStorage.getItem("vendor_staff");
+    if (stored) {
+      const list = JSON.parse(stored);
+      const index = list.findIndex((s: any) => s.id === data.id);
+      if (index !== -1) {
+        list[index] = updatedData;
+        localStorage.setItem("vendor_staff", JSON.stringify(list));
+        setData(updatedData as ExtendedStaffMember);
+        // Also update local formData to reflect changes immediately
+        setFormData(prev => (prev ? { ...prev, ...updatedData } : null));
+        setIsBasicInfoOpen(false);
+        toast.success("Basic Info updated successfully");
       }
-      const newDoc = { 
-          name: tempCert.name, 
-          type: "Certificate", 
-          status: 'valid' as const,
-          expiryDate: tempCert.expiry 
-      };
-      setFormData({ ...formData, documents: [...(formData.documents || []), newDoc] });
-      setTempCert({ name: "", expiry: "" });
-      setIsAddingCert(false);
-      toast.success("Certificate added");
+    }
+  };
+
+  const handleAddCert = () => {
+    if (!formData) return; // Basic check
+    if (!tempCert.name) {
+      toast.error("Certificate name is required");
+      return;
+    }
+    const newDoc = {
+      name: tempCert.name,
+      type: "Certificate",
+      status: "valid" as const,
+      expiryDate: tempCert.expiry,
+    };
+    setFormData({
+      ...formData,
+      documents: [...(formData.documents || []), newDoc],
+    });
+    setTempCert({ name: "", expiry: "" });
+    setIsAddingCert(false);
+    toast.success("Certificate added");
   };
 
   // Check Requirements matching the new 3 Steps
   // Check Requirements matching the new 5 Steps
   const checkRequirements = () => {
     const d = formData || data;
-    const opsValid = d.serviceScope === 'all' || (d.serviceScope === 'specific' && (d.serviceAreas?.length || 0) > 0);
+    const opsValid =
+      d.serviceScope === "all" ||
+      (d.serviceScope === "specific" && (d.serviceAreas?.length || 0) > 0);
     const scheduleValid = (d.workingDays?.length || 0) > 0;
 
     return {
-        basic: !!(d.name && d.qid && d.dob && d.nationality && d.gender && d.phone && d.email),
-        employment: !!(d.role && d.department && d.employmentType && d.startDate && d.salaryType && d.religion),
-        // Combined validation
-        ops: (d.skills?.length || 0) > 0 && !!d.transportationType && (d.transportationType !== 'Flexible' || !!d.primaryTransport) && opsValid && scheduleValid, 
-        access: d.dashboardAccess === false || !!(d.dashboardAccess && d.systemRole && d.permissionScope),
-        summary: true 
+      basic: !!(
+        d.name &&
+        d.qid &&
+        d.dob &&
+        d.nationality &&
+        d.gender &&
+        d.phone &&
+        d.email
+      ),
+      employment: !!(
+        d.role &&
+        d.department &&
+        d.employmentType &&
+        d.startDate &&
+        d.salaryType &&
+        d.religion
+      ),
+      // Combined validation
+      ops:
+        (d.skills?.length || 0) > 0 &&
+        !!d.transportationType &&
+        (d.transportationType !== "Flexible" || !!d.primaryTransport) &&
+        opsValid &&
+        scheduleValid,
+      access:
+        d.dashboardAccess === false ||
+        !!(d.dashboardAccess && d.systemRole && d.permissionScope),
+      summary: true,
     };
   };
 
   const reqs = checkRequirements();
   const steps = [
-      { id: 'basic', label: 'Basic Information', completed: reqs.basic },
-      { id: 'employment', label: 'Employment & Profile', completed: reqs.employment },
-      { id: 'ops', label: 'Operations & Skills', completed: reqs.ops },
-      { id: 'access', label: 'Access & Security', completed: reqs.access },
-      { id: 'summary', label: 'Summary & Activation', completed: currentStep === 4 },
+    { id: "basic", label: "Basic Information", completed: reqs.basic },
+    {
+      id: "employment",
+      label: "Employment Details",
+      completed: reqs.employment,
+    },
+    { id: "ops", label: "Operations & Skills", completed: reqs.ops },
+    { id: "access", label: "Access & Security", completed: reqs.access },
+    {
+      id: "summary",
+      label: "Summary & Activation",
+      completed: currentStep === 4,
+    },
   ];
-  
+
   const completedCount = steps.filter(s => s.completed).length;
   const progressPercent = (completedCount / steps.length) * 100;
   const canActivate = progressPercent === 100;
 
-  const processActivation = (status: 'available'|'On Leave'|'Inactive', empStatus?: 'Active'|'Inactive'|'On Leave') => {
+  const processActivation = (
+    status: "available" | "On Leave" | "Inactive",
+    empStatus?: "Active" | "Inactive" | "On Leave"
+  ) => {
     const stored = localStorage.getItem("vendor_staff");
     if (stored) {
-        let list = JSON.parse(stored);
-        list = list.map((s: any) => s.id === data.id ? { ...s, membershipStatus: 'active', employmentStatus: empStatus || 'Active', status: status } : s);
-        localStorage.setItem("vendor_staff", JSON.stringify(list));
-        
-        setIsSuccessOpen(true);
+      let list = JSON.parse(stored);
+      list = list.map((s: any) =>
+        s.id === data.id
+          ? {
+              ...s,
+              membershipStatus: "active",
+              employmentStatus: empStatus || "Active",
+              status: status,
+            }
+          : s
+      );
+      localStorage.setItem("vendor_staff", JSON.stringify(list));
+
+      setIsSuccessOpen(true);
     }
   };
 
   const isEligibleForDispatch = () => {
-      // Logic for dispatch readiness
-      const hasBaseLocation = formData?.accommodationType === 'Company Accommodation' || formData?.accommodationType === 'Self Accommodation';
-      return reqs.basic && reqs.employment && reqs.ops && reqs.access && hasBaseLocation;
+    // Logic for dispatch readiness
+    const hasBaseLocation =
+      formData?.accommodationType === "Company Accommodation" ||
+      formData?.accommodationType === "Self Accommodation";
+    return (
+      reqs.basic &&
+      reqs.employment &&
+      reqs.ops &&
+      reqs.access &&
+      hasBaseLocation
+    );
   };
 
   const handleActivate = () => {
-      setIsActivationModalOpen(true);
+    setIsActivationModalOpen(true);
   };
 
   const handleConfirmActivation = () => {
     if (!finalStatus) {
-        toast.error("Please select a final status.");
-        return;
+      toast.error("Please select a final status.");
+      return;
     }
-    if (finalStatus === 'Inactive' && !inactiveReason) {
-        toast.error("Please provide a reason for inactive status.");
-        return;
+    if (finalStatus === "Inactive" && !inactiveReason) {
+      toast.error("Please provide a reason for inactive status.");
+      return;
     }
-    const statusVal = finalStatus === 'Active' ? 'available' : 'offline';
+    const statusVal = finalStatus === "Active" ? "available" : "offline";
     processActivation(statusVal as any, finalStatus);
     setIsActivationModalOpen(false);
   };
 
   // Handlers for Right Panel Logic (Skills/Docs)
   const handleAddSkill = (skill: string) => {
-      if (!formData) return;
-      if (!formData.skills?.includes(skill)) {
-          setFormData({ ...formData, skills: [...(formData.skills || []), skill] });
-      }
+    if (!formData) return;
+    if (!formData.skills?.includes(skill)) {
+      setFormData({ ...formData, skills: [...(formData.skills || []), skill] });
+    }
   };
   const handleRemoveSkill = (skill: string) => {
-      if (!formData) return;
-      setFormData({ ...formData, skills: formData.skills?.filter(s => s !== skill) });
+    if (!formData) return;
+    setFormData({
+      ...formData,
+      skills: formData.skills?.filter(s => s !== skill),
+    });
   };
   const handleMockUpload = () => {
-      if (!formData) return;
-      const newDoc = { name: "Uploaded Document.pdf", type: "General", status: 'valid' as const };
-      setFormData({ ...formData, documents: [...(formData.documents || []), newDoc] });
-      toast.success("Document uploaded (mock)");
+    if (!formData) return;
+    const newDoc = {
+      name: "Uploaded Document.pdf",
+      type: "General",
+      status: "valid" as const,
+    };
+    setFormData({
+      ...formData,
+      documents: [...(formData.documents || []), newDoc],
+    });
+    toast.success("Document uploaded (mock)");
   };
 
-  const serviceAreas = ["Doha Central", "West Bay", "The Pearl", "Al Rayyan", "Al Wakrah"];
-  
+  const serviceAreas = [
+    "Doha Central",
+    "West Bay",
+    "The Pearl",
+    "Al Rayyan",
+    "Al Wakrah",
+  ];
+
   const rotationHours = [
-      "04:00", "05:00", "06:00", "07:00", "08:00", "09:00", "10:00", "11:00", 
-      "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00", "19:00"
+    "04:00",
+    "05:00",
+    "06:00",
+    "07:00",
+    "08:00",
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
   ];
   const rotationDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Ordered as per design req if needed
 
@@ -665,2230 +946,3517 @@ export default function StaffPendingInviteDetails() {
       <div className="space-y-6">
         {/* Nav */}
         <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={() => setLocation("/workforce/pending")}>
-                <ArrowLeft className="h-4 w-4 mr-2" /> Back to Workforce
-            </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation("/workforce/pending")}
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Workforce
+          </Button>
         </div>
 
         {/* Split View */}
         <div className="flex flex-col lg:flex-row h-[calc(100vh-170px)] gap-6 animate-in fade-in slide-in-from-bottom-2">
-            
-            {/* LEFT SIDEBAR - PROFILE DETAILS */}
-            <div className="w-full lg:w-80 shrink-0 space-y-6">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
-                    
-                    {/* Essential Setup Info */}
-                    <div className="bg-white border-b border-gray-100 p-6 space-y-6 shrink-0">
-                        {/* Profile Info */}
-                        <div className="flex items-center gap-4">
-                            <Avatar className="h-12 w-12 border border-gray-100 shadow-sm">
-                                <AvatarImage src={data.avatar} className="object-cover"/>
-                                <AvatarFallback className="font-bold bg-blue-50 text-blue-700">
-                                    {data.name.substring(0,2).toUpperCase()}
-                                </AvatarFallback>
-                            </Avatar>
-                            <div className="overflow-hidden">
-                                <h2 className="text-lg font-bold text-gray-900 leading-tight truncate">{data.name}</h2>
-                                <div className="flex items-center gap-1.5 mt-0.5 text-[13px] text-gray-500">
-                                    <Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
-                                    <span className="truncate">{data.email || 'No email provided'}</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Role Type */}
-                        <div>
-                            <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Role Type</span>
-                            <Badge variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-3 py-1 font-semibold shadow-sm border border-blue-100/50">
-                                {data.role || "Field Service Staff"}
-                            </Badge>
-                        </div>
-
-                        {/* Invitation Status */}
-                        <div>
-                            <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">Invitation Status</span>
-                            <div className="bg-green-50 border border-green-100 rounded-lg p-3">
-                                <div className="flex items-center gap-2 text-green-700 font-bold text-sm mb-1">
-                                    <CheckCircle className="h-4 w-4" />
-                                    <span>Accepted</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 text-xs font-medium text-green-600/80 ml-6">
-                                    <Calendar className="h-3 w-3" />
-                                    <span>Oct 24, 2025 • 09:41 AM</span>
-                                </div>
-                            </div>
-                        </div>
+          {/* LEFT SIDEBAR - PROFILE DETAILS */}
+          <div className="w-full lg:w-80 shrink-0 space-y-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
+              {/* Essential Setup Info */}
+              <div className="bg-white border-b border-gray-100 p-6 space-y-6 shrink-0">
+                {/* Profile Info */}
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12 border border-gray-100 shadow-sm">
+                    <AvatarImage src={data.avatar} className="object-cover" />
+                    <AvatarFallback className="font-bold bg-blue-50 text-blue-700">
+                      {data.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="overflow-hidden">
+                    <h2 className="text-lg font-bold text-gray-900 leading-tight truncate">
+                      {data.name}
+                    </h2>
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[13px] text-gray-500">
+                      <Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      <span className="truncate">
+                        {data.email || "No email provided"}
+                      </span>
                     </div>
-                    
-                    <div className="flex flex-col flex-1">
-                        {/* Progress Badge */}
-                        <div className="px-6 py-4 shrink-0">
-                             <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Setup Progress</span>
-                                <span className="text-xs font-bold text-blue-600">{progressPercent.toFixed(0)}%</span>
-                            </div>
-                            <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                                 <div className="h-full bg-blue-600 transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
-                            </div>
-                        </div>
+                  </div>
+                </div>
 
-                        {/* Next Steps List */}
-                        <div className="px-6 pb-6 space-y-2 shrink-0">
-                             {steps.map((step, idx) => (
-                                 <div 
-                                    key={step.id}
-                                    onClick={() => setCurrentStep(idx)}
-                                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
-                                        currentStep === idx 
-                                        ? 'bg-blue-50 border-blue-200 shadow-sm' 
-                                        : 'bg-white border-transparent hover:bg-gray-50'
-                                    }`}
-                                 >
-                                     <div className={`
+                {/* Role Type */}
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Role Type
+                  </span>
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-3 py-1 font-semibold shadow-sm border border-blue-100/50"
+                  >
+                    {data.role || "Field Service Staff"}
+                  </Badge>
+                </div>
+
+                {/* Invitation Status */}
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Invitation Status
+                  </span>
+                  <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-green-700 font-bold text-sm mb-1">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Accepted</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-green-600/80 ml-6">
+                      <Calendar className="h-3 w-3" />
+                      <span>Oct 24, 2025 • 09:41 AM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col flex-1">
+                {/* Progress Badge */}
+                <div className="px-6 py-4 shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Setup Progress
+                    </span>
+                    <span className="text-xs font-bold text-blue-600">
+                      {progressPercent.toFixed(0)}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 transition-all duration-500"
+                      style={{ width: `${progressPercent}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Next Steps List */}
+                <div className="px-6 pb-6 space-y-2 shrink-0">
+                  {steps.map((step, idx) => (
+                    <div
+                      key={step.id}
+                      onClick={() => setCurrentStep(idx)}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                        currentStep === idx
+                          ? "bg-blue-50 border-blue-200 shadow-sm"
+                          : "bg-white border-transparent hover:bg-gray-50"
+                      }`}
+                    >
+                      <div
+                        className={`
                                          h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0
-                                         ${step.completed 
-                                             ? 'bg-green-100 text-green-600' 
-                                             : currentStep === idx 
-                                                 ? 'bg-blue-600 text-white' 
-                                                 : 'bg-gray-100 text-gray-400'}
-                                     `}>
-                                         {step.completed ? <CheckCircle className="h-3.5 w-3.5" /> : idx + 1}
-                                     </div>
-                                     <span className={`text-sm font-medium ${currentStep === idx ? 'text-blue-900' : 'text-gray-600'}`}>
-                                         {step.label}
-                                     </span>
-                                 </div>
-                             ))}
-                        </div>
-
-                        {/* Important Notes Box */}
-                        <div className="px-6 pb-6 mt-auto">
-                            <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 shadow-sm">
-                                <div className="flex items-center gap-2 mb-1.5">
-                                    <div className="h-5 w-5 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center shrink-0">
-                                        <Info className="h-3 w-3" />
-                                    </div>
-                                    <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">Important</span>
-                                </div>
-                                <span className="block text-[11px] text-amber-800/90 leading-relaxed">
-                                    Review all details carefully before final activation.
-                                </span>
-                            </div>
-                        </div>
-
-                        {/* Footer Action */}
-                        <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 text-center text-[11px] font-medium text-gray-400 shrink-0">
-                            Complete all steps to activate.
-                        </div>
+                                         ${
+                                           step.completed
+                                             ? "bg-green-100 text-green-600"
+                                             : currentStep === idx
+                                               ? "bg-blue-600 text-white"
+                                               : "bg-gray-100 text-gray-400"
+                                         }
+                                     `}
+                      >
+                        {step.completed ? (
+                          <CheckCircle className="h-3.5 w-3.5" />
+                        ) : (
+                          idx + 1
+                        )}
+                      </div>
+                      <span
+                        className={`text-sm font-medium ${currentStep === idx ? "text-blue-900" : "text-gray-600"}`}
+                      >
+                        {step.label}
+                      </span>
                     </div>
+                  ))}
                 </div>
+
+                {/* Important Notes Box */}
+                <div className="px-6 pb-6 mt-auto">
+                  <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-5 w-5 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center shrink-0">
+                        <Info className="h-3 w-3" />
+                      </div>
+                      <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                        Important
+                      </span>
+                    </div>
+                    <span className="block text-[11px] text-amber-800/90 leading-relaxed">
+                      Review all details carefully before final activation.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer Action */}
+                <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 text-center text-[11px] font-medium text-gray-400 shrink-0">
+                  Complete all steps to activate.
+                </div>
+              </div>
             </div>
+          </div>
 
-            {/* RIGHT PANEL - WIZARD CONTENT */}
-            <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
-                
-                {/* Content Area */}
-                <div className="flex-1 overflow-y-auto p-8 bg-white">
-                     
-                     {/* 0. BASIC INFORMATION */}
-                     {currentStep === 0 && (
-                         <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
-                             
-                             {/* Upload QID Section */}
-                             <div className={STYLES.card + " text-center relative overflow-hidden group hover:border-blue-300"}>
-                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
-                                 <div className="mx-auto w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4 transition-all">
-                                     {isExtractingQID ? (
-                                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                     ) : isQIDExtracted ? (
-                                        <CheckCircle className="h-8 w-8 text-green-500" />
-                                     ) : (
-                                        <div className="relative">
-                                            <Hash className="h-8 w-8 text-blue-600" />
+          {/* RIGHT PANEL - WIZARD CONTENT */}
+          <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-8 bg-white">
+              {/* 0. BASIC INFORMATION */}
+              {currentStep === 0 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* Upload QID Section */}
+                  <div
+                    className={
+                      STYLES.card +
+                      " text-center relative overflow-hidden group hover:border-blue-300"
+                    }
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 to-indigo-500"></div>
+                    <div className="mx-auto w-16 h-16 rounded-full bg-blue-50 flex items-center justify-center mb-4 transition-all">
+                      {isExtractingQID ? (
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                      ) : isQIDExtracted ? (
+                        <CheckCircle className="h-8 w-8 text-green-500" />
+                      ) : (
+                        <div className="relative">
+                          <Hash className="h-8 w-8 text-blue-600" />
+                        </div>
+                      )}
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">
+                      {isExtractingQID
+                        ? "Extracting Data..."
+                        : isQIDExtracted
+                          ? "QID Extracted Successfully"
+                          : "Identity Verification"}
+                    </h3>
+                    <span className="block text-[12px] text-gray-500 max-w-[340px] mx-auto mb-6 leading-relaxed">
+                      {isExtractingQID
+                        ? "Please wait while we extract the details from the uploaded document securely."
+                        : isQIDExtracted
+                          ? "Personal details have been automatically populated below."
+                          : "Securely upload the staff member's QID to automatically populate personal details."}
+                    </span>
+
+                    {!isExtractingQID && !isQIDExtracted && (
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <Button
+                          variant="ghost"
+                          onClick={handleManualEntryClick}
+                          className="h-11 px-6 rounded-lg font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                        >
+                          Skip & Enter Manually
+                        </Button>
+                        <Button
+                          onClick={handleQIDUploadClick}
+                          className="h-11 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 font-medium text-white shadow-sm flex items-center gap-2 transition-colors"
+                        >
+                          <Upload className="h-4 w-4" /> Upload Document
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Personal Information Section */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Personal Details"
+                      desc="Core identity and contact details for official employment records."
+                      icon={User}
+                    />
+
+                    <div className="space-y-6 relative overflow-hidden transition-all duration-300">
+                      {!isQIDExtracted && !isManualEntry && (
+                        <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-all duration-300">
+                          <div className="bg-white px-6 py-3 rounded-full shadow-lg border border-gray-100 font-medium text-sm text-gray-600 flex items-center gap-2">
+                            <ShieldCheck className="h-4 w-4 text-blue-500" />
+                            Please upload QID or select Manual Entry
+                          </div>
+                        </div>
+                      )}
+
+                      {(isQIDExtracted || isManualEntry) && (
+                        <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full group transition-all hover:border-blue-200">
+                          <div className="flex items-center gap-5">
+                            <div
+                              className="relative h-16 w-16 rounded-full bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer group-hover:border-blue-300 transition-all shadow-sm group/avatar"
+                              onClick={() =>
+                                profilePhotoInputRef.current?.click()
+                              }
+                            >
+                              {formData?.avatar || data?.avatar ? (
+                                <img
+                                  src={formData?.avatar || data?.avatar}
+                                  alt="Profile preview"
+                                  className="h-full w-full object-cover"
+                                />
+                              ) : (
+                                <User className="h-7 w-7 text-gray-400 group-hover/avatar:text-blue-500 transition-colors" />
+                              )}
+                              <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
+                                <Upload className="h-5 w-5 text-white" />
+                              </div>
+                            </div>
+                            <div className="flex-1">
+                              <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-1">
+                                Profile Photo{" "}
+                                <span className="text-red-500">*</span>
+                              </h4>
+                              <span className="text-[11px] text-gray-400 mt-1 block">
+                                JPG or PNG (Max 5MB)
+                              </span>
+                            </div>
+                          </div>
+                          <input
+                            type="file"
+                            ref={profilePhotoInputRef}
+                            className="hidden"
+                            accept="image/jpeg, image/png"
+                            onChange={handleProfilePhotoUpload}
+                          />
+                          <Button
+                            variant="outline"
+                            className="h-10 px-5 text-xs rounded-xl border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm font-semibold transition-colors shrink-0"
+                            onClick={() =>
+                              profilePhotoInputRef.current?.click()
+                            }
+                          >
+                            {formData?.avatar || data?.avatar
+                              ? "Change Photo"
+                              : "Choose File"}
+                          </Button>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
+                        {/* Full Name */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>
+                            Full Name <span className="text-red-500">*</span>
+                          </Label>
+                          {isQIDExtracted && (
+                            <span className="text-[11px] text-gray-500 mb-1.5">
+                              Auto-filled from QID
+                            </span>
+                          )}
+                          <Input
+                            disabled
+                            value={formData.name || ""}
+                            placeholder="Manual Entry Staff"
+                            className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+                            onChange={e =>
+                              setFormData({ ...formData, name: e.target.value })
+                            }
+                          />
+                        </div>
+
+                        {/* Display Name */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>Display Name</Label>
+                          <Input
+                            value={formData.nickname || ""}
+                            placeholder="Enter display name"
+                            className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+                            onChange={e =>
+                              setFormData({
+                                ...formData,
+                                nickname: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* QID Number */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>
+                            QID Number <span className="text-red-500">*</span>
+                          </Label>
+                          {isQIDExtracted && (
+                            <span className="text-[11px] text-gray-500 mb-1.5">
+                              Auto-filled from QID
+                            </span>
+                          )}
+                          <Input
+                            disabled
+                            value={formData.qid || ""}
+                            placeholder="00000000000"
+                            className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+                            onChange={e =>
+                              setFormData({ ...formData, qid: e.target.value })
+                            }
+                          />
+                        </div>
+
+                        {/* Date of Birth */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>
+                            Date of Birth{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          {isQIDExtracted && (
+                            <span className="text-[11px] text-gray-500 mb-1.5">
+                              Auto-filled from QID
+                            </span>
+                          )}
+                          <Input
+                            type="date"
+                            disabled
+                            value={formData.dob || ""}
+                            className={STYLES.input}
+                            onChange={e =>
+                              setFormData({ ...formData, dob: e.target.value })
+                            }
+                          />
+                        </div>
+
+                        {/* Nationality */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>
+                            Nationality <span className="text-red-500">*</span>
+                          </Label>
+                          {isQIDExtracted && (
+                            <span className="text-[11px] text-gray-500 mb-1.5">
+                              Auto-filled from QID
+                            </span>
+                          )}
+                          <Select
+                            disabled
+                            value={formData.nationality}
+                            onValueChange={v =>
+                              setFormData({ ...formData, nationality: v })
+                            }
+                          >
+                            <SelectTrigger className={STYLES.input}>
+                              <SelectValue placeholder="Select nationality" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Qatar">Qatar</SelectItem>
+                              <SelectItem value="India">India</SelectItem>
+                              <SelectItem value="Philippines">
+                                Philippines
+                              </SelectItem>
+                              <SelectItem value="Nepal">Nepal</SelectItem>
+                              <SelectItem value="Bangladesh">
+                                Bangladesh
+                              </SelectItem>
+                              <SelectItem value="Sri Lanka">
+                                Sri Lanka
+                              </SelectItem>
+                              <SelectItem value="Pakistan">Pakistan</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Gender */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>
+                            Gender <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            value={formData.gender}
+                            onValueChange={v =>
+                              setFormData({ ...formData, gender: v as any })
+                            }
+                          >
+                            <SelectTrigger className="mt-auto bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 text-gray-600">
+                              <SelectValue placeholder="Select gender" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Male">Male</SelectItem>
+                              <SelectItem value="Female">Female</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Mobile Number */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>
+                            Mobile Number{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            value={formData.phone || "+974 "}
+                            placeholder="+974 55687989"
+                            className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+                            onChange={e =>
+                              setFormData({
+                                ...formData,
+                                phone: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+
+                        {/* Email Address */}
+                        <div className="flex flex-col h-full">
+                          <Label className={STYLES.label}>
+                            Email Address{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Input
+                            type="email"
+                            disabled
+                            value={formData.email || ""}
+                            placeholder="example@email.com"
+                            className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+                            onChange={e =>
+                              setFormData({
+                                ...formData,
+                                email: e.target.value,
+                              })
+                            }
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 flex items-center justify-between">
+                    <Button
+                      variant="ghost"
+                      onClick={() => setLocation("/workforce/pending")}
+                      className="h-12 px-6 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-xl font-semibold transition-colors"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center gap-2"
+                      onClick={() => {
+                        saveChanges(true); // increments to step 1
+                      }}
+                      disabled={
+                        !reqs.basic || (!isQIDExtracted && !isManualEntry)
+                      }
+                    >
+                      Next: Employment Details{" "}
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 1. EMPLOYMENT DETAILS */}
+              {currentStep === 1 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* Section: Role Information */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Role & Assignment"
+                      desc="Organizational designation, department allocation, and employment status."
+                      icon={Briefcase}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Department <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.department}
+                          onValueChange={v =>
+                            setFormData({ ...formData, department: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {departmentOptions.map(d => (
+                              <SelectItem key={d} value={d}>
+                                {d}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Position <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.role}
+                          onValueChange={v =>
+                            setFormData({ ...formData, role: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Position" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {positionOptions.map(p => (
+                              <SelectItem key={p} value={p}>
+                                {p}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Employment Type{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.employmentType}
+                          onValueChange={v =>
+                            setFormData({
+                              ...formData,
+                              employmentType: v as any,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {employmentTypeOptions.map(t => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Start Date <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          type="date"
+                          disabled={!isEditing}
+                          value={formData.startDate}
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                          onChange={e =>
+                            setFormData({
+                              ...formData,
+                              startDate: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Compensation */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Compensation & Benefits"
+                      desc="Salary structure, allowances, incentives, and payment terms."
+                      icon={Banknote}
+                    />
+
+                    <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1.5 md:col-span-2">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                            Salary Scheme{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            disabled={!isEditing}
+                            value={formData.salaryType}
+                            onValueChange={v =>
+                              setFormData({ ...formData, salaryType: v as any })
+                            }
+                          >
+                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm">
+                              <SelectValue placeholder="Select Salary Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Fixed Monthly">
+                                Fixed Monthly
+                              </SelectItem>
+                              <SelectItem value="Commission-Based">
+                                Commission-Based
+                              </SelectItem>
+                              <SelectItem value="Hourly-Rate">
+                                Hourly-Rate
+                              </SelectItem>
+                              <SelectItem value="Fixed + Commission">
+                                Fixed + Commission
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {(formData.salaryType === "Fixed Monthly" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Monthly Base Salary{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.salaryAmount}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    salaryAmount: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {(formData.salaryType === "Commission-Based" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Commission Rate{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.commissionRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    commissionRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0"
+                                className="h-11 w-full pr-10 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-sm font-bold">
+                                %
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {formData.salaryType === "Hourly-Rate" && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Hourly Rate{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.hourlyRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    hourlyRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-xs font-medium">
+                                / hour
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Personal Background */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Background Information"
+                      desc="Additional demographic details required for HR documentation and compliance."
+                      icon={FileText}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Religion <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.religion}
+                          onValueChange={v =>
+                            setFormData({ ...formData, religion: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Religion" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {[
+                              "Islam",
+                              "Christianity",
+                              "Hinduism",
+                              "Buddhism",
+                              "Other",
+                            ].map(r => (
+                              <SelectItem key={r} value={r}>
+                                {r}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Marital Status{" "}
+                          <span className="lowercase normal-case font-normal capitalize-none text-gray-400 ml-1">
+                            (Optional)
+                          </span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.maritalStatus}
+                          onValueChange={v =>
+                            setFormData({ ...formData, maritalStatus: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {["Single", "Married", "Divorced", "Widowed"].map(
+                              s => (
+                                <SelectItem key={s} value={s}>
+                                  {s}
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep(0)}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Previous Step
+                    </Button>
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50 h-[38px] flex items-center justify-center"
+                      onClick={() => saveChanges(true)}
+                      disabled={!reqs.employment}
+                    >
+                      Next: Operations & Skills{" "}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. OPERATIONS & SKILLS */}
+              {currentStep === 2 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* Section: Professional Profile */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Skills & Certifications"
+                      desc="Key competencies, mandatory certifications, and professional expertise."
+                      icon={Award}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                      {/* Languages Multi-Select */}
+                      {/* Toggle Logic implemented: Select again to remove */}
+                      {/* Languages Multi-Select */}
+                      {/* Popover-based Dropdown Pattern */}
+                      <div className="space-y-3">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Languages <span className="text-red-500">*</span>
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild disabled={!isEditing}>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                              {formData.languages &&
+                              formData.languages.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {formData.languages.map(lang => (
+                                    <Badge
+                                      key={lang}
+                                      variant="secondary"
+                                      className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200"
+                                    >
+                                      {lang}
+                                      {isEditing && (
+                                        <span
+                                          className="ml-1 cursor-pointer hover:text-red-600 transition-colors"
+                                          onClick={e => {
+                                            e.stopPropagation();
+                                            setFormData({
+                                              ...formData,
+                                              languages:
+                                                formData.languages?.filter(
+                                                  l => l !== lang
+                                                ),
+                                            });
+                                          }}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </span>
+                                      )}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-gray-400">
+                                  Select languages...
+                                </span>
+                              )}
+                              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-[400px] p-0"
+                            align="start"
+                          >
+                            <Command>
+                              <CommandInput placeholder="Search languages..." />
+                              <CommandList>
+                                <CommandEmpty>No language found.</CommandEmpty>
+                                <CommandGroup>
+                                  {[
+                                    "English",
+                                    "Arabic",
+                                    "Hindi",
+                                    "Urdu",
+                                    "Tagalog",
+                                    "Bengali",
+                                    "Malayalam",
+                                  ].map(lang => (
+                                    <CommandItem
+                                      key={lang}
+                                      value={lang}
+                                      onSelect={() => {
+                                        const current =
+                                          formData.languages || [];
+                                        if (current.includes(lang)) {
+                                          setFormData({
+                                            ...formData,
+                                            languages: current.filter(
+                                              l => l !== lang
+                                            ),
+                                          });
+                                        } else {
+                                          setFormData({
+                                            ...formData,
+                                            languages: [...current, lang],
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <div
+                                        className={cn(
+                                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                          formData.languages?.includes(lang)
+                                            ? "bg-primary text-primary-foreground"
+                                            : "opacity-50 [&_svg]:invisible"
+                                        )}
+                                      >
+                                        <Check className={cn("h-4 w-4")} />
+                                      </div>
+                                      {lang}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* Skills Multi-Select - Aligned to Column 2 */}
+                      {/* Skills Multi-Select - Popover Pattern */}
+                      <div className="space-y-3">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Skills & Expertise{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Popover>
+                          <PopoverTrigger asChild disabled={!isEditing}>
+                            <Button
+                              variant="outline"
+                              role="combobox"
+                              className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                              {formData.skills && formData.skills.length > 0 ? (
+                                <div className="flex flex-wrap gap-1.5">
+                                  {formData.skills.map(skill => (
+                                    <Badge
+                                      key={skill}
+                                      variant="secondary"
+                                      className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200"
+                                    >
+                                      {skill}
+                                      {isEditing && (
+                                        <span
+                                          className="ml-1 cursor-pointer hover:text-red-600 transition-colors"
+                                          onClick={e => {
+                                            e.stopPropagation();
+                                            setFormData({
+                                              ...formData,
+                                              skills: formData.skills?.filter(
+                                                s => s !== skill
+                                              ),
+                                            });
+                                          }}
+                                        >
+                                          <X className="h-3 w-3" />
+                                        </span>
+                                      )}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="text-gray-400">
+                                  Select skills...
+                                </span>
+                              )}
+                              <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            className="w-[400px] p-0"
+                            align="start"
+                          >
+                            <Command>
+                              <CommandInput placeholder="Search skills..." />
+                              <CommandList>
+                                <CommandEmpty>No skill found.</CommandEmpty>
+                                <CommandGroup>
+                                  {availableSkills.map(skill => (
+                                    <CommandItem
+                                      key={skill.name}
+                                      value={skill.name}
+                                      onSelect={() => {
+                                        const current = formData.skills || [];
+                                        if (current.includes(skill.name)) {
+                                          setFormData({
+                                            ...formData,
+                                            skills: current.filter(
+                                              s => s !== skill.name
+                                            ),
+                                          });
+                                        } else {
+                                          setFormData({
+                                            ...formData,
+                                            skills: [...current, skill.name],
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <div
+                                        className={cn(
+                                          "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                          formData.skills?.includes(skill.name)
+                                            ? "bg-primary text-primary-foreground"
+                                            : "opacity-50 [&_svg]:invisible"
+                                        )}
+                                      >
+                                        <Check className={cn("h-4 w-4")} />
+                                      </div>
+                                      {skill.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      {/* MANDATORY CERTIFICATES LOGIC */}
+                      {(formData.skills || []).filter(skill => {
+                        const skillConfig = availableSkills.find(
+                          s => s.name === skill
+                        );
+                        return skillConfig?.requiresCert;
+                      }).length > 0 && (
+                        <div className="md:col-span-2 pt-6 mt-2 border-t border-gray-100 space-y-4 animate-in fade-in slide-in-from-top-1">
+                          <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
+                            <ShieldCheck className="h-4 w-4 text-orange-600" />
+                            Required Certifications
+                          </h4>
+
+                          <div className="grid grid-cols-1 gap-4">
+                            {formData.skills
+                              ?.filter(skill => {
+                                const skillConfig = availableSkills.find(
+                                  s => s.name === skill
+                                );
+                                return skillConfig?.requiresCert;
+                              })
+                              .map(skill => {
+                                const skillConfig = availableSkills.find(
+                                  s => s.name === skill
+                                );
+                                const reqCertName =
+                                  skillConfig?.certName ||
+                                  `${skill} Certificate`;
+                                const existingDoc = formData.documents?.find(
+                                  d => d.name === reqCertName
+                                );
+
+                                return (
+                                  <div
+                                    key={skill}
+                                    className="bg-orange-50/40 border border-orange-100 rounded-xl p-5 transition-all hover:bg-orange-50/70"
+                                  >
+                                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
+                                      <div>
+                                        <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                                          {reqCertName}
+                                          <Badge
+                                            variant="outline"
+                                            className="text-[10px] h-5 px-1.5 py-0 border-orange-200 text-orange-700 bg-white"
+                                          >
+                                            Required
+                                          </Badge>
+                                        </h5>
+                                        <span className="text-[11px] text-gray-400 mt-1 block">
+                                          Mandatory documentation for
+                                          authorization
+                                        </span>
+                                      </div>
+                                      {existingDoc ? (
+                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 gap-1 pl-1.5 whitespace-nowrap">
+                                          <CheckCircle className="h-3 w-3" />
+                                          Uploaded
+                                        </Badge>
+                                      ) : (
+                                        <Badge
+                                          variant="outline"
+                                          className="text-orange-600 border-orange-200 bg-white whitespace-nowrap"
+                                        >
+                                          Pending Upload
+                                        </Badge>
+                                      )}
+                                    </div>
+
+                                    {existingDoc ? (
+                                      <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
+                                        <div className="flex items-center gap-3 overflow-hidden">
+                                          <div className="h-9 w-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <FileText className="h-4 w-4" />
+                                          </div>
+                                          <div className="min-w-0">
+                                            <div className="font-medium text-gray-900 text-sm truncate">
+                                              {existingDoc.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                              Expires:{" "}
+                                              {existingDoc.expiryDate ||
+                                                "No Expiry"}
+                                            </div>
+                                          </div>
                                         </div>
-                                     )}
-                                 </div>
-                                 <h3 className="text-lg font-bold text-gray-900 mb-2">
-                                     {isExtractingQID ? "Extracting Data..." : isQIDExtracted ? "QID Extracted Successfully" : "Auto-fill with QID"}
-                                 </h3>
-                                 <span className="block text-[12px] text-gray-500 max-w-[340px] mx-auto mb-6 leading-relaxed">
-                                     {isExtractingQID ? "Please wait while we extract the details from the uploaded document securely." : isQIDExtracted ? "Personal details have been automatically populated below." : "Upload the staff member's QID document to automatically extract and populate personal details."}
-                                 </span>
-                                 
-                                 {!isExtractingQID && !isQIDExtracted && (
-                                     <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                         <Button 
-                                            variant="ghost" 
-                                            onClick={handleManualEntryClick}
-                                            className="h-11 px-6 rounded-lg font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                                         >
-                                            Skip & Enter Manually
-                                         </Button>
-                                         <Button 
-                                            onClick={handleQIDUploadClick}
-                                            className="h-11 px-6 rounded-lg bg-blue-600 hover:bg-blue-700 font-medium text-white shadow-sm flex items-center gap-2 transition-colors"
-                                         >
-                                            <Upload className="h-4 w-4" /> Upload Document
-                                         </Button>
-                                     </div>
-                                 )}
-                             </div>
-
-                             {/* Personal Information Section */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Personal Information</h3>
-            <span className={STYLES.sectionDesc}>Core identity details of the staff member for official records</span>
-        </div>
-
-                                 <div className="space-y-6 relative overflow-hidden transition-all duration-300">
-                                     {(!isQIDExtracted && !isManualEntry) && (
-                                         <div className="absolute inset-0 bg-white/70 backdrop-blur-[2px] z-10 flex items-center justify-center rounded-2xl transition-all duration-300">
-                                             <div className="bg-white px-6 py-3 rounded-full shadow-lg border border-gray-100 font-medium text-sm text-gray-600 flex items-center gap-2">
-                                                 <ShieldCheck className="h-4 w-4 text-blue-500" />
-                                                 Please upload QID or select Manual Entry
-                                             </div>
-                                         </div>
-                                     )}
-                                     
-                                     {(isQIDExtracted || isManualEntry) && (
-                                         <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full group transition-all hover:border-blue-200">
-                                             <div className="flex items-center gap-5">
-                                                 <div 
-                                                     className="relative h-16 w-16 rounded-full bg-white border-2 border-dashed border-gray-200 flex items-center justify-center overflow-hidden flex-shrink-0 cursor-pointer group-hover:border-blue-300 transition-all shadow-sm group/avatar"
-                                                     onClick={() => profilePhotoInputRef.current?.click()}
-                                                 >
-                                                    {(formData?.avatar || data?.avatar) ? (
-                                                        <img src={formData?.avatar || data?.avatar} alt="Profile preview" className="h-full w-full object-cover" />
-                                                    ) : (
-                                                        <User className="h-7 w-7 text-gray-400 group-hover/avatar:text-blue-500 transition-colors" />
-                                                    )}
-                                                    <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center opacity-0 group-hover/avatar:opacity-100 transition-opacity">
-                                                        <Upload className="h-5 w-5 text-white" />
-                                                    </div>
-                                                 </div>
-                                                 <div className="flex-1">
-                                                    <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1.5 mb-1">
-                                                        Profile Photo <span className="text-red-500">*</span>
-                                                    </h4>
-                                                    <span className="text-[11px] text-gray-400 mt-1 block">JPG or PNG (Max 5MB)</span>
-                                                 </div>
-                                             </div>
-                                             <input 
-                                                 type="file" 
-                                                 ref={profilePhotoInputRef} 
-                                                 className="hidden" 
-                                                 accept="image/jpeg, image/png" 
-                                                 onChange={handleProfilePhotoUpload} 
-                                             />
-                                             <Button 
-                                                 variant="outline" 
-                                                 className="h-10 px-5 text-xs rounded-xl border-gray-200 bg-white text-gray-700 hover:bg-gray-50 shadow-sm font-semibold transition-colors shrink-0"
-                                                 onClick={() => profilePhotoInputRef.current?.click()}
-                                             >
-                                                 {(formData?.avatar || data?.avatar) ? 'Change Photo' : 'Choose File'}
-                                             </Button>
-                                         </div>
-                                     )}
-
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                                        {/* Full Name */}
-                                        <div className="flex flex-col h-full">
-                                            <Label className={STYLES.label}>
-                                                Full Name <span className="text-red-500">*</span>
-                                            </Label>
-                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
-                                            <Input 
-                                                disabled
-                                                value={formData.name || ""} 
-                                                placeholder="Manual Entry Staff"
-                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
-                                                onChange={e => setFormData({...formData, name: e.target.value})} 
+                                        {isEditing && (
+                                          <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                            onClick={() => {
+                                              const newDocs =
+                                                formData.documents?.filter(
+                                                  d => d.name !== reqCertName
+                                                ) || [];
+                                              setFormData({
+                                                ...formData,
+                                                documents: newDocs,
+                                              });
+                                            }}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        )}
+                                      </div>
+                                    ) : (
+                                      // Upload Form
+                                      <div className="flex flex-col lg:flex-row gap-4 items-end">
+                                        <div className="w-full space-y-1.5">
+                                          <Label className={STYLES.label}>
+                                            Document File
+                                          </Label>
+                                          <div className="relative">
+                                            <Input
+                                              disabled={!isEditing}
+                                              type="file"
+                                              className="text-xs file:text-xs file:font-medium file:text-blue-600 file:bg-blue-50 file:border-0 file:mr-3 file:px-2 file:py-1 file:rounded-md h-10 w-full bg-white border-gray-200 hover:border-blue-300 transition-all"
                                             />
+                                          </div>
                                         </div>
-
-                                        {/* Display Name */}
-                                        <div className="flex flex-col h-full">
+                                        {skillConfig?.certExpiry && (
+                                          <div className="w-full lg:w-48 space-y-1.5">
                                             <Label className={STYLES.label}>
-                                                Display Name
+                                              Expiry Date
                                             </Label>
-                                            <Input 
-                                                value={formData.nickname || ""} 
-                                                placeholder="Enter display name"
-                                                className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
-                                                onChange={e => setFormData({...formData, nickname: e.target.value})} 
-                                            />
-                                        </div>
-
-                                        {/* QID Number */}
-                                        <div className="flex flex-col h-full">
-                                            <Label className={STYLES.label}>
-                                                QID Number <span className="text-red-500">*</span>
-                                            </Label>
-                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
-                                            <Input 
-                                                disabled
-                                                value={formData.qid || ""} 
-                                                placeholder="00000000000"
-                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
-                                                onChange={e => setFormData({...formData, qid: e.target.value})} 
-                                            />
-                                        </div>
-
-                                        {/* Date of Birth */}
-                                        <div className="flex flex-col h-full">
-                                            <Label className={STYLES.label}>
-                                                Date of Birth <span className="text-red-500">*</span>
-                                            </Label>
-                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
-                                            <Input 
+                                            <div className="relative">
+                                              <Input
+                                                disabled={!isEditing}
                                                 type="date"
-                                                disabled
-                                                value={formData.dob || ""} 
-                                                className={STYLES.input}
-                                                onChange={e => setFormData({...formData, dob: e.target.value})} 
-                                            />
-                                        </div>
-
-                                        {/* Nationality */}
-                                        <div className="flex flex-col h-full">
-                                            <Label className={STYLES.label}>
-                                                Nationality <span className="text-red-500">*</span>
-                                            </Label>
-                                            {isQIDExtracted && <span className="text-[11px] text-gray-500 mb-1.5">Auto-filled from QID</span>}
-                                            <Select disabled value={formData.nationality} onValueChange={v => setFormData({...formData, nationality: v})}>
-                                                <SelectTrigger className={STYLES.input}>
-                                                    <SelectValue placeholder="Select nationality" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Qatar">Qatar</SelectItem>
-                                                    <SelectItem value="India">India</SelectItem>
-                                                    <SelectItem value="Philippines">Philippines</SelectItem>
-                                                    <SelectItem value="Nepal">Nepal</SelectItem>
-                                                    <SelectItem value="Bangladesh">Bangladesh</SelectItem>
-                                                    <SelectItem value="Sri Lanka">Sri Lanka</SelectItem>
-                                                    <SelectItem value="Pakistan">Pakistan</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        {/* Gender */}
-                                        <div className="flex flex-col h-full">
-                                            <Label className={STYLES.label}>
-                                                Gender <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Select value={formData.gender} onValueChange={v => setFormData({...formData, gender: v as any})}>
-                                                <SelectTrigger className="mt-auto bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 text-gray-600">
-                                                    <SelectValue placeholder="Select gender" />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Male">Male</SelectItem>
-                                                    <SelectItem value="Female">Female</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                        </div>
-
-                                        {/* Mobile Number */}
-                                        <div className="flex flex-col h-full">
-                                            <Label className={STYLES.label}>
-                                                Mobile Number <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Input 
-                                                value={formData.phone || "+974 "} 
-                                                placeholder="+974 55687989"
-                                                className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
-                                                onChange={e => setFormData({...formData, phone: e.target.value})} 
-                                            />
-                                        </div>
-
-                                        {/* Email Address */}
-                                        <div className="flex flex-col h-full">
-                                            <Label className={STYLES.label}>
-                                                Email Address <span className="text-red-500">*</span>
-                                            </Label>
-                                            <Input 
-                                                type="email"
-                                                disabled
-                                                value={formData.email || ""} 
-                                                placeholder="example@email.com"
-                                                className="mt-auto h-10 w-full border-gray-200 bg-gray-50 text-gray-500 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
-                                                onChange={e => setFormData({...formData, email: e.target.value})} 
-                                            />
-                                        </div>
-                                     </div>
-                                 </div>
-                             </div>
-
-                             <div className="pt-6 flex items-center justify-between">
-                                 <Button variant="ghost" onClick={() => setLocation("/workforce/pending")} className="h-12 px-6 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-xl font-semibold transition-colors">
-                                     Cancel
-                                 </Button>
-                                 <Button 
-                                     className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed text-white flex items-center gap-2" 
-                                     onClick={() => {
-                                         saveChanges(true); // increments to step 1
-                                     }}
-                                     disabled={!reqs.basic || (!isQIDExtracted && !isManualEntry)}
-                                 >
-                                     Next: Employment & Profile <ArrowRight className="w-4 h-4" />
-                                 </Button>
-                             </div>
-                         </div>
-                     )}
-
-                     {/* 1. EMPLOYMENT DETAILS */}
-                     {currentStep === 1 && (
-                         <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
-                             
-                             {/* Section: Role Information */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Role Information</h3>
-            <span className={STYLES.sectionDesc}>Employee’s designation, department allocation, and organizational level</span>
-        </div>
-
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Department <span className="text-red-500">*</span></Label>
-                                        <Select disabled={!isEditing} value={formData.department} onValueChange={v => setFormData({...formData, department: v})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Department" /></SelectTrigger>
-                                            <SelectContent>
-                                                {departmentOptions.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Position <span className="text-red-500">*</span></Label>
-                                        <Select disabled={!isEditing} value={formData.role} onValueChange={v => setFormData({...formData, role: v})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Position" /></SelectTrigger>
-                                            <SelectContent>
-                                                {positionOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Employment Type <span className="text-red-500">*</span></Label>
-                                        <Select disabled={!isEditing} value={formData.employmentType} onValueChange={v => setFormData({...formData, employmentType: v as any})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Type" /></SelectTrigger>
-                                            <SelectContent>
-                                                {employmentTypeOptions.map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Start Date <span className="text-red-500">*</span></Label>
-                                        <Input 
-                                            type="date" 
-                                            disabled={!isEditing} 
-                                            value={formData.startDate} 
-                                            className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
-                                            onChange={e => setFormData({...formData, startDate: e.target.value})} 
-                                        />
-                                    </div>
-                                 </div>
-                             </div>
-
-                             {/* Section: Compensation */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Compensation Package</h3>
-            <span className={STYLES.sectionDesc}>Salary structure, allowances, incentives, deductions, and payment terms</span>
-        </div>
-
-                                 <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 space-y-6">
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                         <div className="space-y-1.5 md:col-span-2">
-                                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Salary Scheme <span className="text-red-500">*</span></Label>
-                                            <Select disabled={!isEditing} value={formData.salaryType} onValueChange={v => setFormData({...formData, salaryType: v as any})}>
-                                                <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm"><SelectValue placeholder="Select Salary Type" /></SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectItem value="Fixed Monthly">Fixed Monthly</SelectItem>
-                                                    <SelectItem value="Commission-Based">Commission-Based</SelectItem>
-                                                    <SelectItem value="Hourly-Rate">Hourly-Rate</SelectItem>
-                                                    <SelectItem value="Fixed + Commission">Fixed + Commission</SelectItem>
-                                                </SelectContent>
-                                            </Select>
-                                            
-                                         </div>
-
-                                         {(formData.salaryType === "Fixed Monthly" || formData.salaryType === "Fixed + Commission") && (
-                                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Monthly Base Salary <span className="text-red-500">*</span></Label>
-                                                <div className="relative group">
-                                                     <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
-                                                        QAR
-                                                     </div>
-                                                     <Input 
-                                                        disabled={!isEditing} 
-                                                        value={formData.salaryAmount} 
-                                                        onChange={e => setFormData({...formData, salaryAmount: e.target.value})} 
-                                                        placeholder="0.00" 
-                                                        className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
-                                                     />
-                                                </div>
+                                                className="h-10 w-full bg-white border-gray-200 text-xs font-medium hover:border-blue-300 transition-all"
+                                                onChange={e => {
+                                                  if (e.target.value) {
+                                                    // Auto-save on date selection for UX flow
+                                                    const newDoc = {
+                                                      name: reqCertName,
+                                                      type: "Certificate",
+                                                      status: "valid" as const,
+                                                      expiryDate:
+                                                        e.target.value,
+                                                    };
+                                                    setFormData({
+                                                      ...formData,
+                                                      documents: [
+                                                        ...(formData.documents ||
+                                                          []),
+                                                        newDoc,
+                                                      ],
+                                                    });
+                                                    toast.success(
+                                                      `${reqCertName} details saved`
+                                                    );
+                                                  }
+                                                }}
+                                              />
                                             </div>
-                                         )}
-
-                                          {(formData.salaryType === "Commission-Based" || formData.salaryType === "Fixed + Commission") && (
-                                            <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Commission Rate <span className="text-red-500">*</span></Label>
-                                                <div className="relative group">
-                                                     <Input 
-                                                        disabled={!isEditing} 
-                                                        value={formData.commissionRate} 
-                                                        onChange={e => setFormData({...formData, commissionRate: e.target.value})} 
-                                                        placeholder="0" 
-                                                        className="h-11 w-full pr-10 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
-                                                     />
-                                                     <div className="absolute right-3 top-3.5 text-gray-400 text-sm font-bold">%</div>
-                                                </div>
-                                            </div>
-                                         )}
-
-                                         {formData.salaryType === "Hourly-Rate" && (
-                                             <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Hourly Rate <span className="text-red-500">*</span></Label>
-                                                <div className="relative group">
-                                                     <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
-                                                        QAR
-                                                     </div>
-                                                     <Input 
-                                                        disabled={!isEditing} 
-                                                        value={formData.hourlyRate} 
-                                                        onChange={e => setFormData({...formData, hourlyRate: e.target.value})} 
-                                                        placeholder="0.00" 
-                                                        className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
-                                                     />
-                                                     <div className="absolute right-3 top-3.5 text-gray-400 text-xs font-medium">/ hour</div>
-                                                </div>
-                                            </div>
-                                         )}
-                                     </div>
-                                 </div>
-                             </div>
-
-                             {/* Section: Personal Background */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Personal Background</h3>
-            <span className={STYLES.sectionDesc}>Additional background details required for HR documentation and compliance</span>
-        </div>
-
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Religion <span className="text-red-500">*</span></Label>
-                                        <Select disabled={!isEditing} value={formData.religion} onValueChange={v => setFormData({...formData, religion: v})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Religion" /></SelectTrigger>
-                                            <SelectContent>
-                                                {["Islam", "Christianity", "Hinduism", "Buddhism", "Other"].map(r => <SelectItem key={r} value={r}>{r}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Marital Status <span className="lowercase normal-case font-normal capitalize-none text-gray-400 ml-1">(Optional)</span></Label>
-                                        <Select disabled={!isEditing} value={formData.maritalStatus} onValueChange={v => setFormData({...formData, maritalStatus: v})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select Status" /></SelectTrigger>
-                                            <SelectContent>
-                                                {["Single", "Married", "Divorced", "Widowed"].map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                 </div>
-                             </div>
-
-                             <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
-                                 <Button variant="outline" onClick={() => setCurrentStep(0)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
-                                     Previous Step
-                                 </Button>
-                                     <Button 
-                                         className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50 h-[38px] flex items-center justify-center" 
-                                         onClick={() => saveChanges(true)}
-                                         disabled={!reqs.employment}
-                                     >
-                                         Next: Operations & Skills <ArrowRight className="w-4 h-4 ml-2" />
-                                     </Button>
-                             </div>
-                         </div>
-                     )}
-
-                     {/* 2. OPERATIONS & SKILLS */}
-                     {currentStep === 2 && (
-                         <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
-                             
-                             {/* Section: Professional Profile */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Professional Profile</h3>
-            <span className={STYLES.sectionDesc}>Key competencies, certifications, technical skills, and role capabilities</span>
-        </div>
-
-                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                     
-                                     {/* Languages Multi-Select */}
-                                     {/* Toggle Logic implemented: Select again to remove */}
-                                     {/* Languages Multi-Select */}
-                                     {/* Popover-based Dropdown Pattern */}
-                                     <div className="space-y-3">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Languages <span className="text-red-500">*</span></Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild disabled={!isEditing}>
-                                                <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                                                    {formData.languages && formData.languages.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {formData.languages.map(lang => (
-                                                                <Badge key={lang} variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200">
-                                                                    {lang}
-                                                                    {isEditing && (
-                                                                        <span className="ml-1 cursor-pointer hover:text-red-600 transition-colors" onClick={(e) => { 
-                                                                            e.stopPropagation(); 
-                                                                            setFormData({...formData, languages: formData.languages?.filter(l => l !== lang)}); 
-                                                                        }}>
-                                                                            <X className="h-3 w-3" />
-                                                                        </span>
-                                                                    )}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    ) : <span className="text-gray-400">Select languages...</span>}
-                                                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-[400px] p-0" align="start">
-                                                <Command>
-                                                    <CommandInput placeholder="Search languages..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>No language found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {["English", "Arabic", "Hindi", "Urdu", "Tagalog", "Bengali", "Malayalam"].map((lang) => (
-                                                                <CommandItem 
-                                                                    key={lang} 
-                                                                    value={lang} 
-                                                                    onSelect={() => {
-                                                                        const current = formData.languages || [];
-                                                                        if (current.includes(lang)) {
-                                                                            setFormData({...formData, languages: current.filter(l => l !== lang)});
-                                                                        } else {
-                                                                            setFormData({...formData, languages: [...current, lang]});
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", formData.languages?.includes(lang) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}>
-                                                                        <Check className={cn("h-4 w-4")} />
-                                                                    </div>
-                                                                    {lang}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
-
-                                     </div>
-
-                                     {/* Skills Multi-Select - Aligned to Column 2 */}
-                                     {/* Skills Multi-Select - Popover Pattern */}
-                                     <div className="space-y-3">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Skills & Expertise <span className="text-red-500">*</span></Label>
-                                        <Popover>
-                                            <PopoverTrigger asChild disabled={!isEditing}>
-                                                <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                                                    {formData.skills && formData.skills.length > 0 ? (
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {formData.skills.map(skill => (
-                                                                <Badge key={skill} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
-                                                                    {skill}
-                                                                    {isEditing && (
-                                                                        <span className="ml-1 cursor-pointer hover:text-red-600 transition-colors" onClick={(e) => { 
-                                                                            e.stopPropagation(); 
-                                                                            setFormData({...formData, skills: formData.skills?.filter(s => s !== skill)}); 
-                                                                        }}>
-                                                                            <X className="h-3 w-3" />
-                                                                        </span>
-                                                                    )}
-                                                                </Badge>
-                                                            ))}
-                                                        </div>
-                                                    ) : <span className="text-gray-400">Select skills...</span>}
-                                                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-[400px] p-0" align="start">
-                                                <Command>
-                                                    <CommandInput placeholder="Search skills..." />
-                                                    <CommandList>
-                                                        <CommandEmpty>No skill found.</CommandEmpty>
-                                                        <CommandGroup>
-                                                            {availableSkills.map((skill) => (
-                                                                <CommandItem 
-                                                                    key={skill.name} 
-                                                                    value={skill.name} 
-                                                                    onSelect={() => {
-                                                                        const current = formData.skills || [];
-                                                                        if (current.includes(skill.name)) {
-                                                                            setFormData({...formData, skills: current.filter(s => s !== skill.name)});
-                                                                        } else {
-                                                                            setFormData({...formData, skills: [...current, skill.name]});
-                                                                        }
-                                                                    }}
-                                                                >
-                                                                    <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", formData.skills?.includes(skill.name) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}>
-                                                                        <Check className={cn("h-4 w-4")} />
-                                                                    </div>
-                                                                    {skill.name}
-                                                                </CommandItem>
-                                                            ))}
-                                                        </CommandGroup>
-                                                    </CommandList>
-                                                </Command>
-                                            </PopoverContent>
-                                        </Popover>
-
-                                     </div>
-
-                                     {/* MANDATORY CERTIFICATES LOGIC */}
-                                    {(formData.skills || []).filter(skill => {
-                                        const skillConfig = availableSkills.find(s => s.name === skill);
-                                        return skillConfig?.requiresCert;
-                                    }).length > 0 && (
-                                        <div className="md:col-span-2 pt-6 mt-2 border-t border-gray-100 space-y-4 animate-in fade-in slide-in-from-top-1">
-                                            <h4 className="text-sm font-semibold text-gray-900 flex items-center gap-2">
-                                                <ShieldCheck className="h-4 w-4 text-orange-600" />
-                                                Required Certifications
-                                            </h4>
-                                            
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {formData.skills
-                                                    ?.filter(skill => {
-                                                        const skillConfig = availableSkills.find(s => s.name === skill);
-                                                        return skillConfig?.requiresCert;
-                                                    })
-                                                    .map(skill => {
-                                                        const skillConfig = availableSkills.find(s => s.name === skill);
-                                                        const reqCertName = skillConfig?.certName || `${skill} Certificate`;
-                                                        const existingDoc = formData.documents?.find(d => d.name === reqCertName);
-                                                        
-                                                        return (
-                                                            <div key={skill} className="bg-orange-50/40 border border-orange-100 rounded-xl p-5 transition-all hover:bg-orange-50/70">
-                                                                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
-                                                                    <div>
-                                                                        <h5 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                                                                            {reqCertName}
-                                                                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 py-0 border-orange-200 text-orange-700 bg-white">
-                                                                                Required
-                                                                            </Badge>
-                                                                        </h5>
-                                                                        <span className="text-[11px] text-gray-400 mt-1 block">Mandatory documentation for authorization</span>
-                                                                    </div>
-                                                                    {existingDoc ? (
-                                                                        <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 gap-1 pl-1.5 whitespace-nowrap">
-                                                                            <CheckCircle className="h-3 w-3" />
-                                                                            Uploaded
-                                                                        </Badge>
-                                                                    ) : (
-                                                                        <Badge variant="outline" className="text-orange-600 border-orange-200 bg-white whitespace-nowrap">
-                                                                            Pending Upload
-                                                                        </Badge>
-                                                                    )}
-                                                                </div>
-
-                                                                {existingDoc ? (
-                                                                    <div className="flex items-center justify-between bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                                                        <div className="flex items-center gap-3 overflow-hidden">
-                                                                            <div className="h-9 w-9 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                                                                                <FileText className="h-4 w-4" />
-                                                                            </div>
-                                                                            <div className="min-w-0">
-                                                                                <div className="font-medium text-gray-900 text-sm truncate">{existingDoc.name}</div>
-                                                                                <div className="text-xs text-gray-500">Expires: {existingDoc.expiryDate || 'No Expiry'}</div>
-                                                                            </div>
-                                                                        </div>
-                                                                        {isEditing && (
-                                                                           <Button 
-                                                                                size="icon" 
-                                                                                variant="ghost" 
-                                                                                className="h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50"
-                                                                                onClick={() => {
-                                                                                    const newDocs = formData.documents?.filter(d => d.name !== reqCertName) || [];
-                                                                                    setFormData({ ...formData, documents: newDocs }); 
-                                                                                }}
-                                                                            >
-                                                                                <Trash2 className="h-4 w-4" />
-                                                                            </Button>
-                                                                        )}
-                                                                    </div>
-                                                                ) : (
-                                                                    // Upload Form
-                                                                    <div className="flex flex-col lg:flex-row gap-4 items-end">
-                                                                        <div className="w-full space-y-1.5">
-                                                                            <Label className={STYLES.label}>Document File</Label>
-                                                                            <div className="relative">
-                                                                                <Input 
-                                                                                    disabled={!isEditing} 
-                                                                                    type="file" 
-                                                                                    className="text-xs file:text-xs file:font-medium file:text-blue-600 file:bg-blue-50 file:border-0 file:mr-3 file:px-2 file:py-1 file:rounded-md h-10 w-full bg-white border-gray-200 hover:border-blue-300 transition-all" 
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                       {skillConfig?.certExpiry && (
-                                                                           <div className="w-full lg:w-48 space-y-1.5">
-                                                                                <Label className={STYLES.label}>Expiry Date</Label>
-                                                                                <div className="relative">
-                                                                                    <Input 
-                                                                                        disabled={!isEditing} 
-                                                                                        type="date" 
-                                                                                        className="h-10 w-full bg-white border-gray-200 text-xs font-medium hover:border-blue-300 transition-all" 
-                                                                                        onChange={(e) => {
-                                                                                            if (e.target.value) {
-                                                                                                // Auto-save on date selection for UX flow
-                                                                                                const newDoc = { 
-                                                                                                    name: reqCertName, 
-                                                                                                    type: "Certificate", 
-                                                                                                    status: 'valid' as const, 
-                                                                                                    expiryDate: e.target.value 
-                                                                                                };
-                                                                                                setFormData({ ...formData, documents: [...(formData.documents || []), newDoc] });
-                                                                                                toast.success(`${reqCertName} details saved`);
-                                                                                            }
-                                                                                        }}
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                       )}
-                                                                       {!skillConfig?.certExpiry && (
-                                                                            <div className="w-full lg:w-48">
-                                                                                 <Button 
-                                                                                    disabled={!isEditing}
-                                                                                    className="w-full h-10 bg-blue-600 hover:bg-blue-700"
-                                                                                    onClick={() => {
-                                                                                        const newDoc = { 
-                                                                                            name: reqCertName, 
-                                                                                            type: "Certificate", 
-                                                                                            status: 'valid' as const,
-                                                                                            expiryDate: "N/A"
-                                                                                        };
-                                                                                        setFormData({ ...formData, documents: [...(formData.documents || []), newDoc] });
-                                                                                        toast.success(`${reqCertName} details saved`);
-                                                                                    }}
-                                                                                 >
-                                                                                     Upload
-                                                                                 </Button>
-                                                                            </div>
-                                                                       )}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                            </div>
-                                        </div>
+                                          </div>
+                                        )}
+                                        {!skillConfig?.certExpiry && (
+                                          <div className="w-full lg:w-48">
+                                            <Button
+                                              disabled={!isEditing}
+                                              className="w-full h-10 bg-blue-600 hover:bg-blue-700"
+                                              onClick={() => {
+                                                const newDoc = {
+                                                  name: reqCertName,
+                                                  type: "Certificate",
+                                                  status: "valid" as const,
+                                                  expiryDate: "N/A",
+                                                };
+                                                setFormData({
+                                                  ...formData,
+                                                  documents: [
+                                                    ...(formData.documents ||
+                                                      []),
+                                                    newDoc,
+                                                  ],
+                                                });
+                                                toast.success(
+                                                  `${reqCertName} details saved`
+                                                );
+                                              }}
+                                            >
+                                              Upload
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
                                     )}
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
 
-                                    {/* Experience Field - Intelligent UX */}
-                                    <div className="md:col-span-2 space-y-3 pt-4 border-t border-gray-100">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Industry Experience Start Date</Label>
-                                        <div className="flex flex-col md:flex-row md:items-center gap-4">
-                                            <div className="flex-1">
-                                                <Input 
-                                                    type="date"
-                                                    disabled={!isEditing} 
-                                                    value={formData.experienceStartDate} 
-                                                    max={new Date().toISOString().split('T')[0]}
-                                                    onChange={e => setFormData({...formData, experienceStartDate: e.target.value})} 
-                                                    className="h-11 w-full border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm" 
-                                                />
-                                                <span className="text-[11px] text-gray-400 mt-1 block">Experience is calculated from this date until today.</span>
-                                            </div>
-                                            
-                                            <div className="flex-1 bg-gray-50 border border-gray-100 rounded-lg p-3 flex items-center justify-between">
-                                                <span className="text-xs font-semibold text-gray-500 uppercase">Total Experience</span>
-                                                <span className="text-sm font-bold text-gray-900 bg-white px-3 py-1 rounded-md shadow-sm border border-gray-100">
-                                                    {calculateExperience(formData.experienceStartDate)}
-                                                </span>
-                                            </div>
+                      {/* Experience Field - Intelligent UX */}
+                      <div className="md:col-span-2 space-y-3 pt-4 border-t border-gray-100">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Industry Experience Start Date
+                        </Label>
+                        <div className="flex flex-col md:flex-row md:items-center gap-4">
+                          <div className="flex-1">
+                            <Input
+                              type="date"
+                              disabled={!isEditing}
+                              value={formData.experienceStartDate}
+                              max={new Date().toISOString().split("T")[0]}
+                              onChange={e =>
+                                setFormData({
+                                  ...formData,
+                                  experienceStartDate: e.target.value,
+                                })
+                              }
+                              className="h-11 w-full border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                            />
+                            <span className="text-[11px] text-gray-400 mt-1 block">
+                              Experience is calculated from this date until
+                              today.
+                            </span>
+                          </div>
+
+                          <div className="flex-1 bg-gray-50 border border-gray-100 rounded-lg p-3 flex items-center justify-between">
+                            <span className="text-xs font-semibold text-gray-500 uppercase">
+                              Total Experience
+                            </span>
+                            <span className="text-sm font-bold text-gray-900 bg-white px-3 py-1 rounded-md shadow-sm border border-gray-100">
+                              {calculateExperience(
+                                formData.experienceStartDate
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Operations Config */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Operational Scope"
+                      desc="Service coverage areas and geographical dispatch constraints."
+                      icon={MapPin}
+                    />
+
+                    <div className="space-y-4">
+                      <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                        Operational Scope{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div
+                          onClick={() =>
+                            isEditing &&
+                            setFormData({
+                              ...formData,
+                              serviceScope: "all",
+                              serviceAreas: [],
+                            })
+                          }
+                          className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${
+                                                  formData.serviceScope ===
+                                                  "all"
+                                                    ? "bg-blue-50/50 border-blue-600 shadow-sm"
+                                                    : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
+                                                }
+                                                ${!isEditing && "opacity-60 cursor-not-allowed"}
+                                            `}
+                        >
+                          <div
+                            className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "all" ? "border-blue-600" : "border-gray-300"}`}
+                          >
+                            {formData.serviceScope === "all" && (
+                              <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                              <Globe className="h-4 w-4 text-blue-500" />
+                              All Service Areas
+                            </div>
+                            <span className="text-[11px] text-gray-400 mt-1 block">
+                              Can be dispatched to any location
+                            </span>
+                          </div>
+                        </div>
+
+                        <div
+                          onClick={() =>
+                            isEditing &&
+                            setFormData({
+                              ...formData,
+                              serviceScope: "specific",
+                            })
+                          }
+                          className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${
+                                                  formData.serviceScope ===
+                                                  "specific"
+                                                    ? "bg-blue-50/50 border-blue-600 shadow-sm"
+                                                    : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
+                                                }
+                                                ${!isEditing && "opacity-60 cursor-not-allowed"}
+                                            `}
+                        >
+                          <div
+                            className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "specific" ? "border-blue-600" : "border-gray-300"}`}
+                          >
+                            {formData.serviceScope === "specific" && (
+                              <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                              <MapPin className="h-4 w-4 text-orange-500" />
+                              Specific Service Areas
+                            </div>
+                            <span className="text-[11px] text-gray-400 mt-1 block">
+                              Restrict staff availability to specific zones
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CONDITIONAL RENDER: Specific Areas Selector - Refactored to match Languages/Skills Pattern */}
+                      {formData.serviceScope === "specific" && (
+                        <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                            Selected Regions{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Popover>
+                            <PopoverTrigger asChild disabled={!isEditing}>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                              >
+                                {formData.serviceAreas &&
+                                formData.serviceAreas.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {formData.serviceAreas.map(area => (
+                                      <Badge
+                                        key={area}
+                                        variant="secondary"
+                                        className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100"
+                                      >
+                                        {area}
+                                        {isEditing && (
+                                          <span
+                                            className="ml-1 cursor-pointer hover:text-red-600 transition-colors"
+                                            onClick={e => {
+                                              e.stopPropagation();
+                                              setFormData({
+                                                ...formData,
+                                                serviceAreas:
+                                                  formData.serviceAreas?.filter(
+                                                    s => s !== area
+                                                  ),
+                                              });
+                                            }}
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </span>
+                                        )}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400">
+                                    Select service areas...
+                                  </span>
+                                )}
+                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-[400px] p-0"
+                              align="start"
+                            >
+                              <Command>
+                                <CommandInput placeholder="Search regions..." />
+                                <CommandList>
+                                  <CommandEmpty>No region found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {serviceAreaConfigs.map(area => (
+                                      <CommandItem
+                                        key={area.id}
+                                        value={area.name}
+                                        onSelect={() => {
+                                          const current =
+                                            formData.serviceAreas || [];
+                                          if (current.includes(area.name)) {
+                                            setFormData({
+                                              ...formData,
+                                              serviceAreas: current.filter(
+                                                s => s !== area.name
+                                              ),
+                                            });
+                                          } else {
+                                            setFormData({
+                                              ...formData,
+                                              serviceAreas: [
+                                                ...current,
+                                                area.name,
+                                              ],
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        <div
+                                          className={cn(
+                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                            formData.serviceAreas?.includes(
+                                              area.name
+                                            )
+                                              ? "bg-primary text-primary-foreground"
+                                              : "opacity-50 [&_svg]:invisible"
+                                          )}
+                                        >
+                                          <Check className={cn("h-4 w-4")} />
                                         </div>
-                                    </div>
+                                        {area.name}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                                 </div>
-                             </div>
+                  {/* Section: Logistics */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Logistics & Mobility"
+                      desc="Transportation arrangements and assigned mobility resources."
+                      icon={Truck}
+                    />
 
+                    <div className="space-y-4">
+                      {/* Main Transport Select */}
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Transportation Arrangement{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.transportationType}
+                          onValueChange={v => {
+                            setFormData({
+                              ...formData,
+                              transportationType: v,
+                              assignedVehicle: "",
+                              vehicleType: "",
+                              plateNumber: "",
+                              primaryTransport:
+                                v === "Flexible"
+                                  ? formData.primaryTransport
+                                  : "",
+                            });
+                          }}
+                        >
+                          <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
+                            <SelectValue placeholder="Select Transportation Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Transportation by Company">
+                              Transportation by Company
+                            </SelectItem>
+                            <SelectItem value="Self Drive">
+                              Self Drive
+                            </SelectItem>
+                            <SelectItem value="No Transportation">
+                              No Transportation
+                            </SelectItem>
+                            <SelectItem value="Flexible">Flexible</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
+                      {/* Nested Dropdown for Flexible */}
+                      {formData.transportationType === "Flexible" && (
+                        <div className="ml-4 pl-4 border-l-2 border-gray-100 space-y-1.5 animate-in fade-in slide-in-from-top-1">
+                          <Label className="text-xs font-semibold uppercase text-gray-400 tracking-wide">
+                            Default Transportation Mode{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            disabled={!isEditing}
+                            value={formData.primaryTransport}
+                            onValueChange={v =>
+                              setFormData({ ...formData, primaryTransport: v })
+                            }
+                          >
+                            <SelectTrigger className="bg-white h-10 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full max-w-sm">
+                              <SelectValue placeholder="Select default mode" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Transportation by Company">
+                                Transportation by Company
+                              </SelectItem>
+                              <SelectItem value="Self Drive">
+                                Self Drive
+                              </SelectItem>
+                              <SelectItem value="No Transportation">
+                                No Transportation
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-                             {/* Section: Operations Config */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Operations Config</h3>
-            <span className={STYLES.sectionDesc}>Operational responsibilities including assigned service categories and coverage</span>
-        </div>
+                  {/* Section: Staff Base Location */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Accommodation Details"
+                      desc="Residential assignment, camp location, and geographical coordinates."
+                      icon={Layers}
+                    />
 
-                                 <div className="space-y-4">
-                                     <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Operational Scope <span className="text-red-500">*</span></Label>
-                                     
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                         <div 
-                                            onClick={() => isEditing && setFormData({ ...formData, serviceScope: 'all', serviceAreas: [] })}
-                                            className={`
-                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
-                                                ${formData.serviceScope === 'all' 
-                                                    ? 'bg-blue-50/50 border-blue-600 shadow-sm' 
-                                                    : 'bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50'}
-                                                ${!isEditing && 'opacity-60 cursor-not-allowed'}
-                                            `}
-                                         >
-                                            <div className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === 'all' ? 'border-blue-600' : 'border-gray-300'}`}>
-                                                {formData.serviceScope === 'all' && <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
-                                                    <Globe className="h-4 w-4 text-blue-500" />
-                                                    All Service Areas
-                                                </div>
-                                                <span className="text-[11px] text-gray-400 mt-1 block">Can be dispatched to any location</span>
-                                            </div>
-                                         </div>
-
-                                         <div 
-                                            onClick={() => isEditing && setFormData({ ...formData, serviceScope: 'specific' })}
-                                            className={`
-                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
-                                                ${formData.serviceScope === 'specific' 
-                                                    ? 'bg-blue-50/50 border-blue-600 shadow-sm' 
-                                                    : 'bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50'}
-                                                ${!isEditing && 'opacity-60 cursor-not-allowed'}
-                                            `}
-                                         >
-                                            <div className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === 'specific' ? 'border-blue-600' : 'border-gray-300'}`}>
-                                                {formData.serviceScope === 'specific' && <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />}
-                                            </div>
-                                            <div>
-                                                <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
-                                                    <MapPin className="h-4 w-4 text-orange-500" />
-                                                    Specific Service Areas
-                                                </div>
-                                                <span className="text-[11px] text-gray-400 mt-1 block">Restrict staff availability to specific zones</span>
-                                            </div>
-                                         </div>
-                                     </div>
-
-                                     {/* CONDITIONAL RENDER: Specific Areas Selector - Refactored to match Languages/Skills Pattern */}
-                                     {formData.serviceScope === 'specific' && (
-                                         <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
-                                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Selected Regions <span className="text-red-500">*</span></Label>
-                                             <Popover>
-                                                 <PopoverTrigger asChild disabled={!isEditing}>
-                                                     <Button variant="outline" role="combobox" className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed">
-                                                         {formData.serviceAreas && formData.serviceAreas.length > 0 ? (
-                                                             <div className="flex flex-wrap gap-1.5">
-                                                                 {formData.serviceAreas.map(area => (
-                                                                     <Badge key={area} variant="secondary" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100">
-                                                                         {area}
-                                                                         {isEditing && (
-                                                                             <span className="ml-1 cursor-pointer hover:text-red-600 transition-colors" onClick={(e) => { 
-                                                                                 e.stopPropagation(); 
-                                                                                 setFormData({...formData, serviceAreas: formData.serviceAreas?.filter(s => s !== area)}); 
-                                                                             }}>
-                                                                                 <X className="h-3 w-3" />
-                                                                             </span>
-                                                                         )}
-                                                                     </Badge>
-                                                                 ))}
-                                                             </div>
-                                                         ) : <span className="text-gray-400">Select service areas...</span>}
-                                                         <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                                     </Button>
-                                                 </PopoverTrigger>
-                                                 <PopoverContent className="w-[400px] p-0" align="start">
-                                                     <Command>
-                                                         <CommandInput placeholder="Search regions..." />
-                                                         <CommandList>
-                                                             <CommandEmpty>No region found.</CommandEmpty>
-                                                             <CommandGroup>
-                                                                 {serviceAreaConfigs.map((area) => (
-                                                                     <CommandItem 
-                                                                         key={area.id} 
-                                                                         value={area.name} 
-                                                                         onSelect={() => {
-                                                                             const current = formData.serviceAreas || [];
-                                                                             if (current.includes(area.name)) {
-                                                                                 setFormData({...formData, serviceAreas: current.filter(s => s !== area.name)});
-                                                                             } else {
-                                                                                 setFormData({...formData, serviceAreas: [...current, area.name]});
-                                                                             }
-                                                                         }}
-                                                                     >
-                                                                         <div className={cn("mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary", formData.serviceAreas?.includes(area.name) ? "bg-primary text-primary-foreground" : "opacity-50 [&_svg]:invisible")}>
-                                                                             <Check className={cn("h-4 w-4")} />
-                                                                         </div>
-                                                                         {area.name}
-                                                                     </CommandItem>
-                                                                 ))}
-                                                             </CommandGroup>
-                                                         </CommandList>
-                                                     </Command>
-                                                 </PopoverContent>
-                                             </Popover>
-                                         </div>
-                                     )}
-                                 </div>
-                             </div>
-
-                             {/* Section: Logistics */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Logistics</h3>
-            <span className={STYLES.sectionDesc}>Dispatch preferences and mobility details</span>
-        </div>
-
-                                 <div className="space-y-4">
-                                     {/* Main Transport Select */}
-                                     <div className="space-y-1.5">
-                                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Transportation Arrangement <span className="text-red-500">*</span></Label>
-                                         <Select 
-                                             disabled={!isEditing} 
-                                             value={formData.transportationType} 
-                                             onValueChange={(v) => {
-                                                 setFormData({
-                                                     ...formData, 
-                                                     transportationType: v,
-                                                     assignedVehicle: "",
-                                                     vehicleType: "",
-                                                     plateNumber: "",
-                                                     primaryTransport: v === 'Flexible' ? formData.primaryTransport : "" 
-                                                 })
-                                             }}
-                                         >
-                                             <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
-                                                  <SelectValue placeholder="Select Transportation Type" />
-                                              </SelectTrigger>
-                                             <SelectContent>
-                                                 <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
-                                                 <SelectItem value="Self Drive">Self Drive</SelectItem>
-                                                 <SelectItem value="No Transportation">No Transportation</SelectItem>
-                                                 <SelectItem value="Flexible">Flexible</SelectItem>
-                                             </SelectContent>
-                                         </Select>
-                                     </div>
-
-                                     {/* Nested Dropdown for Flexible */}
-                                     {formData.transportationType === 'Flexible' && (
-                                         <div className="ml-4 pl-4 border-l-2 border-gray-100 space-y-1.5 animate-in fade-in slide-in-from-top-1">
-                                             <Label className="text-xs font-semibold uppercase text-gray-400 tracking-wide">Default Transportation Mode <span className="text-red-500">*</span></Label>
-                                              <Select 
-                                                  disabled={!isEditing} 
-                                                  value={formData.primaryTransport} 
-                                                  onValueChange={(v) => setFormData({...formData, primaryTransport: v})}
-                                              >
-                                                  <SelectTrigger className="bg-white h-10 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full max-w-sm">
-                                                      <SelectValue placeholder="Select default mode" />
-                                                  </SelectTrigger>
-                                                  <SelectContent>
-                                                      <SelectItem value="Transportation by Company">Transportation by Company</SelectItem>
-                                                      <SelectItem value="Self Drive">Self Drive</SelectItem>
-                                                      <SelectItem value="No Transportation">No Transportation</SelectItem>
-                                                  </SelectContent>
-                                              </Select>
-                                         </div>
-                                     )}
-                                 </div>
-                             </div>
-
-
-
-
-                             {/* Section: Staff Base Location */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Staff Base Location</h3>
-            <span className={STYLES.sectionDesc}>Accommodation details, camp assignment, and coordinates</span>
-        </div>
-
-                                 <div className="space-y-4">
-                                     {/* Base Location Panel */}
-                                     <div className="space-y-6">
-                                         <div className="space-y-3">
-                                             <Label className="text-xs font-semibold uppercase text-gray-800 tracking-wide">Staff Base Location <span className="text-red-500">*</span></Label>
-                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                 {['Company Accommodation', 'Self Accommodation'].map(type => (
-                                                     <div 
-                                                         key={type}
-                                                         onClick={() => {
-                                                             if(isEditing) {
-                                                                 setFormData({ ...formData, accommodationType: type, campName: '', latitude: '', longitude: '', fullAddress: '' });
-                                                                 setIsCreatingCamp(false);
-                                                             }
-                                                         }}
-                                                         className={`
+                    <div className="space-y-4">
+                      {/* Base Location Panel */}
+                      <div className="space-y-6">
+                        <div className="space-y-3">
+                          <Label className="text-xs font-semibold uppercase text-gray-800 tracking-wide">
+                            Staff Base Location{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {[
+                              "Company Accommodation",
+                              "Self Accommodation",
+                            ].map(type => (
+                              <div
+                                key={type}
+                                onClick={() => {
+                                  if (isEditing) {
+                                    setFormData({
+                                      ...formData,
+                                      accommodationType: type,
+                                      campName: "",
+                                      latitude: "",
+                                      longitude: "",
+                                      fullAddress: "",
+                                    });
+                                    setIsCreatingCamp(false);
+                                  }
+                                }}
+                                className={`
                                                              flex items-center justify-center sm:justify-start gap-2.5 p-3 rounded-lg border-2 cursor-pointer transition-all
-                                                             ${formData.accommodationType === type 
-                                                                 ? 'bg-blue-50/50 border-blue-600 text-blue-700 shadow-sm' 
-                                                                 : 'bg-white border-gray-200 hover:border-blue-300 text-gray-600 hover:text-gray-900'}
-                                                             ${!isEditing && 'opacity-60 cursor-not-allowed'}
+                                                             ${
+                                                               formData.accommodationType ===
+                                                               type
+                                                                 ? "bg-blue-50/50 border-blue-600 text-blue-700 shadow-sm"
+                                                                 : "bg-white border-gray-200 hover:border-blue-300 text-gray-600 hover:text-gray-900"
+                                                             }
+                                                             ${!isEditing && "opacity-60 cursor-not-allowed"}
                                                          `}
-                                                     >
-                                                         <div className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${formData.accommodationType === type ? 'border-blue-600 bg-white' : 'border-gray-300 bg-gray-50'}`}>
-                                                             {formData.accommodationType === type && <div className="h-2 w-2 rounded-full bg-blue-600" />}
-                                                         </div>
-                                                         <span className="text-sm font-semibold whitespace-nowrap">{type}</span>
-                                                     </div>
-                                                 ))}
-                                             </div>
-                                         </div>
-
-                                         {formData.accommodationType === 'Company Accommodation' && (
-                                             <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 shadow-[inset_0_2px_10px_rgb(0,0,0,0.01)]">
-                                                 <div className="space-y-1.5">
-                                                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Camp Location <span className="text-red-500">*</span></Label>
-                                                    <Select 
-                                                        disabled={!isEditing} 
-                                                        value={formData.campName} 
-                                                        onValueChange={(v) => {
-                                                            setIsCreatingCamp(false);
-                                                            const loc = campLocations.find(c => c.name === v);
-                                                            if (loc) {
-                                                                setFormData({...formData, campName: v, latitude: loc.latitude, longitude: loc.longitude, fullAddress: loc.fullAddress});
-                                                            } else {
-                                                                setFormData({...formData, campName: v});
-                                                            }
-                                                        }}
-                                                    >
-                                                        <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm font-medium shadow-sm hover:border-blue-400 w-full focus:ring-4 focus:ring-blue-50">
-                                                            <SelectValue placeholder="Select Camp Location" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {campLocations.map(camp => (
-                                                                <SelectItem key={camp.id} value={camp.name}>{camp.name}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    
-                                                    {!isCreatingCamp && (
-                                                        <div 
-                                                            className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-bold text-xs mt-2.5 cursor-pointer transition-colors w-max"
-                                                            onClick={() => { if(isEditing) setIsCreatingCamp(true); }}
-                                                        >
-                                                            <Plus className="h-4 w-4" /> Create New Camp Location
-                                                        </div>
-                                                    )}
-                                                 </div>
-
-                                                 {isCreatingCamp && (
-                                                     <div className="pt-2">
-                                                         <div className="p-5 bg-white rounded-xl border border-blue-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5 animate-in slide-in-from-top-2">
-                                                             <div className="flex items-center gap-2 mb-2">
-                                                                 <div className="h-6 w-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                                                     <MapPin className="h-3.5 w-3.5" />
-                                                                 </div>
-                                                                 <h4 className="text-sm font-bold text-gray-900">Add New Camp</h4>
-                                                             </div>
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Camp Name <span className="text-red-500">*</span></Label>
-                                                                 <Input 
-                                                                     value={newCamp.name} 
-                                                                     onChange={e => setNewCamp({...newCamp, name: e.target.value})} 
-                                                                     className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50" 
-                                                                     placeholder="e.g. Camp A - Industrial Area" 
-                                                                 />
-                                                             </div>
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Coordinates (Lat, Lng) <span className="text-red-500">*</span></Label>
-                                                                 <Input 
-                                                                     value={newCamp.coordinates} 
-                                                                     onChange={e => setNewCamp({...newCamp, coordinates: e.target.value})} 
-                                                                     className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50" 
-                                                                     placeholder="25.2854, 51.5310" 
-                                                                 />
-                                                             </div>
-                                                             <div className="space-y-1.5">
-                                                                 <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Full Address <span className="text-red-500">*</span></Label>
-                                                                 <Input 
-                                                                     value={newCamp.address} 
-                                                                     onChange={e => setNewCamp({...newCamp, address: e.target.value})} 
-                                                                     className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50" 
-                                                                     placeholder="Street Name, Building Number, Zone" 
-                                                                 />
-                                                             </div>
-                                                             <div className="pt-3 border-t border-gray-50 flex flex-col-reverse sm:flex-row justify-end gap-2.5">
-                                                                 <Button variant="outline" size="sm" onClick={() => setIsCreatingCamp(false)} className="h-9 text-xs font-semibold w-full sm:w-auto">Cancel</Button>
-                                                                 <Button 
-                                                                     size="sm" 
-                                                                     className="h-9 text-xs font-bold bg-blue-600 hover:bg-blue-700 w-full sm:w-auto shadow-sm" 
-                                                                     onClick={() => {
-                                                                         if(newCamp.name && newCamp.coordinates && newCamp.address) {
-                                                                             const coords = newCamp.coordinates.split(',').map(s=>s.trim());
-                                                                             const lat = coords[0] || '';
-                                                                             const lng = coords[1] || '';
-                                                                             const newLoc = { id: Date.now().toString(), name: newCamp.name, latitude: lat, longitude: lng, fullAddress: newCamp.address };
-                                                                             setCampLocations([...campLocations, newLoc]);
-                                                                             setFormData({
-                                                                                 ...formData, 
-                                                                                 campName: newLoc.name, 
-                                                                                 latitude: newLoc.latitude, 
-                                                                                 longitude: newLoc.longitude, 
-                                                                                 fullAddress: newLoc.fullAddress 
-                                                                             });
-                                                                             setIsCreatingCamp(false);
-                                                                             setNewCamp({name:'', coordinates:'', address:''});
-                                                                             toast.success("Camp location created & assigned");
-                                                                         } else {
-                                                                             toast.error("Please fill all camp details");
-                                                                         }
-                                                                     }}
-                                                                 >
-                                                                     <Save className="h-3.5 w-3.5 mr-1.5" /> Save Location
-                                                                 </Button>
-                                                             </div>
-                                                         </div>
-                                                     </div>
-                                                 )}
-                                             </div>
-                                         )}
-
-                                         {formData.accommodationType === 'Self Accommodation' && (
-                                             <div className="space-y-5 animate-in fade-in slide-in-from-top-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 shadow-[inset_0_2px_10px_rgb(0,0,0,0.01)]">
-                                                 <div className="space-y-1.5">
-                                                     <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Coordinates (Latitude, Longitude) <span className="text-red-500">*</span></Label>
-                                                     <Input 
-                                                         disabled={!isEditing}
-                                                         value={(formData.latitude && formData.longitude) ? `${formData.latitude}, ${formData.longitude}` : (formData.latitude || '')} 
-                                                         onChange={e => {
-                                                             const parts = e.target.value.split(',').map(s=>s.trim());
-                                                             setFormData({...formData, latitude: parts[0] || e.target.value, longitude: parts[1] || ''});
-                                                         }} 
-                                                         placeholder="25.2854, 51.5310" 
-                                                         className="h-11 border-gray-200 font-medium bg-white hover:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all text-sm shadow-sm" 
-                                                     />
-                                                 </div>
-                                                 <div className="space-y-1.5">
-                                                     <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">Full Address <span className="text-red-500">*</span></Label>
-                                                     <Input 
-                                                         disabled={!isEditing}
-                                                         value={formData.fullAddress || ''} 
-                                                         onChange={e => setFormData({...formData, fullAddress: e.target.value})} 
-                                                         placeholder="Street Name, Zone, Building" 
-                                                         className="h-11 border-gray-200 font-medium bg-white hover:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all text-sm shadow-sm" 
-                                                     />
-                                                 </div>
-                                             </div>
-                                         )}
-                                     </div>
-
-                                 </div>
-                             </div>
-
-
-                             {/* MOVED SCHEDULE SECTION HERE */}
-                             <div className={STYLES.sectionContainer}>
-        <div className={STYLES.sectionHeader}>
-            <h3 className={STYLES.sectionTitle}>Schedule & Availability</h3>
-            <span className={STYLES.sectionDesc}>Working days, time slots, shift patterns, and availability constraints</span>
-        </div>
-
-                                 <div className="space-y-6">
-                                    <div className="max-w-xs space-y-1.5">
-                                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Shift System</Label>
-                                        <Select disabled={!isEditing} value={formData.shiftSystem} onValueChange={v => setFormData({...formData, shiftSystem: v as any})}>
-                                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm"><SelectValue placeholder="Select System" /></SelectTrigger>
-                                            <SelectContent>
-                                                {enabledShiftSystems.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    {/* FIXED SHIFT UI */}
-                                    {formData.shiftSystem === 'Fixed' && (
-                                        <div className="space-y-5 animate-in fade-in">
-                                            <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row items-start md:items-center gap-4">
-                                                <div className="space-y-1.5 flex-1">
-                                                    <Label className="text-xs font-semibold uppercase text-blue-800">Standard Daily Hours</Label>
-                                                    <div className="flex items-center gap-2">
-                                                        <Input 
-                                                            type="time" 
-                                                            disabled={!isEditing}
-                                                            value={formData.workHoursStart} 
-                                                            onChange={e => setFormData({...formData, workHoursStart: e.target.value})}
-                                                            className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
-                                                        />
-                                                        <span className="text-blue-400 font-medium">to</span>
-                                                        <Input 
-                                                            type="time" 
-                                                            disabled={!isEditing}
-                                                            value={formData.workHoursEnd} 
-                                                            onChange={e => setFormData({...formData, workHoursEnd: e.target.value})}
-                                                            className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
-                                                        />
-                                                    </div>
-                                                </div>
-                                                <div className="hidden md:block w-px h-10 bg-blue-200"></div>
-                                                <div className="text-xs text-blue-700 max-w-sm">
-                                                    These hours will apply to all selected days below. Uncheck days to mark them as "Off".
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Working Days</Label>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
-                                                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
-                                                        const isActive = formData.workingDays?.includes(day);
-                                                        return (
-                                                            <div 
-                                                                key={day}
-                                                                onClick={() => {
-                                                                    if (!isEditing) return;
-                                                                    const current = formData.workingDays || [];
-                                                                    if (current.includes(day)) {
-                                                                        setFormData({...formData, workingDays: current.filter(d => d !== day)});
-                                                                    } else {
-                                                                        setFormData({...formData, workingDays: [...current, day]});
-                                                                    }
-                                                                }}
-                                                                className={`
-                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-24
-                                                                    ${isActive 
-                                                                        ? 'bg-green-50 border-green-200 text-green-700 shadow-sm ring-1 ring-green-100' 
-                                                                        : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:border-gray-300'}
-                                                                `}
-                                                            >
-                                                                <span className="font-bold text-sm mb-1">{day}</span>
-                                                                {isActive ? (
-                                                                    <div className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">
-                                                                        {formData.workHoursStart || "09:00"} - {formData.workHoursEnd || "17:00"}
-                                                                    </div>
-                                                                ) : (
-                                                                    <span className="text-[10px] italic">Off Day</span>
-                                                                )}
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* FLEXIBLE SHIFT UI */}
-                                    {formData.shiftSystem === 'Flexible' && (
-                                        <div className="space-y-5 animate-in fade-in">
-                                            <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 text-purple-700 text-sm">
-                                                Flexible staff do not have fixed start/end times. Select the days they are generally available to accept jobs.
-                                            </div>
-                                            
-                                            <div className="space-y-2">
-                                                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">Availability Days</Label>
-                                                <div className="grid grid-cols-7 gap-2">
-                                                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
-                                                        const isActive = formData.workingDays?.includes(day);
-                                                        return (
-                                                            <div 
-                                                                key={day}
-                                                                onClick={() => {
-                                                                    if (!isEditing) return;
-                                                                    const current = formData.workingDays || [];
-                                                                    if (current.includes(day)) {
-                                                                        setFormData({...formData, workingDays: current.filter(d => d !== day)});
-                                                                    } else {
-                                                                        setFormData({...formData, workingDays: [...current, day]});
-                                                                    }
-                                                                }}
-                                                                className={`
-                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-20
-                                                                    ${isActive 
-                                                                        ? 'bg-purple-50 border-purple-200 text-purple-700 shadow-sm' 
-                                                                        : 'bg-white border-gray-200 text-gray-400 hover:bg-gray-50'}
-                                                                `}
-                                                            >
-                                                                <span className="font-bold text-sm">{day}</span>
-                                                                <span className="text-[10px] mt-1">{isActive ? 'Available' : '-'}</span>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {/* ROTATIONAL SHIFT UI - Summary View */}
-                                    {formData.shiftSystem === 'Rotational' && (
-                                        <div className="space-y-6 animate-in fade-in">
-                                            {/* Summary Header */}
-                                            <div className="flex items-center justify-between bg-green-50 p-4 rounded-lg border border-green-100">
-                                                <div className="flex items-center gap-2 text-green-800 text-sm font-medium">
-                                                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                                    Weekly Coverage Preview
-                                                </div>
-                                                <div className="text-xs text-green-600 italic">
-                                                    Click on any day to configure multiple shifts.
-                                                </div>
-                                            </div>
-
-                                            {/* Weekly Visual Columns */}
-                                            <div className="grid grid-cols-7 gap-2">
-                                                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => {
-                                                    const slots = formData.rotationalSchedule?.[day] || []; 
-                                                    const hasShift = slots.length > 0;
-                                                    
-                                                    // Calculate total hours for the day for display
-                                                    const totalHours = slots.reduce((acc, slot) => {
-                                                        const start = parseInt(slot.start.split(':')[0]);
-                                                        const end = parseInt(slot.end.split(':')[0]);
-                                                        return acc + (end - start);
-                                                    }, 0);
-
-                                                    return (
-                                                        <div key={day} className="flex flex-col gap-2">
-                                                            <div className="text-center">
-                                                                <div className="text-xs font-bold text-gray-700 uppercase">{day}</div>
-                                                                <div className="text-[10px] text-gray-400">
-                                                                    {hasShift ? `(${totalHours}h)` : '(0h)'}
-                                                                </div>
-                                                            </div>
-                                                            
-                                                            <div 
-                                                                onClick={() => setActiveDayModal(day)}
-                                                                className={`
-                                                                    h-40 rounded-lg border flex flex-col items-center justify-start p-1.5 gap-1.5 cursor-pointer transition-all hover:ring-2 hover:ring-green-200 hover:border-green-300
-                                                                    ${hasShift ? 'bg-white border-gray-200' : 'bg-gray-50/50 border-gray-100 opacity-70'}
-                                                                `}>
-                                                                {hasShift ? (
-                                                                    slots.map((slot, idx) => (
-                                                                        <div key={idx} className="w-full bg-green-100 text-green-800 text-[10px] py-1 px-1 rounded font-medium border border-green-200 flex flex-col items-center justify-center flex-shrink-0 min-h-[28px]">
-                                                                            <span>{slot.start}</span>
-                                                                            <span className="w-full h-px bg-green-200 my-0.5"></span>
-                                                                            <span>{slot.end}</span>
-                                                                        </div>
-                                                                    ))
-                                                                ) : (
-                                                                    <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-300 italic">
-                                                                        Off
-                                                                    </div>
-                                                                )}
-                                                                
-                                                                {/* Hover Hint */}
-                                                                <div className="mt-auto pt-1 text-[9px] text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-                                                                    Edit
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    )
-                                                })}
-                                            </div>
-                                        </div>
-                                    )}
-                                 </div>
-                             </div>
-
-                             <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
-                                 <Button variant="outline" onClick={() => setCurrentStep(1)} className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50">
-                                     Previous Step
-                                 </Button>
-                                 <Button 
-                                     className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50 h-[38px] flex items-center justify-center" 
-                                     onClick={() => saveChanges(true)}
-                                     disabled={!reqs.ops}
-                                 >
-                                     Next: Access & Security <ArrowRight className="w-4 h-4 ml-2" />
-                                 </Button>
-                             </div>
-                         </div>
-                     )}
-
-
-
-                    {/* 4. ACCESS & SECURITY */}
-                    {currentStep === 3 && (
-                        <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
-                             <div className="space-y-6 relative overflow-hidden transition-all duration-300">
-                                 {/* replaced */}
-<div className={STYLES.sectionHeader}>
-<h3 className={STYLES.sectionTitle}>Access & Security</h3>
-<span className={STYLES.sectionDesc}>System access levels, dashboard permissions, and security roles</span>
-</div>
-                                 
-                                 <div className="space-y-6">
-                                     <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
-                                         <div>
-                                            <h4 className="text-sm font-bold text-gray-900 mb-1">Dashboard Access</h4>
-                                            <span className="text-[11px] text-gray-400 mt-1 block">Allow login to admin dashboard</span>
-                                         </div>
-                                         <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
-                                             <button 
-                                                onClick={() => setFormData({...formData, dashboardAccess: true})}
-                                                className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === true ? 'bg-purple-50 text-purple-700 opacity-100' : 'text-gray-500 hover:text-gray-900 opacity-70'}`}
-                                             >
-                                                Yes
-                                             </button>
-                                             <button 
-                                                onClick={() => setFormData({...formData, dashboardAccess: false})}
-                                                className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === false ? 'bg-purple-50 text-purple-700 opacity-100' : 'text-gray-500 hover:text-gray-900 opacity-70'}`}
-                                             >
-                                                No
-                                             </button>
-                                         </div>
-                                     </div>
-
-                                     <div className="relative overflow-hidden transition-all duration-300 pb-2">
-                                         {formData.dashboardAccess === false && (
-                                             <div className="absolute inset-0 bg-white/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center rounded-xl transition-all duration-300">
-                                                 <div className="bg-white px-5 py-3 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.06)] border border-gray-100 font-medium text-[13px] text-gray-700 flex items-center gap-2.5 animate-in zoom-in-95">
-                                                     <div className="h-7 w-7 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
-                                                         <ShieldCheck className="h-4 w-4 text-indigo-600" />
-                                                     </div>
-                                                     Enable Dashboard Access to configure role
-                                                 </div>
-                                             </div>
-                                         )}
-                                         
-                                         <div className={`space-y-6 pt-2 transition-all duration-300 ${formData.dashboardAccess === false ? 'opacity-40 pointer-events-none select-none blur-[1px]' : 'animate-in fade-in slide-in-from-top-2'}`}>
-                                             <div className="space-y-2">
-                                                 <div className="flex items-center justify-between">
-                                                    <Label className="text-[13px] font-bold text-gray-900 tracking-tight">System Role <span className="text-red-500">*</span></Label>
-                                                    <Button variant="ghost" className="h-auto p-0 text-[12px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-transparent" onClick={() => setLocation('/settings')}>
-                                                        <Plus className="h-3.5 w-3.5 mr-1" /> Create System Role
-                                                    </Button>
-                                                 </div>
-                                                 
-                                                 <Select value={formData.systemRole} onValueChange={v => setFormData({...formData, systemRole: v})}>
-                                                     <SelectTrigger className="bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-purple-100 text-gray-700">
-                                                         <SelectValue placeholder="Select system role" />
-                                                     </SelectTrigger>
-                                                     <SelectContent>
-                                                         <SelectItem value="Manager">Manager</SelectItem>
-                                                         <SelectItem value="Supervisor">Supervisor</SelectItem>
-                                                         <SelectItem value="Dispatcher">Dispatcher</SelectItem>
-                                                         <SelectItem value="Admin">Admin</SelectItem>
-                                                     </SelectContent>
-                                                 </Select>
-                                             </div>
-
-                                             {formData.systemRole && (
-                                                 <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-5 space-y-4 shadow-sm">
-                                                     <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                                                         <div className="flex items-center gap-2">
-                                                            <div className="h-6 w-6 rounded bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
-                                                                <Briefcase className="h-3.5 w-3.5" />
-                                                            </div>
-                                                            <span className="text-sm font-bold text-gray-900">{formData.systemRole} Access Preview</span>
-                                                         </div>
-                                                         <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-md px-2 py-0.5 text-[10px] font-bold border border-purple-100/50 uppercase tracking-widest shadow-sm">
-                                                             Read-Only
-                                                         </Badge>
-                                                     </div>
-                                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
-                                                        {(() => {
-                                                            const rolePermissions: Record<string, { module: string; access: string }[]> = {
-                                                                'Manager': [
-                                                                    { module: 'Workforce', access: 'Full Access' },
-                                                                    { module: 'Bookings', access: 'Full Access' },
-                                                                    { module: 'Customers', access: 'Full Access' },
-                                                                    { module: 'Services', access: 'Manage' },
-                                                                    { module: 'Finance', access: 'View Only' },
-                                                                    { module: 'Settings', access: 'View Only' },
-                                                                ],
-                                                                'Supervisor': [
-                                                                    { module: 'Workforce', access: 'View Only' },
-                                                                    { module: 'Bookings', access: 'Manage' },
-                                                                    { module: 'Dispatch', access: 'Full Access' },
-                                                                    { module: 'Customers', access: 'View Only' },
-                                                                ],
-                                                                'Dispatcher': [
-                                                                    { module: 'Dispatch', access: 'Full Access' },
-                                                                    { module: 'Bookings', access: 'Manage' },
-                                                                    { module: 'Workforce', access: 'View Only' },
-                                                                ],
-                                                                'Admin': [
-                                                                    { module: 'All Modules', access: 'Full Access' },
-                                                                    { module: 'System Settings', access: 'Full Access' },
-                                                                    { module: 'User Management', access: 'Full Access' },
-                                                                    { module: 'Billing', access: 'Full Access' },
-                                                                ]
-                                                            };
-                                                            
-                                                            const perms = rolePermissions[formData.systemRole] || [];
-                                                            
-                                                            return perms.map((p, i) => (
-                                                                <div key={i} className="space-y-1">
-                                                                    <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">{p.module}</div>
-                                                                    <div className="text-[13px] font-medium text-gray-900 flex items-center gap-1.5">
-                                                                        <Check className="h-3.5 w-3.5 text-green-500" />
-                                                                        {p.access}
-                                                                    </div>
-                                                                </div>
-                                                            ))
-                                                        })()}
-                                                     </div>
-                                                 </div>
-                                             )}
-                                         </div>
-                                     </div>
-                                 </div>
-                             </div>
-                             
-                             <div className="pt-4 flex items-center justify-between">
-                                 <Button variant="outline" onClick={() => setCurrentStep(2)} className="h-12 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold transition-colors">
-                                     Previous Step
-                                 </Button>
-                                 <Button 
-                                     className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2" 
-                                     onClick={() => saveChanges(true)}
-                                     disabled={!reqs.access}
-                                 >
-                                     Next: Summary <ArrowRight className="w-4 h-4" />
-                                 </Button>
-                             </div>
-                        </div>
-                    )}
-
-                    {/* 5. SUMMARY & ACTIVATION (Now Step 5 index 4) */}
-                    {currentStep === 4 && (
-                        <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
-                            
-                            <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
-                               <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
-                                   <ShieldCheck className="h-7 w-7" />
-                               </div>
-                               <h2 className="text-xl font-bold text-gray-900">Review & Activate</h2>
-                               <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
-                                   Finalize the staff member's profile for deployment.
-                               </span>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                {/* CARD 1: BASIC INFORMATION */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors">
-                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
-                                                <User className="h-4 w-4"/>
-                                            </div>
-                                            <span className="font-bold text-sm text-gray-900">Basic Information</span>
-                                        </div>
-                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 1</Badge>
-                                    </div>
-                                    <div className="space-y-3 text-[13px]">
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Full Name</span> <span className="font-semibold text-gray-900 text-right">{formData.name || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Display Name</span> <span className="font-semibold text-gray-900 text-right">{formData.nickname || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">QID Number</span> <span className="font-semibold text-gray-900 text-right">{formData.qid || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Date of Birth</span> <span className="font-semibold text-gray-900 text-right">{formData.dob || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Nationality</span> <span className="font-semibold text-gray-900 text-right">{formData.nationality || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Gender</span> <span className="font-semibold text-gray-900 text-right">{formData.gender || '-'}</span></div>
-                                        <div className="pt-2 border-t border-gray-50 mt-1">
-                                            <div className="flex justify-between items-center mb-2"><span className="text-gray-500 leading-none">Contact</span> <span className="font-semibold text-gray-900 text-right leading-none">{formData.phone || '-'}</span></div>
-                                            <div className="flex justify-between items-center"><span className="text-gray-500 leading-none">Email</span> <span className="font-semibold text-gray-900 text-right leading-none">{formData.email || '-'}</span></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* CARD 2: EMPLOYMENT & PROFILE */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-purple-200 transition-colors">
-                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0">
-                                                <Briefcase className="h-4 w-4"/>
-                                            </div>
-                                            <span className="font-bold text-sm text-gray-900">Employment & Profile</span>
-                                        </div>
-                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 2</Badge>
-                                    </div>
-                                    <div className="space-y-3 text-[13px]">
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Position</span> <span className="font-semibold text-gray-900 text-right">{formData.role || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Department</span> <span className="font-semibold text-gray-900 text-right">{formData.department || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Type</span> <span className="font-semibold text-gray-900 text-right">{formData.employmentType || '-'}</span></div>
-                                        <div className="flex justify-between items-center"><span className="text-gray-500">Start Date</span> <span className="font-semibold text-gray-900 text-right">{formData.startDate || '-'}</span></div>
-                                        
-                                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Scheme</span> <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 text-[11px]">{formData.salaryType || '-'}</span></div>
-                                            {(formData.salaryType === 'Fixed Monthly' || formData.salaryType === 'Fixed + Commission') && (
-                                                <div className="flex justify-between items-center"><span className="text-gray-500">Base Salary</span> <span className="font-semibold text-gray-900">QAR {formData.salaryAmount}</span></div>
-                                            )}
-                                            {(formData.salaryType === 'Commission-Based' || formData.salaryType === 'Fixed + Commission') && (
-                                                <div className="flex justify-between items-center"><span className="text-gray-500">Commission</span> <span className="font-semibold text-gray-900">{formData.commissionRate}%</span></div>
-                                            )}
-                                            {formData.salaryType === 'Hourly-Rate' && (
-                                                <div className="flex justify-between items-center"><span className="text-gray-500">Hourly Rate</span> <span className="font-semibold text-gray-900">QAR {formData.hourlyRate}/hr</span></div>
-                                            )}
-                                        </div>
-
-                                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Religion</span> <span className="font-semibold text-gray-900 text-right">{formData.religion || '-'}</span></div>
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Marital Status</span> <span className="font-semibold text-gray-900 text-right">{formData.maritalStatus || '-'}</span></div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* CARD 3: OPERATIONS & SKILLS */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-orange-200 transition-colors">
-                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0">
-                                                <Globe className="h-4 w-4"/>
-                                            </div>
-                                            <span className="font-bold text-sm text-gray-900">Operations & Skills</span>
-                                        </div>
-                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 3</Badge>
-                                    </div>
-                                    <div className="space-y-3 text-[13px]">
-                                         <div className="flex justify-between items-start">
-                                            <span className="text-gray-500 shrink-0 mt-0.5">Skills</span>
-                                            <div className="flex flex-wrap gap-1 justify-end pl-4">
-                                                {formData.skills?.map((s: string) => <Badge key={s} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700">{s}</Badge>)}
-                                                {(!formData.skills?.length) && <span className="text-gray-400 italic">None</span>}
-                                            </div>
-                                         </div>
-                                         <div className="flex justify-between items-start">
-                                            <span className="text-gray-500 shrink-0 mt-0.5">Languages</span>
-                                            <div className="flex flex-wrap gap-1 justify-end pl-4">
-                                                {formData.languages?.map((l: string) => <Badge key={l} variant="outline" className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700">{l}</Badge>)}
-                                                {(!formData.languages?.length) && <span className="text-gray-400 italic">None</span>}
-                                            </div>
-                                         </div>
-                                         <div className="flex justify-between items-center"><span className="text-gray-500">Operational Scope</span> <span className="font-semibold text-gray-900 text-right">{formData.serviceScope === 'all' ? 'All Areas' : 'Specific Regions'}</span></div>
-                                         <div className="flex justify-between items-center"><span className="text-gray-500">Transportation</span> <span className="font-semibold text-gray-900 text-right max-w-[150px] truncate">{formData.transportationType || '-'}</span></div>
-                                         
-                                         <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Shift System</span> <span className="font-semibold text-gray-900">{formData.shiftSystem || '-'}</span></div>
-                                            <div className="flex justify-between items-center"><span className="text-gray-500">Working Days</span> <span className="font-semibold text-gray-900">{formData.shiftSystem === 'Rotational' ? 'Varied (Rotational)' : (formData.workingDays?.length || 0) + ' Days/Week'}</span></div>
-                                            {formData.shiftSystem === 'Fixed' && (
-                                                <div className="flex justify-between items-center"><span className="text-gray-500">Shift Hours</span> <span className="font-semibold text-gray-900">{formData.workHoursStart} - {formData.workHoursEnd}</span></div>
-                                            )}
-                                         </div>
-
-                                         {/* Documents Indicator */}
-                                         {(formData.documents?.length || 0) > 0 && (
-                                             <div className="pt-2 mt-1 border-t border-gray-50 flex items-center justify-between">
-                                                 <span className="text-gray-500">Verified Docs</span>
-                                                 <Badge className="bg-green-50 text-green-700 hover:bg-green-100 border-green-100 gap-1 px-2.5 py-0 rounded">
-                                                     <CheckCircle className="h-3 w-3" />
-                                                     {formData.documents?.length} Docs
-                                                 </Badge>
-                                             </div>
-                                         )}
-                                    </div>
-                                </div>
-                                
-                                {/* CARD 4: ACCESS & SECURITY */}
-                                <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-gray-300 transition-colors">
-                                    <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                                        <div className="flex items-center gap-3">
-                                            <div className="h-8 w-8 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center shrink-0">
-                                                <ShieldCheck className="h-4 w-4"/>
-                                            </div>
-                                            <span className="font-bold text-sm text-gray-900">Access & Security</span>
-                                        </div>
-                                        <Badge variant="outline" className="text-[10px] text-gray-500 bg-gray-50 border-gray-200">Step 4</Badge>
-                                    </div>
-                                    <div className="space-y-3 text-[13px]">
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-gray-500">Staff App Access</span> 
-                                            <Badge className="bg-green-50 text-green-700 border-green-100 rounded hover:bg-green-100">Enabled</Badge>
-                                        </div>
-                                        
-                                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <span className="text-gray-500">Management Access</span> 
-                                                {formData.dashboardAccess ? (
-                                                    <Badge className="bg-blue-50 text-blue-700 border-blue-100 rounded hover:bg-blue-100">Granted</Badge>
-                                                ) : (
-                                                    <span className="font-semibold text-gray-500">No Access</span>
-                                                )}
-                                            </div>
-                                            
-                                            {formData.dashboardAccess && (
-                                                <div className="flex justify-between items-center">
-                                                    <span className="text-gray-500">System Role</span> 
-                                                    <span className="font-semibold text-gray-900 text-right">{formData.systemRole || '-'}</span>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="mt-4 bg-orange-50/50 rounded-lg p-3 border border-orange-100 flex items-start gap-2">
-                                            <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
-                                            <span className="block text-[11px] text-orange-800 leading-relaxed">
-                                                This profile is ready for final activation. Activating will officially register this staff member and send any automated welcome communications if configured.
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="pt-6 flex items-center gap-4">
-                                <Button variant="outline" onClick={() => setCurrentStep(3)} className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50">
-                                    Back to Access & Security
-                                </Button>
-                                <Button 
-                                   className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all h-[38px] flex items-center justify-center" 
-                                   onClick={handleActivate}
+                              >
+                                <div
+                                  className={`h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${formData.accommodationType === type ? "border-blue-600 bg-white" : "border-gray-300 bg-gray-50"}`}
                                 >
-                                     Complete Activation
-                                     <CheckCircle className="ml-2 w-5 h-5" />
-                                </Button>
-                            </div>
+                                  {formData.accommodationType === type && (
+                                    <div className="h-2 w-2 rounded-full bg-blue-600" />
+                                  )}
+                                </div>
+                                <span className="text-sm font-semibold whitespace-nowrap">
+                                  {type}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                    )}
+
+                        {formData.accommodationType ===
+                          "Company Accommodation" && (
+                          <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 shadow-[inset_0_2px_10px_rgb(0,0,0,0.01)]">
+                            <div className="space-y-1.5">
+                              <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
+                                Camp Location{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Select
+                                disabled={!isEditing}
+                                value={formData.campName}
+                                onValueChange={v => {
+                                  setIsCreatingCamp(false);
+                                  const loc = campLocations.find(
+                                    c => c.name === v
+                                  );
+                                  if (loc) {
+                                    setFormData({
+                                      ...formData,
+                                      campName: v,
+                                      latitude: loc.latitude,
+                                      longitude: loc.longitude,
+                                      fullAddress: loc.fullAddress,
+                                    });
+                                  } else {
+                                    setFormData({ ...formData, campName: v });
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm font-medium shadow-sm hover:border-blue-400 w-full focus:ring-4 focus:ring-blue-50">
+                                  <SelectValue placeholder="Select Camp Location" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {campLocations.map(camp => (
+                                    <SelectItem key={camp.id} value={camp.name}>
+                                      {camp.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+
+                              {!isCreatingCamp && (
+                                <div
+                                  className="flex items-center gap-1.5 text-blue-600 hover:text-blue-800 font-bold text-xs mt-2.5 cursor-pointer transition-colors w-max"
+                                  onClick={() => {
+                                    if (isEditing) setIsCreatingCamp(true);
+                                  }}
+                                >
+                                  <Plus className="h-4 w-4" /> Create New Camp
+                                  Location
+                                </div>
+                              )}
+                            </div>
+
+                            {isCreatingCamp && (
+                              <div className="pt-2">
+                                <div className="p-5 bg-white rounded-xl border border-blue-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5 animate-in slide-in-from-top-2">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <div className="h-6 w-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                                      <MapPin className="h-3.5 w-3.5" />
+                                    </div>
+                                    <h4 className="text-sm font-bold text-gray-900">
+                                      Add New Camp
+                                    </h4>
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
+                                      Camp Name{" "}
+                                      <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                      value={newCamp.name}
+                                      onChange={e =>
+                                        setNewCamp({
+                                          ...newCamp,
+                                          name: e.target.value,
+                                        })
+                                      }
+                                      className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50"
+                                      placeholder="e.g. Camp A - Industrial Area"
+                                    />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
+                                      Coordinates (Lat, Lng){" "}
+                                      <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                      value={newCamp.coordinates}
+                                      onChange={e =>
+                                        setNewCamp({
+                                          ...newCamp,
+                                          coordinates: e.target.value,
+                                        })
+                                      }
+                                      className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50"
+                                      placeholder="25.2854, 51.5310"
+                                    />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
+                                      Full Address{" "}
+                                      <span className="text-red-500">*</span>
+                                    </Label>
+                                    <Input
+                                      value={newCamp.address}
+                                      onChange={e =>
+                                        setNewCamp({
+                                          ...newCamp,
+                                          address: e.target.value,
+                                        })
+                                      }
+                                      className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50"
+                                      placeholder="Street Name, Building Number, Zone"
+                                    />
+                                  </div>
+                                  <div className="pt-3 border-t border-gray-50 flex flex-col-reverse sm:flex-row justify-end gap-2.5">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setIsCreatingCamp(false)}
+                                      className="h-9 text-xs font-semibold w-full sm:w-auto"
+                                    >
+                                      Cancel
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      className="h-9 text-xs font-bold bg-blue-600 hover:bg-blue-700 w-full sm:w-auto shadow-sm"
+                                      onClick={() => {
+                                        if (
+                                          newCamp.name &&
+                                          newCamp.coordinates &&
+                                          newCamp.address
+                                        ) {
+                                          const coords = newCamp.coordinates
+                                            .split(",")
+                                            .map(s => s.trim());
+                                          const lat = coords[0] || "";
+                                          const lng = coords[1] || "";
+                                          const newLoc = {
+                                            id: Date.now().toString(),
+                                            name: newCamp.name,
+                                            latitude: lat,
+                                            longitude: lng,
+                                            fullAddress: newCamp.address,
+                                          };
+                                          setCampLocations([
+                                            ...campLocations,
+                                            newLoc,
+                                          ]);
+                                          setFormData({
+                                            ...formData,
+                                            campName: newLoc.name,
+                                            latitude: newLoc.latitude,
+                                            longitude: newLoc.longitude,
+                                            fullAddress: newLoc.fullAddress,
+                                          });
+                                          setIsCreatingCamp(false);
+                                          setNewCamp({
+                                            name: "",
+                                            coordinates: "",
+                                            address: "",
+                                          });
+                                          toast.success(
+                                            "Camp location created & assigned"
+                                          );
+                                        } else {
+                                          toast.error(
+                                            "Please fill all camp details"
+                                          );
+                                        }
+                                      }}
+                                    >
+                                      <Save className="h-3.5 w-3.5 mr-1.5" />{" "}
+                                      Save Location
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {formData.accommodationType ===
+                          "Self Accommodation" && (
+                          <div className="space-y-5 animate-in fade-in slide-in-from-top-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 shadow-[inset_0_2px_10px_rgb(0,0,0,0.01)]">
+                            <div className="space-y-1.5">
+                              <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
+                                Coordinates (Latitude, Longitude){" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                disabled={!isEditing}
+                                value={
+                                  formData.latitude && formData.longitude
+                                    ? `${formData.latitude}, ${formData.longitude}`
+                                    : formData.latitude || ""
+                                }
+                                onChange={e => {
+                                  const parts = e.target.value
+                                    .split(",")
+                                    .map(s => s.trim());
+                                  setFormData({
+                                    ...formData,
+                                    latitude: parts[0] || e.target.value,
+                                    longitude: parts[1] || "",
+                                  });
+                                }}
+                                placeholder="25.2854, 51.5310"
+                                className="h-11 border-gray-200 font-medium bg-white hover:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all text-sm shadow-sm"
+                              />
+                            </div>
+                            <div className="space-y-1.5">
+                              <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
+                                Full Address{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.fullAddress || ""}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    fullAddress: e.target.value,
+                                  })
+                                }
+                                placeholder="Street Name, Zone, Building"
+                                className="h-11 border-gray-200 font-medium bg-white hover:border-blue-400 focus:ring-4 focus:ring-blue-50 transition-all text-sm shadow-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* MOVED SCHEDULE SECTION HERE */}
+                  <div className={STYLES.sectionContainer}>
+                    <SectionHeader
+                      title="Schedule & Availability"
+                      desc="Shift patterns, working hours, and operational availability constraints."
+                      icon={Clock}
+                    />
+
+                    <div className="space-y-6">
+                      <div className="max-w-xs space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Shift System
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.shiftSystem}
+                          onValueChange={v =>
+                            setFormData({ ...formData, shiftSystem: v as any })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select System" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {enabledShiftSystems.map(s => (
+                              <SelectItem key={s} value={s}>
+                                {s}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* FIXED SHIFT UI */}
+                      {formData.shiftSystem === "Fixed" && (
+                        <div className="space-y-5 animate-in fade-in">
+                          <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row items-start md:items-center gap-4">
+                            <div className="space-y-1.5 flex-1">
+                              <Label className="text-xs font-semibold uppercase text-blue-800">
+                                Standard Daily Hours
+                              </Label>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="time"
+                                  disabled={!isEditing}
+                                  value={formData.workHoursStart}
+                                  onChange={e =>
+                                    setFormData({
+                                      ...formData,
+                                      workHoursStart: e.target.value,
+                                    })
+                                  }
+                                  className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+                                />
+                                <span className="text-blue-400 font-medium">
+                                  to
+                                </span>
+                                <Input
+                                  type="time"
+                                  disabled={!isEditing}
+                                  value={formData.workHoursEnd}
+                                  onChange={e =>
+                                    setFormData({
+                                      ...formData,
+                                      workHoursEnd: e.target.value,
+                                    })
+                                  }
+                                  className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+                                />
+                              </div>
+                            </div>
+                            <div className="hidden md:block w-px h-10 bg-blue-200"></div>
+                            <div className="text-xs text-blue-700 max-w-sm">
+                              These hours will apply to all selected days below.
+                              Uncheck days to mark them as "Off".
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Working Days
+                            </Label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+                              {[
+                                "Mon",
+                                "Tue",
+                                "Wed",
+                                "Thu",
+                                "Fri",
+                                "Sat",
+                                "Sun",
+                              ].map(day => {
+                                const isActive =
+                                  formData.workingDays?.includes(day);
+                                return (
+                                  <div
+                                    key={day}
+                                    onClick={() => {
+                                      if (!isEditing) return;
+                                      const current =
+                                        formData.workingDays || [];
+                                      if (current.includes(day)) {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: current.filter(
+                                            d => d !== day
+                                          ),
+                                        });
+                                      } else {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: [...current, day],
+                                        });
+                                      }
+                                    }}
+                                    className={`
+                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-24
+                                                                    ${
+                                                                      isActive
+                                                                        ? "bg-green-50 border-green-200 text-green-700 shadow-sm ring-1 ring-green-100"
+                                                                        : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:border-gray-300"
+                                                                    }
+                                                                `}
+                                  >
+                                    <span className="font-bold text-sm mb-1">
+                                      {day}
+                                    </span>
+                                    {isActive ? (
+                                      <div className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">
+                                        {formData.workHoursStart || "09:00"} -{" "}
+                                        {formData.workHoursEnd || "17:00"}
+                                      </div>
+                                    ) : (
+                                      <span className="text-[10px] italic">
+                                        Off Day
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* FLEXIBLE SHIFT UI */}
+                      {formData.shiftSystem === "Flexible" && (
+                        <div className="space-y-5 animate-in fade-in">
+                          <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 text-purple-700 text-sm">
+                            Flexible staff do not have fixed start/end times.
+                            Select the days they are generally available to
+                            accept jobs.
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Availability Days
+                            </Label>
+                            <div className="grid grid-cols-7 gap-2">
+                              {[
+                                "Mon",
+                                "Tue",
+                                "Wed",
+                                "Thu",
+                                "Fri",
+                                "Sat",
+                                "Sun",
+                              ].map(day => {
+                                const isActive =
+                                  formData.workingDays?.includes(day);
+                                return (
+                                  <div
+                                    key={day}
+                                    onClick={() => {
+                                      if (!isEditing) return;
+                                      const current =
+                                        formData.workingDays || [];
+                                      if (current.includes(day)) {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: current.filter(
+                                            d => d !== day
+                                          ),
+                                        });
+                                      } else {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: [...current, day],
+                                        });
+                                      }
+                                    }}
+                                    className={`
+                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-20
+                                                                    ${
+                                                                      isActive
+                                                                        ? "bg-purple-50 border-purple-200 text-purple-700 shadow-sm"
+                                                                        : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
+                                                                    }
+                                                                `}
+                                  >
+                                    <span className="font-bold text-sm">
+                                      {day}
+                                    </span>
+                                    <span className="text-[10px] mt-1">
+                                      {isActive ? "Available" : "-"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ROTATIONAL SHIFT UI - Summary View */}
+                      {formData.shiftSystem === "Rotational" && (
+                        <div className="space-y-6 animate-in fade-in">
+                          {/* Summary Header */}
+                          <div className="flex items-center justify-between bg-green-50 p-4 rounded-lg border border-green-100">
+                            <div className="flex items-center gap-2 text-green-800 text-sm font-medium">
+                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                              Weekly Coverage Preview
+                            </div>
+                            <div className="text-xs text-green-600 italic">
+                              Click on any day to configure multiple shifts.
+                            </div>
+                          </div>
+
+                          {/* Weekly Visual Columns */}
+                          <div className="grid grid-cols-7 gap-2">
+                            {[
+                              "Sun",
+                              "Mon",
+                              "Tue",
+                              "Wed",
+                              "Thu",
+                              "Fri",
+                              "Sat",
+                            ].map(day => {
+                              const slots =
+                                formData.rotationalSchedule?.[day] || [];
+                              const hasShift = slots.length > 0;
+
+                              // Calculate total hours for the day for display
+                              const totalHours = slots.reduce((acc, slot) => {
+                                const start = parseInt(
+                                  slot.start.split(":")[0]
+                                );
+                                const end = parseInt(slot.end.split(":")[0]);
+                                return acc + (end - start);
+                              }, 0);
+
+                              return (
+                                <div key={day} className="flex flex-col gap-2">
+                                  <div className="text-center">
+                                    <div className="text-xs font-bold text-gray-700 uppercase">
+                                      {day}
+                                    </div>
+                                    <div className="text-[10px] text-gray-400">
+                                      {hasShift ? `(${totalHours}h)` : "(0h)"}
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    onClick={() => setActiveDayModal(day)}
+                                    className={`
+                                                                    h-40 rounded-lg border flex flex-col items-center justify-start p-1.5 gap-1.5 cursor-pointer transition-all hover:ring-2 hover:ring-green-200 hover:border-green-300
+                                                                    ${hasShift ? "bg-white border-gray-200" : "bg-gray-50/50 border-gray-100 opacity-70"}
+                                                                `}
+                                  >
+                                    {hasShift ? (
+                                      slots.map((slot, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="w-full bg-green-100 text-green-800 text-[10px] py-1 px-1 rounded font-medium border border-green-200 flex flex-col items-center justify-center flex-shrink-0 min-h-[28px]"
+                                        >
+                                          <span>{slot.start}</span>
+                                          <span className="w-full h-px bg-green-200 my-0.5"></span>
+                                          <span>{slot.end}</span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-300 italic">
+                                        Off
+                                      </div>
+                                    )}
+
+                                    {/* Hover Hint */}
+                                    <div className="mt-auto pt-1 text-[9px] text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                      Edit
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep(1)}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Previous Step
+                    </Button>
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all disabled:opacity-50 h-[38px] flex items-center justify-center"
+                      onClick={() => saveChanges(true)}
+                      disabled={!reqs.ops}
+                    >
+                      Next: Access & Security{" "}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
                 </div>
+              )}
+
+              {/* 4. ACCESS & SECURITY */}
+              {currentStep === 3 && (
+                <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
+                  <div className="space-y-6 relative overflow-hidden transition-all duration-300">
+                    {/* replaced */}
+                    <SectionHeader
+                      title="System Access & Permissions"
+                      desc="Dashboard access levels, system roles, and platform permissions."
+                      icon={ShieldCheck}
+                    />
+
+                    <div className="space-y-6">
+                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900 mb-1">
+                            Dashboard Access
+                          </h4>
+                          <span className="text-[11px] text-gray-400 mt-1 block">
+                            Allow login to admin dashboard
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
+                          <button
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                dashboardAccess: true,
+                              })
+                            }
+                            className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === true ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                dashboardAccess: false,
+                              })
+                            }
+                            className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === false ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative overflow-hidden transition-all duration-300 pb-2">
+                        {formData.dashboardAccess === false && (
+                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center rounded-xl transition-all duration-300">
+                            <div className="bg-white px-5 py-3 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.06)] border border-gray-100 font-medium text-[13px] text-gray-700 flex items-center gap-2.5 animate-in zoom-in-95">
+                              <div className="h-7 w-7 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                                <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                              </div>
+                              Enable Dashboard Access to configure role
+                            </div>
+                          </div>
+                        )}
+
+                        <div
+                          className={`space-y-6 pt-2 transition-all duration-300 ${formData.dashboardAccess === false ? "opacity-40 pointer-events-none select-none blur-[1px]" : "animate-in fade-in slide-in-from-top-2"}`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-[13px] font-bold text-gray-900 tracking-tight">
+                                System Role{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Button
+                                variant="ghost"
+                                className="h-auto p-0 text-[12px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-transparent"
+                                onClick={() => setLocation("/settings")}
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-1" /> Create
+                                System Role
+                              </Button>
+                            </div>
+
+                            <Select
+                              value={formData.systemRole}
+                              onValueChange={v =>
+                                setFormData({ ...formData, systemRole: v })
+                              }
+                            >
+                              <SelectTrigger className="bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-purple-100 text-gray-700">
+                                <SelectValue placeholder="Select system role" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Manager">Manager</SelectItem>
+                                <SelectItem value="Supervisor">
+                                  Supervisor
+                                </SelectItem>
+                                <SelectItem value="Dispatcher">
+                                  Dispatcher
+                                </SelectItem>
+                                <SelectItem value="Admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {formData.systemRole && (
+                            <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-5 space-y-4 shadow-sm">
+                              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-6 w-6 rounded bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                                    <Briefcase className="h-3.5 w-3.5" />
+                                  </div>
+                                  <span className="text-sm font-bold text-gray-900">
+                                    {formData.systemRole} Access Preview
+                                  </span>
+                                </div>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-md px-2 py-0.5 text-[10px] font-bold border border-purple-100/50 uppercase tracking-widest shadow-sm"
+                                >
+                                  Read-Only
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                                {(() => {
+                                  const rolePermissions: Record<
+                                    string,
+                                    { module: string; access: string }[]
+                                  > = {
+                                    Manager: [
+                                      {
+                                        module: "Workforce",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Bookings",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Customers",
+                                        access: "Full Access",
+                                      },
+                                      { module: "Services", access: "Manage" },
+                                      {
+                                        module: "Finance",
+                                        access: "View Only",
+                                      },
+                                      {
+                                        module: "Settings",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Supervisor: [
+                                      {
+                                        module: "Workforce",
+                                        access: "View Only",
+                                      },
+                                      { module: "Bookings", access: "Manage" },
+                                      {
+                                        module: "Dispatch",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Customers",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Dispatcher: [
+                                      {
+                                        module: "Dispatch",
+                                        access: "Full Access",
+                                      },
+                                      { module: "Bookings", access: "Manage" },
+                                      {
+                                        module: "Workforce",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Admin: [
+                                      {
+                                        module: "All Modules",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "System Settings",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "User Management",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Billing",
+                                        access: "Full Access",
+                                      },
+                                    ],
+                                  };
+
+                                  const perms =
+                                    rolePermissions[formData.systemRole] || [];
+
+                                  return perms.map((p, i) => (
+                                    <div key={i} className="space-y-1">
+                                      <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                        {p.module}
+                                      </div>
+                                      <div className="text-[13px] font-medium text-gray-900 flex items-center gap-1.5">
+                                        <Check className="h-3.5 w-3.5 text-green-500" />
+                                        {p.access}
+                                      </div>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep(2)}
+                      className="h-12 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold transition-colors"
+                    >
+                      Previous Step
+                    </Button>
+                    <Button
+                      className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2"
+                      onClick={() => saveChanges(true)}
+                      disabled={!reqs.access}
+                    >
+                      Next: Final Review <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. SUMMARY & ACTIVATION (Now Step 5 index 4) */}
+              {currentStep === 4 && (
+                <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
+                  <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
+                    <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
+                      <ShieldCheck className="h-7 w-7" />
+                    </div>
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Review & Activate
+                    </h2>
+                    <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
+                      Finalize the staff member's profile for deployment.
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* CARD 1: BASIC INFORMATION */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                            <User className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Basic Information
+                          </span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 1
+                        </Badge>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Full Name</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.name || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Display Name</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.nickname || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">QID Number</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.qid || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Date of Birth</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.dob || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Nationality</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.nationality || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Gender</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.gender || "-"}
+                          </span>
+                        </div>
+                        <div className="pt-2 border-t border-gray-50 mt-1">
+                          <div className="flex justify-between items-center mb-2">
+                            <span className="text-gray-500 leading-none">
+                              Contact
+                            </span>{" "}
+                            <span className="font-semibold text-gray-900 text-right leading-none">
+                              {formData.phone || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500 leading-none">
+                              Email
+                            </span>{" "}
+                            <span className="font-semibold text-gray-900 text-right leading-none">
+                              {formData.email || "-"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 2: EMPLOYMENT & PROFILE */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-purple-200 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0">
+                            <Briefcase className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Employment Details
+                          </span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 2
+                        </Badge>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Position</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.role || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Department</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.department || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Type</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.employmentType || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Start Date</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.startDate || "-"}
+                          </span>
+                        </div>
+
+                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Scheme</span>{" "}
+                            <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 text-[11px]">
+                              {formData.salaryType || "-"}
+                            </span>
+                          </div>
+                          {(formData.salaryType === "Fixed Monthly" ||
+                            formData.salaryType === "Fixed + Commission") && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Base Salary</span>{" "}
+                              <span className="font-semibold text-gray-900">
+                                QAR {formData.salaryAmount}
+                              </span>
+                            </div>
+                          )}
+                          {(formData.salaryType === "Commission-Based" ||
+                            formData.salaryType === "Fixed + Commission") && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Commission</span>{" "}
+                              <span className="font-semibold text-gray-900">
+                                {formData.commissionRate}%
+                              </span>
+                            </div>
+                          )}
+                          {formData.salaryType === "Hourly-Rate" && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Hourly Rate</span>{" "}
+                              <span className="font-semibold text-gray-900">
+                                QAR {formData.hourlyRate}/hr
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Religion</span>{" "}
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.religion || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">
+                              Marital Status
+                            </span>{" "}
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.maritalStatus || "-"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 3: OPERATIONS & SKILLS */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-orange-200 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0">
+                            <Globe className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Operations & Skills
+                          </span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 3
+                        </Badge>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-start">
+                          <span className="text-gray-500 shrink-0 mt-0.5">
+                            Skills
+                          </span>
+                          <div className="flex flex-wrap gap-1 justify-end pl-4">
+                            {formData.skills?.map((s: string) => (
+                              <Badge
+                                key={s}
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700"
+                              >
+                                {s}
+                              </Badge>
+                            ))}
+                            {!formData.skills?.length && (
+                              <span className="text-gray-400 italic">None</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-start">
+                          <span className="text-gray-500 shrink-0 mt-0.5">
+                            Languages
+                          </span>
+                          <div className="flex flex-wrap gap-1 justify-end pl-4">
+                            {formData.languages?.map((l: string) => (
+                              <Badge
+                                key={l}
+                                variant="outline"
+                                className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700"
+                              >
+                                {l}
+                              </Badge>
+                            ))}
+                            {!formData.languages?.length && (
+                              <span className="text-gray-400 italic">None</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">
+                            Operational Scope
+                          </span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.serviceScope === "all"
+                              ? "All Areas"
+                              : "Specific Regions"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Transportation</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right max-w-[150px] truncate">
+                            {formData.transportationType || "-"}
+                          </span>
+                        </div>
+
+                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Shift System</span>{" "}
+                            <span className="font-semibold text-gray-900">
+                              {formData.shiftSystem || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Working Days</span>{" "}
+                            <span className="font-semibold text-gray-900">
+                              {formData.shiftSystem === "Rotational"
+                                ? "Varied (Rotational)"
+                                : (formData.workingDays?.length || 0) +
+                                  " Days/Week"}
+                            </span>
+                          </div>
+                          {formData.shiftSystem === "Fixed" && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Shift Hours</span>{" "}
+                              <span className="font-semibold text-gray-900">
+                                {formData.workHoursStart} -{" "}
+                                {formData.workHoursEnd}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Documents Indicator */}
+                        {(formData.documents?.length || 0) > 0 && (
+                          <div className="pt-2 mt-1 border-t border-gray-50 flex items-center justify-between">
+                            <span className="text-gray-500">Verified Docs</span>
+                            <Badge className="bg-green-50 text-green-700 hover:bg-green-100 border-green-100 gap-1 px-2.5 py-0 rounded">
+                              <CheckCircle className="h-3 w-3" />
+                              {formData.documents?.length} Docs
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* CARD 4: ACCESS & SECURITY */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-gray-300 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center shrink-0">
+                            <ShieldCheck className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Access & Security
+                          </span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 4
+                        </Badge>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">
+                            Staff App Access
+                          </span>
+                          <Badge className="bg-green-50 text-green-700 border-green-100 rounded hover:bg-green-100">
+                            Enabled
+                          </Badge>
+                        </div>
+
+                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">
+                              Management Access
+                            </span>
+                            {formData.dashboardAccess ? (
+                              <Badge className="bg-blue-50 text-blue-700 border-blue-100 rounded hover:bg-blue-100">
+                                Granted
+                              </Badge>
+                            ) : (
+                              <span className="font-semibold text-gray-500">
+                                No Access
+                              </span>
+                            )}
+                          </div>
+
+                          {formData.dashboardAccess && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">System Role</span>
+                              <span className="font-semibold text-gray-900 text-right">
+                                {formData.systemRole || "-"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-4 bg-orange-50/50 rounded-lg p-3 border border-orange-100 flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+                          <span className="block text-[11px] text-orange-800 leading-relaxed">
+                            This profile is ready for final activation.
+                            Activating will officially register this staff
+                            member and send any automated welcome communications
+                            if configured.
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep(3)}
+                      className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Back to Access & Security
+                    </Button>
+                    <Button
+                      className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all h-[38px] flex items-center justify-center"
+                      onClick={handleActivate}
+                    >
+                      Complete Activation
+                      <CheckCircle className="ml-2 w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
+          </div>
         </div>
       </div>
       {/* Single Day Shift Management Modal */}
       {activeDayModal && formData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
-                {/* Modal Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-                    <div>
-                        <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">Manage Shifts</div>
-                        <h2 className="text-xl font-bold text-gray-900">{activeDayModal}</h2>
-                    </div>
-                    <Button variant="ghost" size="icon" onClick={() => setActiveDayModal(null)} className="rounded-full hover:bg-gray-200">
-                        <X className="w-5 h-5 text-gray-500" />
-                    </Button>
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+              <div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                  Manage Shifts
                 </div>
-
-                {/* Modal Body */}
-                <div className="p-6 space-y-6">
-                    {/* Quick Apply Template (Day Specific) */}
-                    {/* Quick Apply Templates (Day Specific) */}
-                    {shiftTemplateOptions.length > 0 && (
-                        <div className="space-y-2">
-                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide block">Quick Apply Templates</Label>
-                             <div className="grid grid-cols-1 gap-2">
-                                {shiftTemplateOptions.map((template: any) => {
-                                    // Check if this template is already applied
-                                    const currentShifts = formData.rotationalSchedule?.[activeDayModal] || [];
-                                    const isApplied = currentShifts.some((s: any) => s.start === template.startTime && s.end === template.endTime);
-                                    
-                                    // Helper for formatting
-                                    const formatToAmPm = (time: string) => {
-                                        if (!time) return "";
-                                        const [h, m] = time.split(':');
-                                        const hour = parseInt(h);
-                                        const ampm = hour >= 12 ? 'PM' : 'AM';
-                                        const hour12 = hour % 12 || 12;
-                                        return `${hour12}:${m} ${ampm}`;
-                                    };
-
-                                    return (
-                                        <div 
-                                            key={template.id}
-                                            onClick={() => {
-                                                const currentFuncShifts = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
-                                                
-                                                if (isApplied) {
-                                                    // Remove
-                                                    const filtered = currentFuncShifts.filter((s: any) => !(s.start === template.startTime && s.end === template.endTime));
-                                                    setFormData({
-                                                        ...formData,
-                                                        rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: filtered }
-                                                    });
-                                                } else {
-                                                    // Check Overlap
-                                                    const hasOverlap = currentFuncShifts.some((s: any) => {
-                                                        const startA = s.start;
-                                                        const endA = s.end;
-                                                        const startB = template.startTime;
-                                                        const endB = template.endTime;
-                                                        return (startA < endB && startB < endA);
-                                                    });
-
-                                                    if (hasOverlap) {
-                                                        toast.error("Cannot apply template: Overlaps with existing shift");
-                                                        return;
-                                                    }
-
-                                                    // Add
-                                                    currentFuncShifts.push({ start: template.startTime, end: template.endTime });
-                                                    setFormData({
-                                                        ...formData,
-                                                        rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentFuncShifts }
-                                                    });
-                                                    toast.success(`Applied ${template.name}`);
-                                                }
-                                            }}
-                                            className={`
-                                                flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all hover:bg-gray-50
-                                                ${isApplied 
-                                                    ? 'bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-100' 
-                                                    : 'bg-white border-gray-100 hover:border-gray-300'}
-                                            `}
-                                        >
-                                            <div className="flex flex-col">
-                                                <span className={`text-sm font-medium ${isApplied ? 'text-blue-700' : 'text-gray-700'}`}>
-                                                    {template.name}
-                                                </span>
-                                            </div>
-                                            <div className="flex items-center gap-3">
-                                                 <span className={`text-xs font-mono font-medium px-2 py-1 rounded ${isApplied ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-500'}`}>
-                                                    {formatToAmPm(template.startTime)} - {formatToAmPm(template.endTime)}
-                                                </span>
-                                                <div className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isApplied ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-300'}`}>
-                                                    {isApplied ? <CheckCircle className="w-3.5 h-3.5" /> : <div className="w-2 h-2 rounded-full bg-gray-300" />}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                             </div>
-                        </div>
-                    )}
-
-                    {/* Existing Shifts List */}
-                    <div className="space-y-3">
-                        <Label className="text-xs font-semibold text-gray-500 uppercase">Time Slots</Label>
-                        
-                        {(formData.rotationalSchedule?.[activeDayModal] || []).length === 0 ? (
-                            <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-lg text-gray-400 text-sm">
-                                No shifts configured for this day.
-                            </div>
-                        ) : (
-                            (formData.rotationalSchedule?.[activeDayModal] || []).map((slot, index) => (
-                                <div key={index} className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300">
-                                    <div className="flex-1 flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
-                                        <Clock className="w-4 h-4 text-gray-400" />
-                                        <Input 
-                                            type="time" 
-                                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
-                                            value={slot.start}
-                                            onChange={(e) => {
-                                                const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
-                                                currentSlots[index] = { ...slot, start: e.target.value };
-                                                setFormData({
-                                                    ...formData,
-                                                    rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
-                                                });
-                                            }}
-                                        />
-                                        <span className="text-gray-300">|</span>
-                                        <Input 
-                                            type="time" 
-                                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
-                                            value={slot.end}
-                                            onChange={(e) => {
-                                                const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
-                                                currentSlots[index] = { ...slot, end: e.target.value };
-                                                setFormData({
-                                                    ...formData,
-                                                    rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
-                                                });
-                                            }}
-                                        />
-                                    </div>
-                                    <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="text-red-400 hover:text-red-600 hover:bg-red-50"
-                                        onClick={() => {
-                                            const currentSlots = [...(formData.rotationalSchedule?.[activeDayModal] || [])];
-                                            currentSlots.splice(index, 1);
-                                            setFormData({
-                                                ...formData,
-                                                rotationalSchedule: { ...formData.rotationalSchedule, [activeDayModal]: currentSlots }
-                                            });
-                                        }}
-                                    >
-                                        <Trash2 className="w-4 h-4" />
-                                    </Button>
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-
-                {/* Modal Footer */}
-                <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="bg-white border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
-                        onClick={() => setIsCreateTemplateOpen(true)}
-                    >
-                        <Plus className="w-4 h-4 mr-2" />
-                        Add Shift Block
-                    </Button>
-                    <Button className="bg-black text-white hover:bg-gray-800" onClick={() => setActiveDayModal(null)}>
-                        Done
-                    </Button>
-                </div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {activeDayModal}
+                </h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setActiveDayModal(null)}
+                className="rounded-full hover:bg-gray-200"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </Button>
             </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Quick Apply Template (Day Specific) */}
+              {/* Quick Apply Templates (Day Specific) */}
+              {shiftTemplateOptions.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide block">
+                    Quick Apply Templates
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {shiftTemplateOptions.map((template: any) => {
+                      // Check if this template is already applied
+                      const currentShifts =
+                        formData.rotationalSchedule?.[activeDayModal] || [];
+                      const isApplied = currentShifts.some(
+                        (s: any) =>
+                          s.start === template.startTime &&
+                          s.end === template.endTime
+                      );
+
+                      // Helper for formatting
+                      const formatToAmPm = (time: string) => {
+                        if (!time) return "";
+                        const [h, m] = time.split(":");
+                        const hour = parseInt(h);
+                        const ampm = hour >= 12 ? "PM" : "AM";
+                        const hour12 = hour % 12 || 12;
+                        return `${hour12}:${m} ${ampm}`;
+                      };
+
+                      return (
+                        <div
+                          key={template.id}
+                          onClick={() => {
+                            const currentFuncShifts = [
+                              ...(formData.rotationalSchedule?.[
+                                activeDayModal
+                              ] || []),
+                            ];
+
+                            if (isApplied) {
+                              // Remove
+                              const filtered = currentFuncShifts.filter(
+                                (s: any) =>
+                                  !(
+                                    s.start === template.startTime &&
+                                    s.end === template.endTime
+                                  )
+                              );
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: filtered,
+                                },
+                              });
+                            } else {
+                              // Check Overlap
+                              const hasOverlap = currentFuncShifts.some(
+                                (s: any) => {
+                                  const startA = s.start;
+                                  const endA = s.end;
+                                  const startB = template.startTime;
+                                  const endB = template.endTime;
+                                  return startA < endB && startB < endA;
+                                }
+                              );
+
+                              if (hasOverlap) {
+                                toast.error(
+                                  "Cannot apply template: Overlaps with existing shift"
+                                );
+                                return;
+                              }
+
+                              // Add
+                              currentFuncShifts.push({
+                                start: template.startTime,
+                                end: template.endTime,
+                              });
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: currentFuncShifts,
+                                },
+                              });
+                              toast.success(`Applied ${template.name}`);
+                            }
+                          }}
+                          className={`
+                                                flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all hover:bg-gray-50
+                                                ${
+                                                  isApplied
+                                                    ? "bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-100"
+                                                    : "bg-white border-gray-100 hover:border-gray-300"
+                                                }
+                                            `}
+                        >
+                          <div className="flex flex-col">
+                            <span
+                              className={`text-sm font-medium ${isApplied ? "text-blue-700" : "text-gray-700"}`}
+                            >
+                              {template.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`text-xs font-mono font-medium px-2 py-1 rounded ${isApplied ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}
+                            >
+                              {formatToAmPm(template.startTime)} -{" "}
+                              {formatToAmPm(template.endTime)}
+                            </span>
+                            <div
+                              className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isApplied ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-300"}`}
+                            >
+                              {isApplied ? (
+                                <CheckCircle className="w-3.5 h-3.5" />
+                              ) : (
+                                <div className="w-2 h-2 rounded-full bg-gray-300" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Existing Shifts List */}
+              <div className="space-y-3">
+                <Label className="text-xs font-semibold text-gray-500 uppercase">
+                  Time Slots
+                </Label>
+
+                {(formData.rotationalSchedule?.[activeDayModal] || [])
+                  .length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-lg text-gray-400 text-sm">
+                    No shifts configured for this day.
+                  </div>
+                ) : (
+                  (formData.rotationalSchedule?.[activeDayModal] || []).map(
+                    (slot, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300"
+                      >
+                        <div className="flex-1 flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <Input
+                            type="time"
+                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
+                            value={slot.start}
+                            onChange={e => {
+                              const currentSlots = [
+                                ...(formData.rotationalSchedule?.[
+                                  activeDayModal
+                                ] || []),
+                              ];
+                              currentSlots[index] = {
+                                ...slot,
+                                start: e.target.value,
+                              };
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: currentSlots,
+                                },
+                              });
+                            }}
+                          />
+                          <span className="text-gray-300">|</span>
+                          <Input
+                            type="time"
+                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
+                            value={slot.end}
+                            onChange={e => {
+                              const currentSlots = [
+                                ...(formData.rotationalSchedule?.[
+                                  activeDayModal
+                                ] || []),
+                              ];
+                              currentSlots[index] = {
+                                ...slot,
+                                end: e.target.value,
+                              };
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: currentSlots,
+                                },
+                              });
+                            }}
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            const currentSlots = [
+                              ...(formData.rotationalSchedule?.[
+                                activeDayModal
+                              ] || []),
+                            ];
+                            currentSlots.splice(index, 1);
+                            setFormData({
+                              ...formData,
+                              rotationalSchedule: {
+                                ...formData.rotationalSchedule,
+                                [activeDayModal]: currentSlots,
+                              },
+                            });
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                onClick={() => setIsCreateTemplateOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Shift Block
+              </Button>
+              <Button
+                className="bg-black text-white hover:bg-gray-800"
+                onClick={() => setActiveDayModal(null)}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Complete Activation Modal */}
-      <Dialog open={isActivationModalOpen} onOpenChange={setIsActivationModalOpen}>
+      <Dialog
+        open={isActivationModalOpen}
+        onOpenChange={setIsActivationModalOpen}
+      >
         <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
-            <DialogHeader className="p-6 pb-4 border-b border-gray-100 bg-gray-50/50">
-                <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
-                        <User className="h-5 w-5" />
-                    </div>
-                    <div>
-                        <DialogTitle className="text-lg font-bold text-gray-900">Complete Activation</DialogTitle>
-                        <span className="text-xs text-gray-500 mt-1 block">Finalize the operational status for {data?.name}.</span>
-                    </div>
-                </div>
-            </DialogHeader>
-            <div className="p-6 space-y-6">
-                {/* Staff Summary Snapshot */}
-                <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-4 flex items-center gap-4">
-                    <Avatar className="h-12 w-12 border border-blue-100">
-                        <AvatarImage src={data?.avatar} className="object-cover" />
-                        <AvatarFallback className="bg-blue-50 text-blue-700 font-bold">
-                            {data?.name?.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                    </Avatar>
-                    <div className="overflow-hidden">
-                        <div className="font-bold text-gray-900 truncate">{data?.name}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{data?.role} • {data?.department}</div>
-                    </div>
-                </div>
-                
-                <div className="space-y-3">
-                    <Label className="text-[13px] font-bold text-gray-900 tracking-tight">Set Final System Status <span className="text-red-500">*</span></Label>
-                    
-                    {/* Status Options - Segmented/Cards */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div 
-                            onClick={() => setFinalStatus('Active')}
-                            className={`
-                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
-                                ${finalStatus === 'Active' 
-                                    ? 'bg-green-50/50 border-green-500 text-green-700 shadow-sm' 
-                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'}
-                            `}
-                        >
-                            <div className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === 'Active' ? 'border-green-600' : 'border-gray-300'}`}>
-                                {finalStatus === 'Active' && <div className="h-2 w-2 rounded-full bg-green-600" />}
-                            </div>
-                            <CheckCircle className={`w-6 h-6 ${finalStatus === 'Active' ? 'text-green-600' : 'text-gray-400'}`} />
-                            <div>
-                                <div className="font-bold text-sm text-gray-900">Active</div>
-                                <span className="text-[10px] text-gray-500 mt-1 block leading-tight">Can receive assignments & be dispatched</span>
-                            </div>
-                        </div>
-
-                        <div 
-                            onClick={() => setFinalStatus('Inactive')}
-                            className={`
-                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
-                                ${finalStatus === 'Inactive' 
-                                    ? 'bg-orange-50/50 border-orange-500 text-orange-700 shadow-sm' 
-                                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'}
-                            `}
-                        >
-                            <div className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === 'Inactive' ? 'border-orange-600' : 'border-gray-300'}`}>
-                                {finalStatus === 'Inactive' && <div className="h-2 w-2 rounded-full bg-orange-600" />}
-                            </div>
-                            <AlertCircle className={`w-6 h-6 ${finalStatus === 'Inactive' ? 'text-orange-600' : 'text-gray-400'}`} />
-                            <div>
-                                <div className="font-bold text-sm text-gray-900">Inactive</div>
-                                <span className="text-[10px] text-gray-500 mt-1 block leading-tight">Profile saved but cannot be scheduled</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {finalStatus === 'Inactive' && (
-                    <div className="space-y-4 animate-in fade-in slide-in-from-top-1 bg-orange-50/30 p-4 border border-orange-100 rounded-lg">
-                        <div className="space-y-1.5">
-                            <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">Reason for Inactive Status <span className="text-red-500">*</span></Label>
-                            <Select value={inactiveReason} onValueChange={(v) => setInactiveReason(v)}>
-                                <SelectTrigger className="bg-white w-full h-[46px] border-orange-200 text-sm shadow-sm rounded-lg hover:border-orange-300 focus:ring-orange-100">
-                                    <SelectValue placeholder="Select Reason" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Pending Confirmation">Pending Confirmation</SelectItem>
-                                    <SelectItem value="Documentation Review">Documentation / Visa Review</SelectItem>
-                                    <SelectItem value="Joining Date Not Started">Joining Date Not Started</SelectItem>
-                                    <SelectItem value="Operational Approval Delay">Operational Approval Delay</SelectItem>
-                                    <SelectItem value="Other">Other</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div className="space-y-1.5">
-                            <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">Additional Note <span className="text-gray-400 font-normal truncate">(Optional)</span></Label>
-                            <Input 
-                                placeholder="E.g., Waiting for QID renewal..."
-                                value={inactiveNote}
-                                onChange={(e) => setInactiveNote(e.target.value)}
-                                className="h-10 border-orange-200 bg-white"
-                            />
-                        </div>
-                    </div>
-                )}
-
+          <DialogHeader className="p-6 pb-4 border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                <User className="h-5 w-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-bold text-gray-900">
+                  Complete Activation
+                </DialogTitle>
+                <span className="text-xs text-gray-500 mt-1 block">
+                  Finalize the operational status for {data?.name}.
+                </span>
+              </div>
             </div>
-            <DialogFooter className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 sm:justify-between items-center flex-row">
-                <Button variant="ghost" className="h-10 text-gray-600 font-medium hover:bg-white" onClick={() => setIsActivationModalOpen(false)}>
-                    Cancel
-                </Button>
-                <Button 
-                    className="h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm px-6" 
-                    onClick={handleConfirmActivation}
+          </DialogHeader>
+          <div className="p-6 space-y-6">
+            {/* Staff Summary Snapshot */}
+            <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-4 flex items-center gap-4">
+              <Avatar className="h-12 w-12 border border-blue-100">
+                <AvatarImage src={data?.avatar} className="object-cover" />
+                <AvatarFallback className="bg-blue-50 text-blue-700 font-bold">
+                  {data?.name?.substring(0, 2).toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="overflow-hidden">
+                <div className="font-bold text-gray-900 truncate">
+                  {data?.name}
+                </div>
+                <div className="text-xs text-gray-500 mt-0.5">
+                  {data?.role} • {data?.department}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-[13px] font-bold text-gray-900 tracking-tight">
+                Set Final System Status <span className="text-red-500">*</span>
+              </Label>
+
+              {/* Status Options - Segmented/Cards */}
+              <div className="grid grid-cols-2 gap-3">
+                <div
+                  onClick={() => setFinalStatus("Active")}
+                  className={`
+                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
+                                ${
+                                  finalStatus === "Active"
+                                    ? "bg-green-50/50 border-green-500 text-green-700 shadow-sm"
+                                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                                }
+                            `}
                 >
-                    Confirm & Update Status
-                </Button>
-            </DialogFooter>
+                  <div
+                    className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === "Active" ? "border-green-600" : "border-gray-300"}`}
+                  >
+                    {finalStatus === "Active" && (
+                      <div className="h-2 w-2 rounded-full bg-green-600" />
+                    )}
+                  </div>
+                  <CheckCircle
+                    className={`w-6 h-6 ${finalStatus === "Active" ? "text-green-600" : "text-gray-400"}`}
+                  />
+                  <div>
+                    <div className="font-bold text-sm text-gray-900">
+                      Active
+                    </div>
+                    <span className="text-[10px] text-gray-500 mt-1 block leading-tight">
+                      Can receive assignments & be dispatched
+                    </span>
+                  </div>
+                </div>
+
+                <div
+                  onClick={() => setFinalStatus("Inactive")}
+                  className={`
+                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
+                                ${
+                                  finalStatus === "Inactive"
+                                    ? "bg-orange-50/50 border-orange-500 text-orange-700 shadow-sm"
+                                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                                }
+                            `}
+                >
+                  <div
+                    className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === "Inactive" ? "border-orange-600" : "border-gray-300"}`}
+                  >
+                    {finalStatus === "Inactive" && (
+                      <div className="h-2 w-2 rounded-full bg-orange-600" />
+                    )}
+                  </div>
+                  <AlertCircle
+                    className={`w-6 h-6 ${finalStatus === "Inactive" ? "text-orange-600" : "text-gray-400"}`}
+                  />
+                  <div>
+                    <div className="font-bold text-sm text-gray-900">
+                      Inactive
+                    </div>
+                    <span className="text-[10px] text-gray-500 mt-1 block leading-tight">
+                      Profile saved but cannot be scheduled
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {finalStatus === "Inactive" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-top-1 bg-orange-50/30 p-4 border border-orange-100 rounded-lg">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">
+                    Reason for Inactive Status{" "}
+                    <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={inactiveReason}
+                    onValueChange={v => setInactiveReason(v)}
+                  >
+                    <SelectTrigger className="bg-white w-full h-[46px] border-orange-200 text-sm shadow-sm rounded-lg hover:border-orange-300 focus:ring-orange-100">
+                      <SelectValue placeholder="Select Reason" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Pending Confirmation">
+                        Pending Confirmation
+                      </SelectItem>
+                      <SelectItem value="Documentation Review">
+                        Documentation / Visa Review
+                      </SelectItem>
+                      <SelectItem value="Joining Date Not Started">
+                        Joining Date Not Started
+                      </SelectItem>
+                      <SelectItem value="Operational Approval Delay">
+                        Operational Approval Delay
+                      </SelectItem>
+                      <SelectItem value="Other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">
+                    Additional Note{" "}
+                    <span className="text-gray-400 font-normal truncate">
+                      (Optional)
+                    </span>
+                  </Label>
+                  <Input
+                    placeholder="E.g., Waiting for QID renewal..."
+                    value={inactiveNote}
+                    onChange={e => setInactiveNote(e.target.value)}
+                    className="h-10 border-orange-200 bg-white"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 sm:justify-between items-center flex-row">
+            <Button
+              variant="ghost"
+              className="h-10 text-gray-600 font-medium hover:bg-white"
+              onClick={() => setIsActivationModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              className="h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm px-6"
+              onClick={handleConfirmActivation}
+            >
+              Confirm & Update Status
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Success Dialog */}
       {isSuccessOpen && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
-            <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 transform animate-in zoom-in-95 duration-200">
-                <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center">
-                    <CheckCircle className="h-10 w-10 text-green-600" />
-                </div>
-                <div className="space-y-2">
-                    <h2 className="text-2xl font-bold text-gray-900">
-                        {isEligibleForDispatch() ? "Dispatch Ready!" : "Activation Successful!"}
-                    </h2>
-                    <span className="block text-gray-500 text-[12px]">
-                        {data?.name || "The staff member"} has been successfully activated{isEligibleForDispatch() ? " and is now ready for deployment." : ` as ${activationStatusSelect}.`}
-                    </span>
-                </div>
-                <div className="pt-2">
-                    <Button 
-                        className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-lg"
-                        onClick={() => setLocation("/workforce")}
-                    >
-                        Return to Staff List
-                    </Button>
-                </div>
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 transform animate-in zoom-in-95 duration-200">
+            <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-10 w-10 text-green-600" />
             </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {isEligibleForDispatch()
+                  ? "Dispatch Ready!"
+                  : "Activation Successful!"}
+              </h2>
+              <span className="block text-gray-500 text-[12px]">
+                {data?.name || "The staff member"} has been successfully
+                activated
+                {isEligibleForDispatch()
+                  ? " and is now ready for deployment."
+                  : ` as ${activationStatusSelect}.`}
+              </span>
+            </div>
+            <div className="pt-2">
+              <Button
+                className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-lg"
+                onClick={() => setLocation("/workforce")}
+              >
+                Return to Staff List
+              </Button>
+            </div>
+          </div>
         </div>
       )}
 
-        <Dialog open={isBasicInfoOpen} onOpenChange={setIsBasicInfoOpen}>
-            <DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
-                <DialogHeader className="p-6 pb-2 border-b border-gray-100 bg-gray-50/50">
-                    <DialogTitle className="text-lg font-bold text-gray-900">Edit Basic Information</DialogTitle>
-                    <span className="text-[11px] text-gray-500 mt-1 block">Update primary contact and display details.</span>
-                </DialogHeader>
-                {basicInfoForm && (
-                <div className="p-6 space-y-8">
-                     {/* Photo Upload - Premium Style */}
-                     <div className="flex flex-col items-center">
-                        <div className="group relative">
-                            <div className="h-28 w-28 rounded-full p-1 bg-white border-2 border-dashed border-gray-200 group-hover:border-blue-400 transition-all shadow-sm">
-                                <Avatar className="h-full w-full">
-                                    <AvatarImage src={basicInfoForm.avatar} className="object-cover" />
-                                    <AvatarFallback className="bg-gray-100 text-gray-500 font-bold text-xl">
-                                        {basicInfoForm.nickname?.substring(0,2).toUpperCase() || "NA"}
-                                    </AvatarFallback>
-                                </Avatar>
-                            </div>
-                             <label className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2.5 shadow-lg cursor-pointer hover:bg-blue-700 hover:scale-105 transition-all text-white ring-4 ring-white">
-                                <Upload className="h-4 w-4" />
-                                <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                                    const file = e.target.files?.[0];
-                                    if(file){
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => setBasicInfoForm({...basicInfoForm, avatar: reader.result as string});
-                                        reader.readAsDataURL(file);
-                                    }
-                                }}/>
-                            </label>
-                        </div>
-                        <span className="text-xs font-medium text-gray-400 mt-3 group-hover:text-blue-500 transition-colors">Tap camera icon to upload</span>
-                     </div>
-                     
-                     <div className="grid grid-cols-2 gap-x-5 gap-y-5">
-                        <div className="col-span-2 space-y-1.5">
-                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Nickname</Label>
-                            <Input 
-                                value={basicInfoForm.nickname} 
-                                onChange={e => setBasicInfoForm({...basicInfoForm, nickname: e.target.value})} 
-                                className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                                placeholder="Preferred Name"
-                            />
-                        </div>
-
-                        <div className="space-y-1.5">
-                             <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Gender</Label>
-                             <Select value={basicInfoForm.gender} onValueChange={v => setBasicInfoForm({...basicInfoForm, gender: v as any})}>
-                                 <SelectTrigger className="h-11 border-gray-200 hover:border-blue-300 transition-all"><SelectValue /></SelectTrigger>
-                                 <SelectContent>
-                                     <SelectItem value="Male">Male</SelectItem>
-                                     <SelectItem value="Female">Female</SelectItem>
-                                 </SelectContent>
-                             </Select>
-                         </div>
-                         
-                         <div className="space-y-1.5">
-                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Mobile Number</Label>
-                            <Input 
-                                value={basicInfoForm.mobile || "+974 "} 
-                                onChange={e => setBasicInfoForm({...basicInfoForm, mobile: e.target.value})} 
-                                className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                            />
-                        </div>
-
-                        <div className="col-span-2 space-y-1.5">
-                            <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Email Address</Label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
-                                <Input 
-                                    value={basicInfoForm.email} 
-                                    onChange={e => setBasicInfoForm({...basicInfoForm, email: e.target.value})} 
-                                    className="pl-9 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
-                                />
-                            </div>
-                        </div>
-                     </div>
+      <Dialog open={isBasicInfoOpen} onOpenChange={setIsBasicInfoOpen}>
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
+          <DialogHeader className="p-6 pb-2 border-b border-gray-100 bg-gray-50/50">
+            <DialogTitle className="text-lg font-bold text-gray-900">
+              Edit Basic Information
+            </DialogTitle>
+            <span className="text-[11px] text-gray-500 mt-1 block">
+              Update primary contact and display details.
+            </span>
+          </DialogHeader>
+          {basicInfoForm && (
+            <div className="p-6 space-y-8">
+              {/* Photo Upload - Premium Style */}
+              <div className="flex flex-col items-center">
+                <div className="group relative">
+                  <div className="h-28 w-28 rounded-full p-1 bg-white border-2 border-dashed border-gray-200 group-hover:border-blue-400 transition-all shadow-sm">
+                    <Avatar className="h-full w-full">
+                      <AvatarImage
+                        src={basicInfoForm.avatar}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-gray-100 text-gray-500 font-bold text-xl">
+                        {basicInfoForm.nickname
+                          ?.substring(0, 2)
+                          .toUpperCase() || "NA"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <label className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2.5 shadow-lg cursor-pointer hover:bg-blue-700 hover:scale-105 transition-all text-white ring-4 ring-white">
+                    <Upload className="h-4 w-4" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () =>
+                            setBasicInfoForm({
+                              ...basicInfoForm,
+                              avatar: reader.result as string,
+                            });
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
                 </div>
-                )}
-                <div className="p-6 pt-2 bg-gray-50/50 border-t border-gray-100 flex gap-3">
-                    <Button variant="outline" onClick={() => setIsBasicInfoOpen(false)} className="flex-1 h-11 border-gray-200 text-gray-700 hover:bg-white hover:text-gray-900">Cancel</Button>
-                    <Button onClick={handleSaveBasicInfo} className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 shadow-sm text-base font-medium">Save Changes</Button>
-                </div>
-            </DialogContent>
-        </Dialog>
+                <span className="text-xs font-medium text-gray-400 mt-3 group-hover:text-blue-500 transition-colors">
+                  Tap camera icon to upload
+                </span>
+              </div>
 
-        {/* Create Template Dialog (triggered from Manage Shifts) */}
-        <Dialog open={isCreateTemplateOpen} onOpenChange={setIsCreateTemplateOpen}>
-            <DialogContent className="sm:max-w-[425px] z-[60]">
-                <DialogHeader>
-                    <DialogTitle>Add Shift Template</DialogTitle>
-                     <span className="block text-[12px] text-gray-500 mt-1.5">
-                        Define a standard shift block.
-                    </span>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="t-name">Template Name</Label>
-                        <Input 
-                            id="t-name"
-                            placeholder="e.g. Morning Shift A" 
-                            value={newTemplateData.name}
-                            onChange={(e) => setNewTemplateData({...newTemplateData, name: e.target.value})}
-                            className="border-blue-200 focus:border-blue-500"
-                        />
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                             <Label>Start Time</Label>
-                             <div className="relative">
-                                <Input 
-                                    type="time" 
-                                    value={newTemplateData.startTime}
-                                    onChange={(e) => setNewTemplateData({...newTemplateData, startTime: e.target.value})}
-                                />
-                             </div>
-                        </div>
-                         <div className="space-y-2">
-                             <Label>End Time</Label>
-                             <div className="relative">
-                                <Input 
-                                    type="time" 
-                                    value={newTemplateData.endTime}
-                                    onChange={(e) => setNewTemplateData({...newTemplateData, endTime: e.target.value})}
-                                />
-                             </div>
-                        </div>
-                    </div>
+              <div className="grid grid-cols-2 gap-x-5 gap-y-5">
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Nickname
+                  </Label>
+                  <Input
+                    value={basicInfoForm.nickname}
+                    onChange={e =>
+                      setBasicInfoForm({
+                        ...basicInfoForm,
+                        nickname: e.target.value,
+                      })
+                    }
+                    className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    placeholder="Preferred Name"
+                  />
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => setIsCreateTemplateOpen(false)}>Cancel</Button>
-                    <Button onClick={handleSaveNewTemplate} className="bg-blue-600 hover:bg-blue-700">Save Template</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Gender
+                  </Label>
+                  <Select
+                    value={basicInfoForm.gender}
+                    onValueChange={v =>
+                      setBasicInfoForm({ ...basicInfoForm, gender: v as any })
+                    }
+                  >
+                    <SelectTrigger className="h-11 border-gray-200 hover:border-blue-300 transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Mobile Number
+                  </Label>
+                  <Input
+                    value={basicInfoForm.mobile || "+974 "}
+                    onChange={e =>
+                      setBasicInfoForm({
+                        ...basicInfoForm,
+                        mobile: e.target.value,
+                      })
+                    }
+                    className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      value={basicInfoForm.email}
+                      onChange={e =>
+                        setBasicInfoForm({
+                          ...basicInfoForm,
+                          email: e.target.value,
+                        })
+                      }
+                      className="pl-9 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="p-6 pt-2 bg-gray-50/50 border-t border-gray-100 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsBasicInfoOpen(false)}
+              className="flex-1 h-11 border-gray-200 text-gray-700 hover:bg-white hover:text-gray-900"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveBasicInfo}
+              className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 shadow-sm text-base font-medium"
+            >
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Template Dialog (triggered from Manage Shifts) */}
+      <Dialog
+        open={isCreateTemplateOpen}
+        onOpenChange={setIsCreateTemplateOpen}
+      >
+        <DialogContent className="sm:max-w-[425px] z-[60]">
+          <DialogHeader>
+            <DialogTitle>Add Shift Template</DialogTitle>
+            <span className="block text-[12px] text-gray-500 mt-1.5">
+              Define a standard shift block.
+            </span>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="t-name">Template Name</Label>
+              <Input
+                id="t-name"
+                placeholder="e.g. Morning Shift A"
+                value={newTemplateData.name}
+                onChange={e =>
+                  setNewTemplateData({
+                    ...newTemplateData,
+                    name: e.target.value,
+                  })
+                }
+                className="border-blue-200 focus:border-blue-500"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                <div className="relative">
+                  <Input
+                    type="time"
+                    value={newTemplateData.startTime}
+                    onChange={e =>
+                      setNewTemplateData({
+                        ...newTemplateData,
+                        startTime: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>End Time</Label>
+                <div className="relative">
+                  <Input
+                    type="time"
+                    value={newTemplateData.endTime}
+                    onChange={e =>
+                      setNewTemplateData({
+                        ...newTemplateData,
+                        endTime: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateTemplateOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveNewTemplate}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Save Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }

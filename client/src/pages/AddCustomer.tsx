@@ -26,23 +26,27 @@ const ROW_SPACING = "mb-5";
 const SALUTATION_WIDTH = "w-[70px]";
 const FIRST_NAME_WIDTH = "w-[200px]";
 // Total width = 70 + 200 + 4 (gap-1) = 274px
-const FULL_WIDTH = "w-[274px]"; 
+const FULL_WIDTH = "w-[274px]";
 const ADDRESS_FIELD_WIDTH = "w-[220px]"; // Standard width for all address fields
 
 export default function AddCustomer() {
   const [, setLocation] = useLocation();
   const [addressType, setAddressType] = useState("apartment");
-  
+
   // Form State for Auto-fill
   const [zone, setZone] = useState("");
   const [street, setStreet] = useState("");
   const [directions, setDirections] = useState("");
-  const [locationMode, setLocationMode] = useState<"blue_plate" | "coordinates" | "plus_code" | "manual">("blue_plate");
+  const [locationMode, setLocationMode] = useState<
+    "blue_plate" | "coordinates" | "plus_code" | "manual"
+  >("blue_plate");
   const [manualCoordinates, setManualCoordinates] = useState("");
   const [manualPlusCode, setManualPlusCode] = useState("");
 
   const mapRef = useRef<google.maps.Map | null>(null);
-  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null);
+  const markerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(
+    null
+  );
 
   const handleBack = () => {
     setLocation("/customers");
@@ -50,11 +54,11 @@ export default function AddCustomer() {
 
   const handleMapReady = (map: google.maps.Map) => {
     mapRef.current = map;
-    
+
     // Create draggable marker
     const marker = new window.google.maps.marker.AdvancedMarkerElement({
       map,
-      position: { lat: 25.2854, lng: 51.5310 },
+      position: { lat: 25.2854, lng: 51.531 },
       title: "Drag to select location",
       gmpDraggable: true,
     });
@@ -67,28 +71,35 @@ export default function AddCustomer() {
         try {
           const geocoder = new google.maps.Geocoder();
           const response = await geocoder.geocode({ location: position });
-          
+
           if (response.results[0]) {
             const address = response.results[0].formatted_address;
             const components = response.results[0].address_components;
-            
+
             // Update directions with full address
             setDirections(address);
 
             // Smart Mapping Logic (Simulation for Demo)
             // In a real app, this would map specific polygon IDs or exact street names
-            
+
             // Map Zone (Simulated based on keywords)
-            if (address.includes("Dafna") || address.includes("West Bay") || address.includes("Zone 6")) {
+            if (
+              address.includes("Dafna") ||
+              address.includes("West Bay") ||
+              address.includes("Zone 6")
+            ) {
               if (address.includes("Dafna")) setZone("zone1");
               else setZone("zone2");
             }
 
             // Map Street (Simulated based on street numbers)
-            const streetComponent = components.find(c => c.types.includes("route"));
+            const streetComponent = components.find(c =>
+              c.types.includes("route")
+            );
             if (streetComponent) {
               if (streetComponent.long_name.includes("850")) setStreet("st1");
-              else if (streetComponent.long_name.includes("900")) setStreet("st2");
+              else if (streetComponent.long_name.includes("900"))
+                setStreet("st2");
             }
           }
         } catch (error) {
@@ -110,14 +121,15 @@ export default function AddCustomer() {
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <h1 className="text-xl font-semibold text-gray-900">New Customer</h1>
+            <h1 className="text-xl font-semibold text-gray-900">
+              New Customer
+            </h1>
           </div>
         </div>
 
         {/* Scrollable Content Area */}
         <div className="flex-1 overflow-y-auto bg-white">
           <div className="px-8 py-8 pb-32">
-            
             {/* Customer Details Section */}
             <div className="mb-10 max-w-[800px]">
               {/* Customer Name - Two Lines */}
@@ -133,7 +145,9 @@ export default function AddCustomer() {
                     <div className="flex gap-1 mb-3">
                       <div className={SALUTATION_WIDTH}>
                         <Select>
-                          <SelectTrigger className={`${INPUT_BASE} bg-gray-50 px-2`}>
+                          <SelectTrigger
+                            className={`${INPUT_BASE} bg-gray-50 px-2`}
+                          >
                             <SelectValue placeholder="Sal." />
                           </SelectTrigger>
                           <SelectContent>
@@ -145,7 +159,10 @@ export default function AddCustomer() {
                         </Select>
                       </div>
                       <div className={FIRST_NAME_WIDTH}>
-                        <Input placeholder="First Name" className={INPUT_BASE} />
+                        <Input
+                          placeholder="First Name"
+                          className={INPUT_BASE}
+                        />
                       </div>
                     </div>
                     {/* Line 2: Last Name */}
@@ -167,7 +184,9 @@ export default function AddCustomer() {
                     </Label>
                   </div>
                   <div className="col-span-9">
-                    <div className={`${FULL_WIDTH} flex rounded-[4px] border border-gray-300 overflow-hidden focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500`}>
+                    <div
+                      className={`${FULL_WIDTH} flex rounded-[4px] border border-gray-300 overflow-hidden focus-within:ring-1 focus-within:ring-blue-500 focus-within:border-blue-500`}
+                    >
                       <div className="w-[90px] flex-none border-r border-gray-200 bg-gray-50">
                         <Select defaultValue="qa">
                           <SelectTrigger className="h-[32px] w-full border-0 bg-transparent focus:ring-0 text-xs px-2">
@@ -184,9 +203,9 @@ export default function AddCustomer() {
                         </Select>
                       </div>
                       <div className="flex-1">
-                        <Input 
-                          placeholder="Mobile Number" 
-                          className="h-[32px] border-0 focus:ring-0 rounded-none" 
+                        <Input
+                          placeholder="Mobile Number"
+                          className="h-[32px] border-0 focus:ring-0 rounded-none"
                         />
                       </div>
                     </div>
@@ -202,7 +221,10 @@ export default function AddCustomer() {
                   </div>
                   <div className="col-span-9">
                     <div className={FULL_WIDTH}>
-                      <Input placeholder="email@example.com" className={INPUT_BASE} />
+                      <Input
+                        placeholder="email@example.com"
+                        className={INPUT_BASE}
+                      />
                     </div>
                   </div>
                 </div>
@@ -215,7 +237,7 @@ export default function AddCustomer() {
                 <h3 className={SECTION_TITLE}>Address</h3>
                 {/* Address Type Toggle */}
                 <div className="flex bg-gray-100 p-1 rounded-lg w-fit mt-2">
-                  {["apartment", "house", "compound"].map((type) => (
+                  {["apartment", "house", "compound"].map(type => (
                     <button
                       key={type}
                       onClick={() => setAddressType(type)}
@@ -249,8 +271,12 @@ export default function AddCustomer() {
                               <SelectValue placeholder="Select Zone" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="zone1">Zone 1 - Al Dafna</SelectItem>
-                              <SelectItem value="zone2">Zone 2 - West Bay</SelectItem>
+                              <SelectItem value="zone1">
+                                Zone 1 - Al Dafna
+                              </SelectItem>
+                              <SelectItem value="zone2">
+                                Zone 2 - West Bay
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -307,7 +333,10 @@ export default function AddCustomer() {
                         </div>
                         <div className="flex-1">
                           <div className={ADDRESS_FIELD_WIDTH}>
-                            <Input placeholder="Building Number" className={INPUT_BASE} />
+                            <Input
+                              placeholder="Building Number"
+                              className={INPUT_BASE}
+                            />
                           </div>
                         </div>
                       </div>
@@ -322,7 +351,10 @@ export default function AddCustomer() {
                           </div>
                           <div className="flex-1">
                             <div className={ADDRESS_FIELD_WIDTH}>
-                              <Input placeholder="Compound Name" className={INPUT_BASE} />
+                              <Input
+                                placeholder="Compound Name"
+                                className={INPUT_BASE}
+                              />
                             </div>
                           </div>
                         </div>
@@ -332,7 +364,10 @@ export default function AddCustomer() {
                           </div>
                           <div className="flex-1">
                             <div className={ADDRESS_FIELD_WIDTH}>
-                              <Input placeholder="Villa Number" className={INPUT_BASE} />
+                              <Input
+                                placeholder="Villa Number"
+                                className={INPUT_BASE}
+                              />
                             </div>
                           </div>
                         </div>
@@ -343,7 +378,6 @@ export default function AddCustomer() {
                   {/* Common Fields (Floor/Apt/Contact) */}
                   {addressType === "apartment" && (
                     <>
-                      
                       {/* Floor */}
                       <div className="flex items-center gap-4">
                         <div className="w-[100px] flex-none">
@@ -370,8 +404,6 @@ export default function AddCustomer() {
                     </>
                   )}
 
-                  
-
                   {/* Contact Person */}
                   <div className="flex items-center gap-4">
                     <div className="w-[100px] flex-none">
@@ -391,11 +423,11 @@ export default function AddCustomer() {
                     </div>
                     <div className="flex-1">
                       <div className={ADDRESS_FIELD_WIDTH}>
-                        <Textarea 
-                          placeholder="Near landmark..." 
+                        <Textarea
+                          placeholder="Near landmark..."
                           className="h-[60px] text-sm border-gray-300 focus:border-blue-500 focus:ring-0 rounded-[4px] resize-none"
                           value={directions}
-                          onChange={(e) => setDirections(e.target.value)}
+                          onChange={e => setDirections(e.target.value)}
                         />
                       </div>
                     </div>
@@ -455,7 +487,7 @@ export default function AddCustomer() {
                         placeholder="e.g. 25.2854, 51.5310"
                         className={INPUT_BASE}
                         value={manualCoordinates}
-                        onChange={(e) => setManualCoordinates(e.target.value)}
+                        onChange={e => setManualCoordinates(e.target.value)}
                       />
                     </div>
                   )}
@@ -466,14 +498,16 @@ export default function AddCustomer() {
                         placeholder="e.g. 8G35+JQ Doha"
                         className={INPUT_BASE}
                         value={manualPlusCode}
-                        onChange={(e) => setManualPlusCode(e.target.value)}
+                        onChange={e => setManualPlusCode(e.target.value)}
                       />
                     </div>
                   )}
 
-                  <div className={`rounded-lg border border-gray-200 overflow-hidden h-[360px] shadow-sm w-full relative ${locationMode === "manual" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}>
-                    <MapView 
-                      initialCenter={{ lat: 25.2854, lng: 51.5310 }}
+                  <div
+                    className={`rounded-lg border border-gray-200 overflow-hidden h-[360px] shadow-sm w-full relative ${locationMode === "manual" ? "ring-2 ring-blue-500 ring-offset-2" : ""}`}
+                  >
+                    <MapView
+                      initialCenter={{ lat: 25.2854, lng: 51.531 }}
                       initialZoom={11}
                       onMapReady={handleMapReady}
                       className="w-full h-full"
@@ -485,7 +519,9 @@ export default function AddCustomer() {
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-2 w-[400px] text-center">
-                    {locationMode === "manual" ? "Drag pin to pinpoint exact location" : "Map preview"}
+                    {locationMode === "manual"
+                      ? "Drag pin to pinpoint exact location"
+                      : "Map preview"}
                   </p>
                 </div>
               </div>
@@ -500,15 +536,14 @@ export default function AddCustomer() {
                 </div>
                 <div className="col-span-9">
                   <div className="w-full">
-                    <Textarea 
-                      placeholder="Add notes about this customer..." 
+                    <Textarea
+                      placeholder="Add notes about this customer..."
                       className="min-h-[100px] text-sm border-gray-300 focus:border-blue-500 focus:ring-0 rounded-[4px]"
                     />
                   </div>
                 </div>
               </div>
             </div>
-            
           </div>
         </div>
 
@@ -518,9 +553,9 @@ export default function AddCustomer() {
             <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6 h-9 text-sm font-medium rounded-[4px] mb-[15px]">
               Save Customer
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleBack} 
+            <Button
+              variant="outline"
+              onClick={handleBack}
               className="bg-white border-gray-300 text-gray-700 hover:bg-gray-50 px-6 h-9 text-sm font-medium rounded-[4px] mb-[15px]"
             >
               Cancel

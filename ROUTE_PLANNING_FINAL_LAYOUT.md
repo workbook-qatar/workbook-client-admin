@@ -3,6 +3,7 @@
 ## Layout Design
 
 ### Left Panel (2/3 width) - Vertical Bookings List
+
 - **All bookings displayed vertically** in a scrollable list
 - Mix of unassigned and assigned bookings in one unified list
 - Compact card design optimized for scanning many bookings
@@ -12,6 +13,7 @@
   - **Green background**: In Transit
 
 ### Right Panel (1/3 width) - Drivers
+
 - **All drivers displayed vertically** (stacked)
 - Always visible while scrolling bookings
 - Each driver card is a drop zone for drag-and-drop
@@ -21,6 +23,7 @@
 ## Card Information
 
 ### Booking Card (Compact)
+
 - Customer name + Booking ID
 - Priority badge (High Priority / Normal)
 - Time
@@ -32,6 +35,7 @@
 - Assigned driver name (if assigned)
 
 ### Driver Card
+
 - Avatar with initials
 - Driver name
 - Vehicle + Plate number
@@ -43,11 +47,13 @@
 ## Features
 
 ### Filters
+
 - **Date filter**: Today / Tomorrow / This Week
 - **Status filter**: All Bookings / Unassigned / Assigned
 - Shows total count: "Showing X bookings"
 
 ### Statistics Dashboard
+
 - Total Bookings: 6
 - Needs Driver: 3 (red)
 - Assigned: 2 (blue)
@@ -55,6 +61,7 @@
 - Available Drivers: 2 (purple)
 
 ### Drag-and-Drop
+
 - Drag booking from left list
 - Drop on driver card on right
 - Automatic status update
@@ -63,6 +70,7 @@
 ## Scalability for 100+ Bookings
 
 ### Why This Layout Works
+
 1. **Vertical scrolling** - Natural for long lists
 2. **Compact cards** - More bookings visible at once
 3. **Drivers always visible** - No need to scroll to find drivers
@@ -71,6 +79,7 @@
 6. **Filtering** - Quickly show only unassigned or specific status
 
 ### Performance
+
 - Handles 100+ bookings smoothly
 - Vertical scroll is efficient
 - No horizontal scrolling needed for bookings

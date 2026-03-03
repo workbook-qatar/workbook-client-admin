@@ -62,29 +62,43 @@ export function RevenueAreaChart() {
   return (
     <div className="h-[200px] w-full mt-4">
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={REVENUE_TREND_DATA} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+        <AreaChart
+          data={REVENUE_TREND_DATA}
+          margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+        >
           <defs>
             <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
               <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.3} />
               <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={COLORS.grid} />
-          <XAxis 
-            dataKey="time" 
-            tick={{ fill: COLORS.text, fontSize: 12 }} 
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+            stroke={COLORS.grid}
+          />
+          <XAxis
+            dataKey="time"
+            tick={{ fill: COLORS.text, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
           />
-          <YAxis 
-            tick={{ fill: COLORS.text, fontSize: 12 }} 
+          <YAxis
+            tick={{ fill: COLORS.text, fontSize: 12 }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(value) => `Q${value / 1000}k`}
+            tickFormatter={value => `Q${value / 1000}k`}
           />
-          <Tooltip 
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-            formatter={(value: number) => [`QAR ${value.toLocaleString()}`, "Revenue"]}
+          <Tooltip
+            contentStyle={{
+              borderRadius: "8px",
+              border: "none",
+              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            }}
+            formatter={(value: number) => [
+              `QAR ${value.toLocaleString()}`,
+              "Revenue",
+            ]}
           />
           <Area
             type="monotone"
@@ -117,11 +131,19 @@ export function RevenueSourcePieChart() {
             endAngle={-270}
           >
             {REVENUE_SOURCE_DATA.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} strokeWidth={0} />
+              <Cell
+                key={`cell-${index}`}
+                fill={PIE_COLORS[index % PIE_COLORS.length]}
+                strokeWidth={0}
+              />
             ))}
           </Pie>
-          <Tooltip 
-             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+          <Tooltip
+            contentStyle={{
+              borderRadius: "8px",
+              border: "none",
+              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            }}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -143,23 +165,45 @@ export function AreaDemandBarChart() {
           layout="vertical"
           margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
         >
-          <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke={COLORS.grid} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            horizontal={false}
+            stroke={COLORS.grid}
+          />
           <XAxis type="number" hide />
-          <YAxis 
-            dataKey="name" 
-            type="category" 
-            axisLine={false} 
+          <YAxis
+            dataKey="name"
+            type="category"
+            axisLine={false}
             tickLine={false}
             tick={{ fill: COLORS.text, fontSize: 12, fontWeight: 500 }}
             width={70}
           />
           <Tooltip
-            cursor={{ fill: 'rgba(0,0,0,0.05)' }}
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+            cursor={{ fill: "rgba(0,0,0,0.05)" }}
+            contentStyle={{
+              borderRadius: "8px",
+              border: "none",
+              boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+            }}
           />
-          <Bar dataKey="bookings" fill={COLORS.secondary} radius={[0, 4, 4, 0]} barSize={20}>
+          <Bar
+            dataKey="bookings"
+            fill={COLORS.secondary}
+            radius={[0, 4, 4, 0]}
+            barSize={20}
+          >
             {AREA_DEMAND_DATA.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={index === 0 ? COLORS.danger : index === 1 ? COLORS.warning : COLORS.primary} />
+              <Cell
+                key={`cell-${index}`}
+                fill={
+                  index === 0
+                    ? COLORS.danger
+                    : index === 1
+                      ? COLORS.warning
+                      : COLORS.primary
+                }
+              />
             ))}
           </Bar>
         </BarChart>
@@ -169,33 +213,45 @@ export function AreaDemandBarChart() {
 }
 
 export function UtilizationRadialChart({ value = 76 }: { value?: number }) {
-  const data = [{ name: 'Utilization', value: value, fill: value > 80 ? COLORS.danger : value > 60 ? COLORS.success : COLORS.primary }];
-  
+  const data = [
+    {
+      name: "Utilization",
+      value: value,
+      fill:
+        value > 80
+          ? COLORS.danger
+          : value > 60
+            ? COLORS.success
+            : COLORS.primary,
+    },
+  ];
+
   return (
-      <div className="h-[140px] w-full relative">
-        <ResponsiveContainer width="100%" height="100%">
-          <RadialBarChart 
-            cx="50%" 
-            cy="50%" 
-            innerRadius="70%" 
-            outerRadius="100%" 
-            barSize={10} 
-            data={data} 
-            startAngle={180} 
-            endAngle={0}
-          >
-            <PolarAngleAxis type="number" domain={[0, 100]} angleAxisId={0} tick={false} />
-            <RadialBar
-              background
-              cornerRadius={10}
-              dataKey="value"
-            />
-          </RadialBarChart>
-        </ResponsiveContainer>
-        <div className="absolute inset-x-0 bottom-4 flex flex-col items-center justify-center pointer-events-none">
-           <span className="text-3xl font-bold text-gray-800">{value}%</span>
-           <span className="text-xs text-gray-500">Efficiency</span>
-        </div>
+    <div className="h-[140px] w-full relative">
+      <ResponsiveContainer width="100%" height="100%">
+        <RadialBarChart
+          cx="50%"
+          cy="50%"
+          innerRadius="70%"
+          outerRadius="100%"
+          barSize={10}
+          data={data}
+          startAngle={180}
+          endAngle={0}
+        >
+          <PolarAngleAxis
+            type="number"
+            domain={[0, 100]}
+            angleAxisId={0}
+            tick={false}
+          />
+          <RadialBar background cornerRadius={10} dataKey="value" />
+        </RadialBarChart>
+      </ResponsiveContainer>
+      <div className="absolute inset-x-0 bottom-4 flex flex-col items-center justify-center pointer-events-none">
+        <span className="text-3xl font-bold text-gray-800">{value}%</span>
+        <span className="text-xs text-gray-500">Efficiency</span>
       </div>
+    </div>
   );
 }

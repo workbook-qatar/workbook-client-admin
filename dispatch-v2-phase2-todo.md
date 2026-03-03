@@ -3,6 +3,7 @@
 ## Visual & Layout Enhancements
 
 ### 1. Compact/Expanded View Toggle
+
 - [ ] Add view toggle button in header (grid icon for compact, list icon for expanded)
 - [ ] Create expanded trip card component with larger layout
 - [ ] Add state management for view preference
@@ -11,6 +12,7 @@
 - [ ] Adjust map size based on view mode
 
 ### 2. Split-Screen Trip Comparison
+
 - [ ] Add "Compare" checkbox mode on trip cards
 - [ ] Create comparison dialog with side-by-side layout
 - [ ] Show route differences with highlighted sections
@@ -19,6 +21,7 @@
 - [ ] Add "Merge Trips" and "Swap Bookings" quick actions
 
 ### 3. Color-Coded Trip Categories
+
 - [ ] Add color picker in Edit Trip dialog
 - [ ] Create category management system (Morning, Afternoon, Emergency, etc.)
 - [ ] Add colored left border to trip cards
@@ -27,6 +30,7 @@
 - [ ] Add legend showing all categories
 
 ### 4. Map Heatmap Overlay
+
 - [ ] Implement heatmap calculation based on unassigned booking locations
 - [ ] Add toggle button for heatmap overlay
 - [ ] Use Google Maps Heatmap Layer
@@ -35,6 +39,7 @@
 - [ ] Add tooltip showing booking count in each area
 
 ### 5. Timeline Gantt Chart View
+
 - [ ] Create Gantt chart component with time axis
 - [ ] Add view switcher (Map View / Gantt View)
 - [ ] Display trips as horizontal bars on timeline
@@ -47,6 +52,7 @@
 ## Smart Operational Features
 
 ### 6. Conflict Detection & Warnings
+
 - [ ] Implement time conflict detection (driver double-booked)
 - [ ] Implement location conflict detection (booking too far from route)
 - [ ] Implement capacity conflict detection (exceeds vehicle capacity)
@@ -57,6 +63,7 @@
 - [ ] Highlight conflicting elements in red
 
 ### 7. Predictive ETA Updates
+
 - [ ] Integrate Google Maps Traffic Layer
 - [ ] Calculate real-time ETA with traffic data
 - [ ] Show original vs. current ETA comparison
@@ -67,6 +74,7 @@
 - [ ] Display traffic conditions on route
 
 ### 8. Quick Notes & Comments
+
 - [ ] Add notes icon to trip cards
 - [ ] Create slide-out notes panel
 - [ ] Implement comment thread UI
@@ -78,6 +86,7 @@
 - [ ] Add rich text formatting (bold, italic, lists)
 
 ## Testing Checklist
+
 - [ ] Test all features in compact and expanded views
 - [ ] Test trip comparison with 2 different trips
 - [ ] Test color categories with multiple trips
@@ -90,6 +99,7 @@
 - [ ] Check mobile responsiveness
 
 ## Implementation Order
+
 1. Compact/Expanded View (Foundation for other features)
 2. Color-Coded Categories (Simple, high visual impact)
 3. Conflict Detection (Important for operations)

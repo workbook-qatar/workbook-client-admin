@@ -1,6 +1,7 @@
 # WorkBook Admin - Project TODO
 
 ## Core Layout & Navigation
+
 - [x] Three-column layout structure (left sidebar, main content, right context panel)
 - [x] Collapsible left sidebar with navigation
 - [x] Fixed header bar with global search, notifications, and quick actions
@@ -8,6 +9,7 @@
 - [x] Theme configuration (light mode with color palette)
 
 ## Dashboard (Screen 1)
+
 - [x] Executive summary cards (Total Revenue, Total Bookings, Active Staff, Service Utilization)
 - [x] Sparkline charts for trends
 - [x] Real-time activity feed
@@ -16,6 +18,7 @@
 - [x] Staff performance leaderboard
 
 ## Bookings Management (Screens 2-3)
+
 - [x] Bookings list with high-density data table
 - [x] Filter/action bar with global search
 - [x] Advanced filters in right context panel
@@ -27,6 +30,7 @@
 - [x] Inline editing capabilities
 
 ## Customer Management (Screens 4-5)
+
 - [x] Customer list with high-density data table
 - [x] Customer profile view in right-side context panel
 - [x] Tabbed view (Profile, History, Notes)
@@ -35,6 +39,7 @@
 - [x] Internal notes and preferences
 
 ## Staff Management (Screens 6-7)
+
 - [x] Staff list with high-density data table
 - [x] Real-time availability status
 - [x] Staff profile view in right-side context panel
@@ -44,6 +49,7 @@
 - [x] Document status tracking with expiry warnings
 
 ## Services Management (Screen 8)
+
 - [x] Master-detail layout for service catalog
 - [x] Service categories list
 - [x] Service packages data table
@@ -51,6 +57,7 @@
 - [x] Package status management (Active/Inactive)
 
 ## Global Features
+
 - [x] Responsive design (1920x1080 to 1366x768)
 - [x] Data table sorting and pagination
 - [x] Instant search functionality
@@ -60,9 +67,11 @@
 - [x] Toast notifications
 
 ## New Features
+
 - [x] Real-time search functionality for customer management page
 
 ## Bookings Section Enhancements
+
 - [x] Status summary cards (Total, Pending, Confirmed, Completed, In Progress, Cancelled)
 - [x] View switcher (List, Cards, Calendar)
 - [x] List view with enhanced table layout
@@ -75,9 +84,11 @@
 - [x] Real-time search for bookings
 
 ## Bug Fixes
+
 - [x] Fix React ref warnings in DropdownMenu components (known React 19 + Radix UI compatibility issue - harmless warnings, all components already use asChild correctly)
 
 ## Bookings Section Improvements
+
 - [x] Reduce status summary card sizes and improve alignment
 - [x] Reduce search bookings column size
 - [x] Implement functional date range picker
@@ -91,6 +102,7 @@
 - [x] Add 20 dummy booking records
 
 ## Bookings Section - Additional Enhancements
+
 - [x] Reduce status card height to half and improve alignment
 - [x] Implement time slot picker with 15-minute intervals (9:00AM, 9:15AM, 9:30AM, etc.)
 - [x] Make date range picker functional with single and range selection
@@ -105,6 +117,7 @@
 - [x] Add staff availability overlay in calendar view
 
 ## Bookings Page Refinements
+
 - [x] Add Payment Mode filter (Bank/Cash)
 - [x] Add Assigned/Unassigned filter
 - [x] Add Instructions column with indicator icon
@@ -117,6 +130,7 @@
 - [x] Add breathing space throughout the page with better spacing
 
 ## Bookings Page Spacing Refinements
+
 - [x] Add proper breathing space in header section
 - [x] Add spacing between status cards and filters
 - [x] Add spacing between filters and table
@@ -125,16 +139,19 @@
 - [x] Ensure standard spacing throughout entire bookings page
 
 ## Final Spacing Refinements
+
 - [x] Reduce status card height by 50% (make cards half the current height)
 - [x] Add spacing between sidebar menu and main content area
 
 ## Status Card Improvements
+
 - [x] Set card width to 256px
 - [x] Set card height to 70px
 - [x] Set text font size to 16px
 - [x] Set number font size to 25px
 
 ## Booking Details Page Redesign
+
 - [x] Create clean card-based layout matching reference design
 - [x] Add Customer Information section with avatar
 - [x] Add Service Address section with location type badge
@@ -152,6 +169,7 @@
 - [x] Follow current dashboard theme and colors
 
 ## Booking Details Page UI Redesign (World-Class Standards)
+
 - [x] Improve overall spacing and padding throughout the page
 - [x] Enhance typography hierarchy with proper font sizes and weights
 - [x] Optimize card dimensions (width and height ratios)
@@ -170,6 +188,7 @@
 - [x] Maintain all existing functionality while improving UI
 
 ## Route Planning Feature
+
 - [x] Add Route Planning menu item to sidebar navigation
 - [x] Create route for /route-planning page
 - [x] Design Route Planning page layout
@@ -183,6 +202,7 @@
 - [ ] Implement route saving and loading
 
 ## Route Planning Redesign - Driver Pickup/Drop-off Focus
+
 - [x] Redesign for driver-centric workflow (not staff-centric)
 - [x] Add driver selection (2-5 drivers available)
 - [x] Show simple timeline: Staff Pickup → Job Location → Next Pickup/Drop-off
@@ -197,6 +217,7 @@
 - [x] Simplify the entire interface for better UX
 
 ## Route Planning - Complete Rebuild
+
 - [x] Delete old Route Planning implementation
 - [x] Design booking-centric workflow (bookings appear automatically)
 - [x] Show unassigned bookings list
@@ -219,6 +240,7 @@
 - [x] Test assignment and reassignment flows
 
 ## Route Planning - Kanban-Style Redesign for 100+ Bookings
+
 - [x] Design compact booking cards (small, essential info only)
 - [x] Create horizontal driver lanes layout (Kanban board style)
 - [x] Add "Unassigned" lane at top for bookings without drivers
@@ -235,6 +257,7 @@
 - [x] Test with many bookings for scalability
 
 ## Route Planning - Vertical Bookings + Horizontal Drivers Layout
+
 - [x] Create left panel with vertical bookings list (all bookings)
 - [x] Create right panel with horizontal driver cards
 - [x] Design compact booking cards for vertical list
@@ -252,6 +275,7 @@
 - [x] Verify all features work correctly
 
 ## Route Planning - True Kanban Board Layout
+
 - [x] Create Kanban board with horizontal columns
 - [x] Left column: Unassigned Bookings (vertical stack)
 - [x] Right columns: One column per driver (Driver1, Driver2, Driver3, Driver4)
@@ -269,6 +293,7 @@
 - [x] Test all drag-and-drop scenarios
 
 ## Route Planning Kanban - Design & Feature Improvements
+
 - [x] Simplify color scheme (less overwhelming, clear Unassigned vs Driver distinction)
 - [x] Add comprehensive filters (All/Unassigned/Assigned, Time, Priority, Area)
 - [x] Remove plate number from driver info, add vehicle capacity (7/12/14 Seats)
@@ -285,6 +310,7 @@
 - [x] Verify professional design and usability
 
 ## Route Planning - Additional Improvements
+
 - [ ] Add "Completed" status card to statistics
 - [ ] Make all status cards functional (Total, Unassigned, Assigned, In Transit, Completed)
 - [ ] Add driver filter with multiple selection checkboxes
@@ -303,6 +329,7 @@
 - [ ] Test all interactions and map functionality
 
 ## Driver Filter Redesign
+
 - [x] Change driver filter from inline checkboxes to dropdown/popover style
 - [x] Match design with other filters (Date, Status, Priority, Time)
 - [x] Add button that shows "All Drivers" or selected count
@@ -314,6 +341,7 @@
 - [x] Test filter functionality with multiple selections
 
 ## Dispatch V2 - Trip-Based Management System
+
 - [ ] Add "Dispatch V2" menu item to sidebar
 - [ ] Create Trip Management dashboard page
 - [ ] Design trip-based data model (trip contains multiple legs)

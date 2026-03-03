@@ -1,5 +1,8 @@
-const fs = require('fs');
-let content = fs.readFileSync('client/src/pages/StaffPendingInviteDetails.tsx', 'utf-8');
+const fs = require("fs");
+let content = fs.readFileSync(
+  "client/src/pages/StaffPendingInviteDetails.tsx",
+  "utf-8"
+);
 
 const matches = content.match(/className=\{STYLES\.sectionDesc\}/g);
 console.log(`Matched sectionDesc ${matches ? matches.length : 0} times.`);

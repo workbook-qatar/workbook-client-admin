@@ -52,16 +52,34 @@ const navigationItems = [
   { icon: Briefcase, label: "Services", path: "/services", comingSoon: false },
   { icon: BarChart3, label: "Reports", path: "/reports", comingSoon: false },
   { icon: Settings, label: "Settings", path: "/settings", comingSoon: false },
-  { icon: CalendarClock, label: "Scheduling", path: "/scheduling", comingSoon: true },
+  {
+    icon: CalendarClock,
+    label: "Scheduling",
+    path: "/scheduling",
+    comingSoon: true,
+  },
   { icon: Truck, label: "Vehicles", path: "/vehicles", comingSoon: true },
   { icon: DollarSign, label: "Finance", path: "/finance", comingSoon: true },
   { icon: Star, label: "Quality", path: "/quality", comingSoon: true },
-  { icon: MessageSquare, label: "Communication", path: "/communication", comingSoon: true },
-  { icon: Plug, label: "Integrations", path: "/integrations", comingSoon: true },
+  {
+    icon: MessageSquare,
+    label: "Communication",
+    path: "/communication",
+    comingSoon: true,
+  },
+  {
+    icon: Plug,
+    label: "Integrations",
+    path: "/integrations",
+    comingSoon: true,
+  },
   { icon: HelpCircle, label: "Support", path: "/support", comingSoon: true },
 ];
 
-export default function DashboardLayout({ children, rightPanel }: DashboardLayoutProps) {
+export default function DashboardLayout({
+  children,
+  rightPanel,
+}: DashboardLayoutProps) {
   const [location, setLocation] = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [rightPanelOpen, setRightPanelOpen] = useState(!!rightPanel);
@@ -77,9 +95,13 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
         {/* Logo Header */}
         <div className="flex h-16 shrink-0 items-center justify-center border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
           {!sidebarCollapsed && (
-           <div className="flex items-center justify-start w-full px-5">
-             <img src="/workbook-logo.png" alt="workbook" className="h-6 w-auto object-contain" />
-           </div>
+            <div className="flex items-center justify-start w-full px-5">
+              <img
+                src="/workbook-logo.png"
+                alt="workbook"
+                className="h-6 w-auto object-contain"
+              />
+            </div>
           )}
           <Button
             variant="ghost"
@@ -87,7 +109,11 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="text-sidebar-foreground hover:bg-sidebar-accent absolute right-2"
           >
-            {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+            {sidebarCollapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
           </Button>
         </div>
 
@@ -95,28 +121,34 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
         <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">
           {/* Active Modules */}
           <ul className="space-y-1 px-2 mb-6">
-            {navigationItems.filter(item => !item.comingSoon).map((item) => {
-              const Icon = item.icon;
-              const isActive = location === item.path;
-              return (
-                <li key={item.path}>
-                  <Link href={item.path}>
-                    <div
-                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200 ${
-                        isActive
-                          ? "bg-sidebar-primary/10 text-sidebar-primary border border-sidebar-primary/20"
-                          : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                      }`}
-                    >
-                      <Icon className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/70"}`} />
-                      {!sidebarCollapsed && (
-                        <span className="font-medium text-sm">{item.label}</span>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+            {navigationItems
+              .filter(item => !item.comingSoon)
+              .map(item => {
+                const Icon = item.icon;
+                const isActive = location === item.path;
+                return (
+                  <li key={item.path}>
+                    <Link href={item.path}>
+                      <div
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-200 ${
+                          isActive
+                            ? "bg-sidebar-primary/10 text-sidebar-primary border border-sidebar-primary/20"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                        }`}
+                      >
+                        <Icon
+                          className={`h-5 w-5 flex-shrink-0 ${isActive ? "text-sidebar-primary" : "text-sidebar-foreground/70"}`}
+                        />
+                        {!sidebarCollapsed && (
+                          <span className="font-medium text-sm">
+                            {item.label}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
           </ul>
 
           {/* Coming Soon Modules */}
@@ -127,28 +159,32 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
               </p>
             </div>
           )}
-          
+
           <ul className="space-y-1 px-2">
-            {navigationItems.filter(item => item.comingSoon).map((item) => {
-              const Icon = item.icon;
-              return (
-                <li key={item.path}>
-                  <Link href={item.path}>
-                    <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors duration-200 group">
-                      <Icon className="h-5 w-5 flex-shrink-0" />
-                      {!sidebarCollapsed && (
-                        <span className="flex-1 flex items-center justify-between">
-                          <span className="text-sm font-medium">{item.label}</span>
-                          <span className="text-[9px] px-1.5 py-0.5 rounded border border-sidebar-border text-sidebar-foreground/40 font-medium uppercase tracking-wider group-hover:border-sidebar-foreground/30 group-hover:text-sidebar-foreground/60">
-                            Soon
+            {navigationItems
+              .filter(item => item.comingSoon)
+              .map(item => {
+                const Icon = item.icon;
+                return (
+                  <li key={item.path}>
+                    <Link href={item.path}>
+                      <div className="flex items-center gap-3 px-3 py-2 rounded-lg text-sidebar-foreground/50 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground transition-colors duration-200 group">
+                        <Icon className="h-5 w-5 flex-shrink-0" />
+                        {!sidebarCollapsed && (
+                          <span className="flex-1 flex items-center justify-between">
+                            <span className="text-sm font-medium">
+                              {item.label}
+                            </span>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded border border-sidebar-border text-sidebar-foreground/40 font-medium uppercase tracking-wider group-hover:border-sidebar-foreground/30 group-hover:text-sidebar-foreground/60">
+                              Soon
+                            </span>
                           </span>
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
+                        )}
+                      </div>
+                    </Link>
+                  </li>
+                );
+              })}
           </ul>
         </nav>
 
@@ -168,8 +204,15 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
                 </Avatar>
                 {!sidebarCollapsed && (
                   <div className="ml-3 text-left flex-1 overflow-hidden">
-                    <p className="text-sm font-bold font-heading truncate">Muhammed Ali</p>
-                    <p className="text-xs text-sidebar-foreground/60 truncate" title="muhammed.ali@tartoos.com">muhammed.ali@tartoos.com</p>
+                    <p className="text-sm font-bold font-heading truncate">
+                      Muhammed Ali
+                    </p>
+                    <p
+                      className="text-xs text-sidebar-foreground/60 truncate"
+                      title="muhammed.ali@tartoos.com"
+                    >
+                      muhammed.ali@tartoos.com
+                    </p>
                   </div>
                 )}
               </Button>
@@ -179,7 +222,10 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
                 <Settings className="mr-2 h-4 w-4" />
                 Profile Settings
               </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive cursor-pointer" onClick={() => setLocation("/login")}>
+              <DropdownMenuItem
+                className="text-destructive cursor-pointer"
+                onClick={() => setLocation("/login")}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 Logout
               </DropdownMenuItem>
@@ -226,7 +272,9 @@ export default function DashboardLayout({ children, rightPanel }: DashboardLayou
                   <div className="space-y-2">
                     <div className="text-xs p-2 bg-muted rounded">
                       <p className="font-medium">3 Pending Payments</p>
-                      <p className="text-muted-foreground">Require immediate attention</p>
+                      <p className="text-muted-foreground">
+                        Require immediate attention
+                      </p>
                     </div>
                     <div className="text-xs p-2 bg-muted rounded">
                       <p className="font-medium">2 Staff Documents Expiring</p>

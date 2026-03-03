@@ -68,8 +68,20 @@ const mockCustomers = [
     location: "Dubai Marina",
     addresses: ["3 - Mushaireb, 140 - Wadi Mshaireb Street, 28"],
     bookingHistory: [
-      { id: "JOB-1245", service: "Deep Cleaning", date: "2024-11-25", amount: 450, status: "confirmed" },
-      { id: "JOB-1230", service: "AC Repair", date: "2024-11-10", amount: 350, status: "completed" },
+      {
+        id: "JOB-1245",
+        service: "Deep Cleaning",
+        date: "2024-11-25",
+        amount: 450,
+        status: "confirmed",
+      },
+      {
+        id: "JOB-1230",
+        service: "AC Repair",
+        date: "2024-11-10",
+        amount: 350,
+        status: "completed",
+      },
     ],
     notes: "Prefers morning appointments. VIP customer.",
   },
@@ -88,9 +100,27 @@ const mockCustomers = [
     location: "Al Sadd, Doha",
     addresses: ["Villa 45, Al Sadd, Doha", "Office 12, West Bay Tower"],
     bookingHistory: [
-      { id: "JOB-1245", service: "Deep Cleaning", date: "2024-11-25", amount: 450, status: "confirmed" },
-      { id: "JOB-1230", service: "AC Repair", date: "2024-11-10", amount: 350, status: "completed" },
-      { id: "JOB-1215", service: "Plumbing", date: "2024-10-28", amount: 280, status: "completed" },
+      {
+        id: "JOB-1245",
+        service: "Deep Cleaning",
+        date: "2024-11-25",
+        amount: 450,
+        status: "confirmed",
+      },
+      {
+        id: "JOB-1230",
+        service: "AC Repair",
+        date: "2024-11-10",
+        amount: 350,
+        status: "completed",
+      },
+      {
+        id: "JOB-1215",
+        service: "Plumbing",
+        date: "2024-10-28",
+        amount: 280,
+        status: "completed",
+      },
     ],
     notes: "Prefers morning appointments. Has two cats. VIP customer.",
   },
@@ -109,8 +139,20 @@ const mockCustomers = [
     location: "Lusail City",
     addresses: ["Apartment 302, Lusail City"],
     bookingHistory: [
-      { id: "JOB-1244", service: "AC Repair", date: "2024-11-25", amount: 350, status: "pending" },
-      { id: "JOB-1220", service: "Electrical Work", date: "2024-11-05", amount: 520, status: "completed" },
+      {
+        id: "JOB-1244",
+        service: "AC Repair",
+        date: "2024-11-25",
+        amount: 350,
+        status: "pending",
+      },
+      {
+        id: "JOB-1220",
+        service: "Electrical Work",
+        date: "2024-11-05",
+        amount: 520,
+        status: "completed",
+      },
     ],
     notes: "Requires invoice for company reimbursement.",
   },
@@ -129,7 +171,13 @@ const mockCustomers = [
     location: "Al Wakrah",
     addresses: ["Villa 78, Al Wakrah"],
     bookingHistory: [
-      { id: "JOB-1243", service: "Plumbing Service", date: "2024-11-24", amount: 280, status: "completed" },
+      {
+        id: "JOB-1243",
+        service: "Plumbing Service",
+        date: "2024-11-24",
+        amount: 280,
+        status: "completed",
+      },
     ],
     notes: "Regular customer. Prefers same technician.",
   },
@@ -148,7 +196,13 @@ const mockCustomers = [
     location: "The Pearl",
     addresses: ["Tower 5, The Pearl"],
     bookingHistory: [
-      { id: "JOB-1242", service: "Electrical Work", date: "2024-11-24", amount: 520, status: "confirmed" },
+      {
+        id: "JOB-1242",
+        service: "Electrical Work",
+        date: "2024-11-24",
+        amount: 520,
+        status: "confirmed",
+      },
     ],
     notes: "New customer. Referred by Ahmed Al-Mansoori.",
   },
@@ -167,14 +221,26 @@ const mockCustomers = [
     location: "Al Rayyan",
     addresses: ["Villa 23, Al Rayyan"],
     bookingHistory: [
-      { id: "JOB-1241", service: "Painting Service", date: "2024-11-23", amount: 890, status: "cancelled" },
+      {
+        id: "JOB-1241",
+        service: "Painting Service",
+        date: "2024-11-23",
+        amount: 890,
+        status: "cancelled",
+      },
     ],
     notes: "Last booking cancelled. Follow up needed.",
   },
 ];
 
 // Customer Detail Panel Component
-function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCustomers[0]; onClose: () => void }) {
+function CustomerDetailPanel({
+  customer,
+  onClose,
+}: {
+  customer: (typeof mockCustomers)[0];
+  onClose: () => void;
+}) {
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -214,21 +280,27 @@ function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCusto
                   <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">Phone</p>
-                    <p className="text-sm text-muted-foreground">{customer.phone}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.phone}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">Email</p>
-                    <p className="text-sm text-muted-foreground">{customer.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.email}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
                   <div>
                     <p className="text-sm font-medium">Last Booking</p>
-                    <p className="text-sm text-muted-foreground">{customer.lastBookingDate}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.lastBookingDate}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -240,7 +312,10 @@ function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCusto
               <h3 className="font-semibold mb-4">Address Book</h3>
               <div className="space-y-2">
                 {customer.addresses.map((address, index) => (
-                  <div key={index} className="flex items-start gap-3 p-3 bg-muted rounded-lg">
+                  <div
+                    key={index}
+                    className="flex items-start gap-3 p-3 bg-muted rounded-lg"
+                  >
                     <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                     <p className="text-sm flex-1">{address}</p>
                   </div>
@@ -254,19 +329,29 @@ function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCusto
               <h3 className="font-semibold mb-4">Statistics</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Total Bookings</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Total Bookings
+                  </p>
                   <p className="text-2xl font-bold">{customer.totalBookings}</p>
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Total Spent</p>
-                  <p className="text-2xl font-bold">AED {customer.totalSpent.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Total Spent
+                  </p>
+                  <p className="text-2xl font-bold">
+                    AED {customer.totalSpent.toLocaleString()}
+                  </p>
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Avg Spend</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Avg Spend
+                  </p>
                   <p className="text-2xl font-bold">AED {customer.avgSpend}</p>
                 </div>
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-1">Customer ID</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Customer ID
+                  </p>
                   <p className="text-2xl font-bold">{customer.id}</p>
                 </div>
               </div>
@@ -280,7 +365,7 @@ function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCusto
             <CardContent className="pt-6">
               <h3 className="font-semibold mb-4">Booking History</h3>
               <div className="space-y-3">
-                {customer.bookingHistory.map((booking) => (
+                {customer.bookingHistory.map(booking => (
                   <div key={booking.id} className="p-3 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">
                       <span className="font-medium text-sm">{booking.id}</span>
@@ -289,10 +374,10 @@ function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCusto
                           booking.status === "completed"
                             ? "outline"
                             : booking.status === "confirmed"
-                            ? "default"
-                            : booking.status === "pending"
-                            ? "secondary"
-                            : "destructive"
+                              ? "default"
+                              : booking.status === "pending"
+                                ? "secondary"
+                                : "destructive"
                         }
                       >
                         {booking.status}
@@ -301,7 +386,9 @@ function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCusto
                     <p className="text-sm mb-1">{booking.service}</p>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
                       <span>{booking.date}</span>
-                      <span className="font-semibold text-foreground">AED {booking.amount}</span>
+                      <span className="font-semibold text-foreground">
+                        AED {booking.amount}
+                      </span>
                     </div>
                   </div>
                 ))}
@@ -332,22 +419,29 @@ function CustomerDetailPanel({ customer, onClose }: { customer: typeof mockCusto
 export default function Customers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("all");
-  const [viewMode, setViewMode] = useState<"list" | "cards" | "contact">("list");
-  const [selectedCustomer, setSelectedCustomer] = useState<typeof mockCustomers[0] | null>(null);
+  const [viewMode, setViewMode] = useState<"list" | "cards" | "contact">(
+    "list"
+  );
+  const [selectedCustomer, setSelectedCustomer] = useState<
+    (typeof mockCustomers)[0] | null
+  >(null);
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
 
   // Calculate summary stats
   const totalCustomers = mockCustomers.length;
-  const vipCustomers = mockCustomers.filter((c) => c.type === "vip").length;
-  const newCustomers = mockCustomers.filter((c) => c.type === "new").length;
-  const regularCustomers = mockCustomers.filter((c) => c.type === "regular").length;
+  const vipCustomers = mockCustomers.filter(c => c.type === "vip").length;
+  const newCustomers = mockCustomers.filter(c => c.type === "new").length;
+  const regularCustomers = mockCustomers.filter(
+    c => c.type === "regular"
+  ).length;
 
-  const filteredCustomers = mockCustomers.filter((customer) => {
+  const filteredCustomers = mockCustomers.filter(customer => {
     const matchesSearch =
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.phone.includes(searchQuery);
-    const matchesLocation = selectedLocation === "all" || customer.area === selectedLocation;
+    const matchesLocation =
+      selectedLocation === "all" || customer.area === selectedLocation;
     return matchesSearch && matchesLocation;
   });
 
@@ -355,19 +449,19 @@ export default function Customers() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedCustomers(filteredCustomers.map((c) => c.id));
+      setSelectedCustomers(filteredCustomers.map(c => c.id));
     } else {
       setSelectedCustomers([]);
     }
   };
 
   const handleSelectCustomer = (id: string) => {
-    setSelectedCustomers((prev) =>
-      prev.includes(id) ? prev.filter((cid) => cid !== id) : [...prev, id]
+    setSelectedCustomers(prev =>
+      prev.includes(id) ? prev.filter(cid => cid !== id) : [...prev, id]
     );
   };
 
-  const handleViewCustomer = (customer: typeof mockCustomers[0]) => {
+  const handleViewCustomer = (customer: (typeof mockCustomers)[0]) => {
     setSelectedCustomer(customer);
   };
 
@@ -381,19 +475,23 @@ export default function Customers() {
 
   return (
     <DashboardLayout
-      // ...
+    // ...
     >
       <div className="p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold">Customer Management</h1>
-            <p className="text-muted-foreground mt-1">Manage and track all your customers</p>
+            <p className="text-muted-foreground mt-1">
+              Manage and track all your customers
+            </p>
           </div>
           <div className="flex items-center gap-4">
             <div className="bg-muted px-4 py-2 rounded-md flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-medium text-muted-foreground">Total Customers:</span>
+              <span className="text-sm font-medium text-muted-foreground">
+                Total Customers:
+              </span>
               <span className="font-bold">{totalCustomers}</span>
             </div>
             <Button onClick={() => setLocation("/customers/add")}>
@@ -410,7 +508,7 @@ export default function Customers() {
             <Input
               placeholder="Search customers..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -477,7 +575,9 @@ export default function Customers() {
                   <TableRow>
                     <TableHead className="w-12">
                       <Checkbox
-                        checked={selectedCustomers.length === filteredCustomers.length}
+                        checked={
+                          selectedCustomers.length === filteredCustomers.length
+                        }
                         onCheckedChange={handleSelectAll}
                       />
                     </TableHead>
@@ -490,16 +590,18 @@ export default function Customers() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCustomers.map((customer) => (
+                  {filteredCustomers.map(customer => (
                     <TableRow
                       key={customer.id}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => handleViewCustomer(customer)}
                     >
-                      <TableCell onClick={(e) => e.stopPropagation()}>
+                      <TableCell onClick={e => e.stopPropagation()}>
                         <Checkbox
                           checked={selectedCustomers.includes(customer.id)}
-                          onCheckedChange={() => handleSelectCustomer(customer.id)}
+                          onCheckedChange={() =>
+                            handleSelectCustomer(customer.id)
+                          }
                         />
                       </TableCell>
                       <TableCell>
@@ -507,14 +609,16 @@ export default function Customers() {
                           <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold">
                             {customer.name
                               .split(" ")
-                              .map((n) => n[0])
+                              .map(n => n[0])
                               .join("")
                               .toUpperCase()
                               .slice(0, 2)}
                           </div>
                           <div>
                             <p className="font-semibold">{customer.name}</p>
-                            <p className="text-xs text-muted-foreground">ID: {customer.id}</p>
+                            <p className="text-xs text-muted-foreground">
+                              ID: {customer.id}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
@@ -534,28 +638,43 @@ export default function Customers() {
                         <div className="flex items-start gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
                           <div>
-                            <p className="text-sm font-medium">{customer.area}</p>
-                            <p className="text-xs text-muted-foreground">{customer.location}</p>
+                            <p className="text-sm font-medium">
+                              {customer.area}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {customer.location}
+                            </p>
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-semibold">{customer.totalBookings}</p>
-                          <p className="text-xs text-muted-foreground">Last: {customer.lastBookingDate}</p>
+                          <p className="font-semibold">
+                            {customer.totalBookings}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Last: {customer.lastBookingDate}
+                          </p>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div>
-                          <p className="font-semibold">AED {customer.totalSpent.toLocaleString()}</p>
-                          <p className="text-xs text-muted-foreground">Avg: AED {customer.avgSpend}</p>
+                          <p className="font-semibold">
+                            AED {customer.totalSpent.toLocaleString()}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Avg: AED {customer.avgSpend}
+                          </p>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      <TableCell
+                        className="text-right"
+                        onClick={e => e.stopPropagation()}
+                      >
                         <Button
                           variant="ghost"
                           size="icon"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             handleViewCustomer(customer);
                           }}
@@ -574,7 +693,7 @@ export default function Customers() {
         {/* Cards View */}
         {viewMode === "cards" && (
           <div className="grid grid-cols-3 gap-4">
-            {filteredCustomers.map((customer) => (
+            {filteredCustomers.map(customer => (
               <Card
                 key={customer.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow"
@@ -586,14 +705,16 @@ export default function Customers() {
                       <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-lg">
                         {customer.name
                           .split(" ")
-                          .map((n) => n[0])
+                          .map(n => n[0])
                           .join("")
                           .toUpperCase()
                           .slice(0, 2)}
                       </div>
                       <div>
                         <p className="font-semibold">{customer.name}</p>
-                        <p className="text-xs text-muted-foreground">{customer.id}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {customer.id}
+                        </p>
                       </div>
                     </div>
                     {/* Type badge removed */}
@@ -610,18 +731,28 @@ export default function Customers() {
                     </div>
                     <div className="flex items-start gap-2 text-sm">
                       <MapPin className="h-3 w-3 text-muted-foreground mt-0.5 flex-shrink-0" />
-                      <span className="line-clamp-2">{customer.addresses[0]}</span>
+                      <span className="line-clamp-2">
+                        {customer.addresses[0]}
+                      </span>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div className="p-2 bg-muted rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Bookings</p>
-                      <p className="text-lg font-bold">{customer.totalBookings}</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Bookings
+                      </p>
+                      <p className="text-lg font-bold">
+                        {customer.totalBookings}
+                      </p>
                     </div>
                     <div className="p-2 bg-muted rounded-lg">
-                      <p className="text-xs text-muted-foreground mb-1">Total Spent</p>
-                      <p className="text-lg font-bold">AED {customer.totalSpent}</p>
+                      <p className="text-xs text-muted-foreground mb-1">
+                        Total Spent
+                      </p>
+                      <p className="text-lg font-bold">
+                        AED {customer.totalSpent}
+                      </p>
                     </div>
                   </div>
 
@@ -630,7 +761,7 @@ export default function Customers() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleViewCustomer(customer);
                       }}
@@ -648,7 +779,7 @@ export default function Customers() {
         {/* Contact View */}
         {viewMode === "contact" && (
           <div className="grid grid-cols-4 gap-4">
-            {filteredCustomers.map((customer) => (
+            {filteredCustomers.map(customer => (
               <Card
                 key={customer.id}
                 className="cursor-pointer hover:shadow-lg transition-shadow"
@@ -658,7 +789,7 @@ export default function Customers() {
                   <div className="w-20 h-20 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white font-semibold text-2xl mx-auto mb-3">
                     {customer.name
                       .split(" ")
-                      .map((n) => n[0])
+                      .map(n => n[0])
                       .join("")
                       .toUpperCase()
                       .slice(0, 2)}
@@ -671,11 +802,13 @@ export default function Customers() {
                       customer.type === "vip"
                         ? "border-purple-500 text-purple-700 bg-purple-50 mb-3"
                         : customer.type === "new"
-                        ? "border-blue-500 text-blue-700 bg-blue-50 mb-3"
-                        : "border-gray-500 text-gray-700 bg-gray-50 mb-3"
+                          ? "border-blue-500 text-blue-700 bg-blue-50 mb-3"
+                          : "border-gray-500 text-gray-700 bg-gray-50 mb-3"
                     }
                   >
-                    {customer.type === "vip" && <Star className="h-3 w-3 mr-1 fill-purple-500" />}
+                    {customer.type === "vip" && (
+                      <Star className="h-3 w-3 mr-1 fill-purple-500" />
+                    )}
                     {customer.type.toUpperCase()}
                   </Badge>
 
@@ -706,7 +839,7 @@ export default function Customers() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleCall(customer.phone);
                       }}
@@ -717,7 +850,7 @@ export default function Customers() {
                       variant="outline"
                       size="sm"
                       className="flex-1"
-                      onClick={(e) => {
+                      onClick={e => {
                         e.stopPropagation();
                         handleEmail(customer.email);
                       }}
@@ -734,7 +867,8 @@ export default function Customers() {
         {/* Pagination */}
         <div className="flex items-center justify-between mt-6">
           <p className="text-sm text-muted-foreground">
-            Showing 1 to {filteredCustomers.length} of {filteredCustomers.length} results
+            Showing 1 to {filteredCustomers.length} of{" "}
+            {filteredCustomers.length} results
           </p>
           <div className="flex items-center gap-2">
             <Select defaultValue="20">

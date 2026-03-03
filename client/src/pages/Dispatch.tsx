@@ -3,11 +3,22 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { MapView } from "@/components/Map";
 import {
   Plus,
@@ -57,7 +68,13 @@ interface TripStop {
 }
 
 interface TripStatusEvent {
-  status: "scheduled" | "assigned" | "en-route" | "in-progress" | "completed" | "cancelled";
+  status:
+    | "scheduled"
+    | "assigned"
+    | "en-route"
+    | "in-progress"
+    | "completed"
+    | "cancelled";
   timestamp: string;
   estimatedTime?: string;
   note?: string;
@@ -74,7 +91,13 @@ interface Trip {
   status: "unassigned" | "active" | "upcoming";
   distance: number;
   type?: string;
-  currentStatus?: "scheduled" | "assigned" | "en-route" | "in-progress" | "completed" | "cancelled";
+  currentStatus?:
+    | "scheduled"
+    | "assigned"
+    | "en-route"
+    | "in-progress"
+    | "completed"
+    | "cancelled";
   statusTimeline?: TripStatusEvent[];
 }
 
@@ -90,61 +113,112 @@ interface Driver {
 }
 
 // TripStatusTimeline Component
-function TripStatusTimeline({ trip, onStatusUpdate }: { trip: Trip; onStatusUpdate?: (status: "en-route" | "in-progress" | "completed") => void }) {
-  const allStatuses: Array<"scheduled" | "assigned" | "en-route" | "in-progress" | "completed" | "cancelled"> = [
-    "scheduled",
-    "assigned",
-    "en-route",
-    "in-progress",
-    "completed",
-  ];
+function TripStatusTimeline({
+  trip,
+  onStatusUpdate,
+}: {
+  trip: Trip;
+  onStatusUpdate?: (status: "en-route" | "in-progress" | "completed") => void;
+}) {
+  const allStatuses: Array<
+    | "scheduled"
+    | "assigned"
+    | "en-route"
+    | "in-progress"
+    | "completed"
+    | "cancelled"
+  > = ["scheduled", "assigned", "en-route", "in-progress", "completed"];
 
   const statusConfig = {
-    scheduled: { label: "Scheduled", icon: Calendar, color: "text-gray-500", bgColor: "bg-gray-100" },
-    assigned: { label: "Assigned", icon: UserCheck, color: "text-blue-500", bgColor: "bg-blue-100" },
-    "en-route": { label: "En Route", icon: TruckIcon, color: "text-purple-500", bgColor: "bg-purple-100" },
-    "in-progress": { label: "In Progress", icon: PlayCircle, color: "text-orange-500", bgColor: "bg-orange-100" },
-    completed: { label: "Completed", icon: CheckCircle2, color: "text-green-500", bgColor: "bg-green-100" },
-    cancelled: { label: "Cancelled", icon: XCircle, color: "text-red-500", bgColor: "bg-red-100" },
+    scheduled: {
+      label: "Scheduled",
+      icon: Calendar,
+      color: "text-gray-500",
+      bgColor: "bg-gray-100",
+    },
+    assigned: {
+      label: "Assigned",
+      icon: UserCheck,
+      color: "text-blue-500",
+      bgColor: "bg-blue-100",
+    },
+    "en-route": {
+      label: "En Route",
+      icon: TruckIcon,
+      color: "text-purple-500",
+      bgColor: "bg-purple-100",
+    },
+    "in-progress": {
+      label: "In Progress",
+      icon: PlayCircle,
+      color: "text-orange-500",
+      bgColor: "bg-orange-100",
+    },
+    completed: {
+      label: "Completed",
+      icon: CheckCircle2,
+      color: "text-green-500",
+      bgColor: "bg-green-100",
+    },
+    cancelled: {
+      label: "Cancelled",
+      icon: XCircle,
+      color: "text-red-500",
+      bgColor: "bg-red-100",
+    },
   };
 
-  const currentStatusIndex = allStatuses.indexOf(trip.currentStatus || "scheduled");
+  const currentStatusIndex = allStatuses.indexOf(
+    trip.currentStatus || "scheduled"
+  );
   const isCancelled = trip.currentStatus === "cancelled";
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
-    return date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const getStatusEvent = (status: string) => {
-    return trip.statusTimeline?.find((event) => event.status === status);
+    return trip.statusTimeline?.find(event => event.status === status);
   };
 
   const calculateTimeVariance = (event: TripStatusEvent | undefined) => {
     if (!event || !event.estimatedTime) return null;
-    
+
     const estimated = new Date(event.estimatedTime).getTime();
     const actual = new Date(event.timestamp).getTime();
     const varianceMs = actual - estimated;
     const varianceMinutes = Math.round(varianceMs / 60000);
-    
+
     return {
       minutes: Math.abs(varianceMinutes),
-      status: varianceMinutes < -2 ? "early" : varianceMinutes > 2 ? "late" : "on-time",
+      status:
+        varianceMinutes < -2
+          ? "early"
+          : varianceMinutes > 2
+            ? "late"
+            : "on-time",
       isEarly: varianceMinutes < -2,
       isLate: varianceMinutes > 2,
       isOnTime: varianceMinutes >= -2 && varianceMinutes <= 2,
     };
   };
 
-  const getVarianceColor = (variance: ReturnType<typeof calculateTimeVariance>) => {
+  const getVarianceColor = (
+    variance: ReturnType<typeof calculateTimeVariance>
+  ) => {
     if (!variance) return "";
     if (variance.isEarly) return "text-blue-600";
     if (variance.isLate) return "text-red-600";
     return "text-green-600";
   };
 
-  const getVarianceBadge = (variance: ReturnType<typeof calculateTimeVariance>) => {
+  const getVarianceBadge = (
+    variance: ReturnType<typeof calculateTimeVariance>
+  ) => {
     if (!variance) return null;
     if (variance.isEarly) return `${variance.minutes}m early`;
     if (variance.isLate) return `${variance.minutes}m late`;
@@ -157,7 +231,7 @@ function TripStatusTimeline({ trip, onStatusUpdate }: { trip: Trip; onStatusUpda
       <div className="relative">
         {/* Horizontal line */}
         <div className="absolute top-5 left-0 right-0 h-0.5 bg-gray-200" />
-        
+
         {/* Status points */}
         <div className="relative flex justify-between">
           {allStatuses.map((status, index) => {
@@ -166,9 +240,13 @@ function TripStatusTimeline({ trip, onStatusUpdate }: { trip: Trip; onStatusUpda
             const event = getStatusEvent(status);
             const isCompleted = !isCancelled && index <= currentStatusIndex;
             const isCurrent = !isCancelled && index === currentStatusIndex;
-            
+
             return (
-              <div key={status} className="flex flex-col items-center" style={{ width: `${100 / allStatuses.length}%` }}>
+              <div
+                key={status}
+                className="flex flex-col items-center"
+                style={{ width: `${100 / allStatuses.length}%` }}
+              >
                 {/* Icon circle */}
                 <div
                   className={`relative z-10 flex items-center justify-center w-10 h-10 rounded-full border-2 ${
@@ -179,12 +257,14 @@ function TripStatusTimeline({ trip, onStatusUpdate }: { trip: Trip; onStatusUpda
                 >
                   <Icon className="h-5 w-5" />
                 </div>
-                
+
                 {/* Label */}
                 <div className="mt-2 text-center">
-                  <p className={`text-xs font-medium ${
-                    isCompleted ? config.color : "text-gray-400"
-                  }`}>
+                  <p
+                    className={`text-xs font-medium ${
+                      isCompleted ? config.color : "text-gray-400"
+                    }`}
+                  >
                     {config.label}
                   </p>
                   {event && (
@@ -192,14 +272,19 @@ function TripStatusTimeline({ trip, onStatusUpdate }: { trip: Trip; onStatusUpda
                       <p className="text-xs text-muted-foreground mt-0.5">
                         {formatTime(event.timestamp)}
                       </p>
-                      {event.estimatedTime && (() => {
-                        const variance = calculateTimeVariance(event);
-                        return variance && (
-                          <p className={`text-xs font-semibold mt-0.5 ${getVarianceColor(variance)}`}>
-                            {getVarianceBadge(variance)}
-                          </p>
-                        );
-                      })()}
+                      {event.estimatedTime &&
+                        (() => {
+                          const variance = calculateTimeVariance(event);
+                          return (
+                            variance && (
+                              <p
+                                className={`text-xs font-semibold mt-0.5 ${getVarianceColor(variance)}`}
+                              >
+                                {getVarianceBadge(variance)}
+                              </p>
+                            )
+                          );
+                        })()}
                     </>
                   )}
                 </div>
@@ -210,44 +295,52 @@ function TripStatusTimeline({ trip, onStatusUpdate }: { trip: Trip; onStatusUpda
       </div>
 
       {/* Overall Performance Metrics */}
-      {trip.statusTimeline && trip.statusTimeline.length > 0 && (() => {
-        const completedEvents = trip.statusTimeline.filter(e => e.estimatedTime);
-        const totalDelayMinutes = completedEvents.reduce((sum, event) => {
-          const variance = calculateTimeVariance(event);
-          return sum + (variance?.isLate ? variance.minutes : 0);
-        }, 0);
-        const hasDelays = totalDelayMinutes > 0;
-        const allOnTime = completedEvents.every(event => {
-          const variance = calculateTimeVariance(event);
-          return variance?.isOnTime || variance?.isEarly;
-        });
+      {trip.statusTimeline &&
+        trip.statusTimeline.length > 0 &&
+        (() => {
+          const completedEvents = trip.statusTimeline.filter(
+            e => e.estimatedTime
+          );
+          const totalDelayMinutes = completedEvents.reduce((sum, event) => {
+            const variance = calculateTimeVariance(event);
+            return sum + (variance?.isLate ? variance.minutes : 0);
+          }, 0);
+          const hasDelays = totalDelayMinutes > 0;
+          const allOnTime = completedEvents.every(event => {
+            const variance = calculateTimeVariance(event);
+            return variance?.isOnTime || variance?.isEarly;
+          });
 
-        return hasDelays || allOnTime ? (
-          <div className={`mb-3 p-2 rounded-lg border-2 ${
-            hasDelays ? "bg-red-50 border-red-200" : "bg-green-50 border-green-200"
-          }`}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                {hasDelays ? (
-                  <>
-                    <AlertCircle className="h-4 w-4 text-red-600" />
-                    <span className="text-sm font-semibold text-red-700">
-                      Trip Delayed: {totalDelayMinutes}m behind schedule
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="text-sm font-semibold text-green-700">
-                      Trip On Schedule
-                    </span>
-                  </>
-                )}
+          return hasDelays || allOnTime ? (
+            <div
+              className={`mb-3 p-2 rounded-lg border-2 ${
+                hasDelays
+                  ? "bg-red-50 border-red-200"
+                  : "bg-green-50 border-green-200"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {hasDelays ? (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      <span className="text-sm font-semibold text-red-700">
+                        Trip Delayed: {totalDelayMinutes}m behind schedule
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-semibold text-green-700">
+                        Trip On Schedule
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ) : null;
-      })()}
+          ) : null;
+        })()}
 
       {/* Current status note */}
       {trip.statusTimeline && trip.statusTimeline.length > 0 && (
@@ -261,45 +354,47 @@ function TripStatusTimeline({ trip, onStatusUpdate }: { trip: Trip; onStatusUpda
                 {trip.statusTimeline[trip.statusTimeline.length - 1].note}
               </p>
             </div>
-            
+
             {/* Status update buttons */}
-            {onStatusUpdate && trip.currentStatus !== "completed" && trip.currentStatus !== "cancelled" && (
-              <div className="flex gap-2">
-                {trip.currentStatus === "assigned" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onStatusUpdate("en-route")}
-                    className="text-purple-600 hover:text-purple-700"
-                  >
-                    <TruckIcon className="h-3 w-3 mr-1" />
-                    Start Trip
-                  </Button>
-                )}
-                {trip.currentStatus === "en-route" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onStatusUpdate("in-progress")}
-                    className="text-orange-600 hover:text-orange-700"
-                  >
-                    <PlayCircle className="h-3 w-3 mr-1" />
-                    In Progress
-                  </Button>
-                )}
-                {trip.currentStatus === "in-progress" && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onStatusUpdate("completed")}
-                    className="text-green-600 hover:text-green-700"
-                  >
-                    <CheckCircle2 className="h-3 w-3 mr-1" />
-                    Complete
-                  </Button>
-                )}
-              </div>
-            )}
+            {onStatusUpdate &&
+              trip.currentStatus !== "completed" &&
+              trip.currentStatus !== "cancelled" && (
+                <div className="flex gap-2">
+                  {trip.currentStatus === "assigned" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onStatusUpdate("en-route")}
+                      className="text-purple-600 hover:text-purple-700"
+                    >
+                      <TruckIcon className="h-3 w-3 mr-1" />
+                      Start Trip
+                    </Button>
+                  )}
+                  {trip.currentStatus === "en-route" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onStatusUpdate("in-progress")}
+                      className="text-orange-600 hover:text-orange-700"
+                    >
+                      <PlayCircle className="h-3 w-3 mr-1" />
+                      In Progress
+                    </Button>
+                  )}
+                  {trip.currentStatus === "in-progress" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onStatusUpdate("completed")}
+                      className="text-green-600 hover:text-green-700"
+                    >
+                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                      Complete
+                    </Button>
+                  )}
+                </div>
+              )}
           </div>
         </div>
       )}
@@ -314,20 +409,27 @@ export default function Dispatch() {
   const [showReassignDialog, setShowReassignDialog] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
-  const [selectedTripForAssignment, setSelectedTripForAssignment] = useState<string | null>(null);
-  const [selectedTripForEdit, setSelectedTripForEdit] = useState<Trip | null>(null);
+  const [selectedTripForAssignment, setSelectedTripForAssignment] = useState<
+    string | null
+  >(null);
+  const [selectedTripForEdit, setSelectedTripForEdit] = useState<Trip | null>(
+    null
+  );
   const [editTripStops, setEditTripStops] = useState<TripStop[]>([]);
   const [editStartTime, setEditStartTime] = useState("");
   const [editTripType, setEditTripType] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedBookings, setSelectedBookings] = useState<{ [key: string]: { outbound: boolean; return: boolean } }>({});
+  const [selectedBookings, setSelectedBookings] = useState<{
+    [key: string]: { outbound: boolean; return: boolean };
+  }>({});
   const [startTime, setStartTime] = useState("");
   const [tripType, setTripType] = useState("");
   const [selectedTrips, setSelectedTrips] = useState<string[]>([]);
-  const [dateFilter, setDateFilter] = useState<"all" | "today" | "tomorrow" | "week" | "custom">("all");
+  const [dateFilter, setDateFilter] = useState<
+    "all" | "today" | "tomorrow" | "week" | "custom"
+  >("all");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
-
 
   // Mock data
   const [bookings] = useState<Booking[]>([
@@ -361,8 +463,8 @@ export default function Dispatch() {
         "Mohammed Hassan": "Tower 5, Al Rayyan, Doha, Qatar",
       },
       priority: "medium",
-      lat: 25.3180,
-      lng: 51.4390,
+      lat: 25.318,
+      lng: 51.439,
     },
     {
       id: "BK-1003",
@@ -389,9 +491,24 @@ export default function Dispatch() {
       direction: "outbound",
       startTime: "08:00",
       stops: [
-        { location: "Villa 123, Al Sadd, Doha, Qatar", staff: ["John Doe"], lat: 25.2854, lng: 51.5310 },
-        { location: "Building 7, West Bay, Doha, Qatar", staff: ["Sarah Ahmed"], lat: 25.2760, lng: 51.5200 },
-        { location: "Apartment 45, Al Sadd, Doha, Qatar", staff: ["John Doe", "Sarah Ahmed"], lat: 25.2867, lng: 51.5333 },
+        {
+          location: "Villa 123, Al Sadd, Doha, Qatar",
+          staff: ["John Doe"],
+          lat: 25.2854,
+          lng: 51.531,
+        },
+        {
+          location: "Building 7, West Bay, Doha, Qatar",
+          staff: ["Sarah Ahmed"],
+          lat: 25.276,
+          lng: 51.52,
+        },
+        {
+          location: "Apartment 45, Al Sadd, Doha, Qatar",
+          staff: ["John Doe", "Sarah Ahmed"],
+          lat: 25.2867,
+          lng: 51.5333,
+        },
       ],
       driverId: "D001",
       driverName: "Ahmed Al-Mansoori",
@@ -474,10 +591,10 @@ export default function Dispatch() {
   // Helper functions
   const getBookingsWithoutTrips = () => {
     const bookingsWithTrips = new Set<string>();
-    trips.forEach((trip) => {
-      trip.bookingIds.forEach((id) => bookingsWithTrips.add(id));
+    trips.forEach(trip => {
+      trip.bookingIds.forEach(id => bookingsWithTrips.add(id));
     });
-    return bookings.filter((b) => !bookingsWithTrips.has(b.id));
+    return bookings.filter(b => !bookingsWithTrips.has(b.id));
   };
 
   const calculateStartTime = (booking: Booking): string => {
@@ -490,7 +607,7 @@ export default function Dispatch() {
   };
 
   // Filter bookings based on search
-  const filteredBookings = getBookingsWithoutTrips().filter((booking) => {
+  const filteredBookings = getBookingsWithoutTrips().filter(booking => {
     const query = searchQuery.toLowerCase();
     return (
       booking.id.toLowerCase().includes(query) ||
@@ -500,8 +617,11 @@ export default function Dispatch() {
   });
 
   // Handle booking selection
-  const toggleBookingSelection = (bookingId: string, direction: "outbound" | "return") => {
-    setSelectedBookings((prev) => {
+  const toggleBookingSelection = (
+    bookingId: string,
+    direction: "outbound" | "return"
+  ) => {
+    setSelectedBookings(prev => {
       const current = prev[bookingId] || { outbound: false, return: false };
       return {
         ...prev,
@@ -516,19 +636,21 @@ export default function Dispatch() {
   // Handle create trips
   const handleCreateTrips = () => {
     const selectedBookingIds = Object.keys(selectedBookings).filter(
-      (id) => selectedBookings[id].outbound || selectedBookings[id].return
+      id => selectedBookings[id].outbound || selectedBookings[id].return
     );
 
     if (selectedBookingIds.length === 0) {
-      toast.error("Please select at least one booking with a direction (Outbound or Return)");
+      toast.error(
+        "Please select at least one booking with a direction (Outbound or Return)"
+      );
       return;
     }
 
     const newTrips: Trip[] = [];
     let tripCounter = trips.length + 1;
 
-    selectedBookingIds.forEach((bookingId) => {
-      const booking = bookings.find((b) => b.id === bookingId);
+    selectedBookingIds.forEach(bookingId => {
+      const booking = bookings.find(b => b.id === bookingId);
       if (!booking) return;
 
       const directions = selectedBookings[bookingId];
@@ -536,9 +658,9 @@ export default function Dispatch() {
       // Create outbound trip
       if (directions.outbound) {
         const outboundStops: TripStop[] = [];
-        
+
         // Add pickup stops for each staff member
-        booking.staff.forEach((staffName) => {
+        booking.staff.forEach(staffName => {
           const address = booking.staffAddresses[staffName];
           if (address) {
             outboundStops.push({
@@ -595,7 +717,7 @@ export default function Dispatch() {
         });
 
         // Add dropoff stops for each staff member
-        booking.staff.forEach((staffName) => {
+        booking.staff.forEach(staffName => {
           const address = booking.staffAddresses[staffName];
           if (address) {
             returnStops.push({
@@ -632,7 +754,7 @@ export default function Dispatch() {
 
     setTrips([...trips, ...newTrips]);
     toast.success(`${newTrips.length} trip(s) created successfully`);
-    
+
     // Reset form
     setSelectedBookings({});
     setSearchQuery("");
@@ -645,11 +767,11 @@ export default function Dispatch() {
   const handleAssignDriver = (driverId: string) => {
     if (!selectedTripForAssignment) return;
 
-    const driver = drivers.find((d) => d.id === driverId);
+    const driver = drivers.find(d => d.id === driverId);
     if (!driver) return;
 
-    setTrips((prevTrips) =>
-      prevTrips.map((trip) =>
+    setTrips(prevTrips =>
+      prevTrips.map(trip =>
         trip.id === selectedTripForAssignment
           ? {
               ...trip,
@@ -663,10 +785,13 @@ export default function Dispatch() {
                   status: "assigned",
                   timestamp: new Date().toISOString(),
                   estimatedTime: (() => {
-                    const lastEvent = trip.statusTimeline?.[trip.statusTimeline.length - 1];
+                    const lastEvent =
+                      trip.statusTimeline?.[trip.statusTimeline.length - 1];
                     if (lastEvent) {
                       // Estimate 5 minutes from scheduled to assigned
-                      return new Date(new Date(lastEvent.timestamp).getTime() + 5 * 60000).toISOString();
+                      return new Date(
+                        new Date(lastEvent.timestamp).getTime() + 5 * 60000
+                      ).toISOString();
                     }
                     return new Date().toISOString();
                   })(),
@@ -678,7 +803,9 @@ export default function Dispatch() {
       )
     );
 
-    toast.success(`Trip ${selectedTripForAssignment} assigned to ${driver.name}`);
+    toast.success(
+      `Trip ${selectedTripForAssignment} assigned to ${driver.name}`
+    );
     setShowAssignDialog(false);
     setSelectedTripForAssignment(null);
   };
@@ -687,14 +814,15 @@ export default function Dispatch() {
   const handleReassignDriver = (driverId: string) => {
     if (!selectedTripForAssignment) return;
 
-    const driver = drivers.find((d) => d.id === driverId);
+    const driver = drivers.find(d => d.id === driverId);
     if (!driver) return;
 
     // Check if bulk reassign (multiple trips selected)
-    const tripsToReassign = selectedTrips.length > 1 ? selectedTrips : [selectedTripForAssignment];
+    const tripsToReassign =
+      selectedTrips.length > 1 ? selectedTrips : [selectedTripForAssignment];
 
-    setTrips((prevTrips) =>
-      prevTrips.map((trip) =>
+    setTrips(prevTrips =>
+      prevTrips.map(trip =>
         tripsToReassign.includes(trip.id)
           ? {
               ...trip,
@@ -725,10 +853,11 @@ export default function Dispatch() {
     }
 
     // Check if bulk edit (multiple trips selected)
-    const tripsToEdit = selectedTrips.length > 1 ? selectedTrips : [selectedTripForEdit.id];
+    const tripsToEdit =
+      selectedTrips.length > 1 ? selectedTrips : [selectedTripForEdit.id];
 
-    setTrips((prevTrips) =>
-      prevTrips.map((trip) =>
+    setTrips(prevTrips =>
+      prevTrips.map(trip =>
         tripsToEdit.includes(trip.id)
           ? {
               ...trip,
@@ -758,9 +887,12 @@ export default function Dispatch() {
     if (!selectedTripForAssignment) return;
 
     // Check if bulk cancel (multiple trips selected)
-    const tripsToCancel = selectedTrips.length > 1 ? selectedTrips : [selectedTripForAssignment];
+    const tripsToCancel =
+      selectedTrips.length > 1 ? selectedTrips : [selectedTripForAssignment];
 
-    setTrips((prevTrips) => prevTrips.filter((trip) => !tripsToCancel.includes(trip.id)));
+    setTrips(prevTrips =>
+      prevTrips.filter(trip => !tripsToCancel.includes(trip.id))
+    );
 
     toast.success(
       selectedTrips.length > 1
@@ -773,32 +905,40 @@ export default function Dispatch() {
   };
 
   // Handle update trip status
-  const handleUpdateTripStatus = (tripId: string, newStatus: "en-route" | "in-progress" | "completed") => {
+  const handleUpdateTripStatus = (
+    tripId: string,
+    newStatus: "en-route" | "in-progress" | "completed"
+  ) => {
     const statusNotes = {
       "en-route": "Driver started journey to pickup location",
       "in-progress": "Staff picked up, heading to destination",
-      "completed": "Trip completed successfully",
+      completed: "Trip completed successfully",
     };
 
     // Calculate estimated time based on typical stage durations
-    const getEstimatedTime = (currentTimeline: TripStatusEvent[], newStatus: string) => {
+    const getEstimatedTime = (
+      currentTimeline: TripStatusEvent[],
+      newStatus: string
+    ) => {
       const lastEvent = currentTimeline[currentTimeline.length - 1];
       if (!lastEvent) return new Date().toISOString();
-      
+
       // Typical durations between stages (in minutes)
       const stageDurations: Record<string, number> = {
-        "en-route": 10,  // 10 min from assigned to en-route
+        "en-route": 10, // 10 min from assigned to en-route
         "in-progress": 15, // 15 min from en-route to in-progress
-        "completed": 30,   // 30 min from in-progress to completed
+        completed: 30, // 30 min from in-progress to completed
       };
-      
+
       const duration = stageDurations[newStatus] || 10;
-      const estimatedTime = new Date(new Date(lastEvent.timestamp).getTime() + duration * 60000);
+      const estimatedTime = new Date(
+        new Date(lastEvent.timestamp).getTime() + duration * 60000
+      );
       return estimatedTime.toISOString();
     };
 
-    setTrips((prevTrips) =>
-      prevTrips.map((trip) =>
+    setTrips(prevTrips =>
+      prevTrips.map(trip =>
         trip.id === tripId
           ? {
               ...trip,
@@ -808,7 +948,10 @@ export default function Dispatch() {
                 {
                   status: newStatus,
                   timestamp: new Date().toISOString(),
-                  estimatedTime: getEstimatedTime(trip.statusTimeline || [], newStatus),
+                  estimatedTime: getEstimatedTime(
+                    trip.statusTimeline || [],
+                    newStatus
+                  ),
                   note: statusNotes[newStatus],
                 },
               ],
@@ -866,13 +1009,12 @@ export default function Dispatch() {
 
   const filteredTrips = trips.filter(filterTripsByDate);
 
-
-
   // Statistics
   const stats = {
-    activeTrips: filteredTrips.filter((t) => t.status === "active").length,
-    upcomingTrips: filteredTrips.filter((t) => t.status === "upcoming").length,
-    unassignedTrips: filteredTrips.filter((t) => t.status === "unassigned").length,
+    activeTrips: filteredTrips.filter(t => t.status === "active").length,
+    upcomingTrips: filteredTrips.filter(t => t.status === "upcoming").length,
+    unassignedTrips: filteredTrips.filter(t => t.status === "unassigned")
+      .length,
     totalStops: filteredTrips.reduce((sum, t) => sum + t.stops.length, 0),
   };
 
@@ -883,7 +1025,9 @@ export default function Dispatch() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Dispatch</h1>
-            <p className="text-muted-foreground">Create and manage trips for staff transportation</p>
+            <p className="text-muted-foreground">
+              Create and manage trips for staff transportation
+            </p>
           </div>
           <Button onClick={() => setShowCreateDialog(true)} size="lg">
             <Plus className="h-5 w-5 mr-2" />
@@ -942,14 +1086,14 @@ export default function Dispatch() {
                   <Input
                     type="date"
                     value={customStartDate}
-                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    onChange={e => setCustomStartDate(e.target.value)}
                     className="w-40"
                   />
                   <span className="text-muted-foreground">to</span>
                   <Input
                     type="date"
                     value={customEndDate}
-                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    onChange={e => setCustomEndDate(e.target.value)}
                     className="w-40"
                   />
                 </div>
@@ -979,12 +1123,16 @@ export default function Dispatch() {
             <CardContent className="py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="font-semibold">{selectedTrips.length} trip(s) selected</span>
+                  <span className="font-semibold">
+                    {selectedTrips.length} trip(s) selected
+                  </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      const allTripIds = trips.filter(t => t.status !== 'unassigned').map(t => t.id);
+                      const allTripIds = trips
+                        .filter(t => t.status !== "unassigned")
+                        .map(t => t.id);
                       setSelectedTrips(allTripIds);
                     }}
                   >
@@ -1004,7 +1152,9 @@ export default function Dispatch() {
                     size="sm"
                     onClick={() => {
                       // Bulk edit
-                      const firstTrip = trips.find((t) => t.id === selectedTrips[0]);
+                      const firstTrip = trips.find(
+                        t => t.id === selectedTrips[0]
+                      );
                       if (firstTrip) {
                         setSelectedTripForEdit(firstTrip);
                         setEditTripStops(firstTrip.stops);
@@ -1049,7 +1199,9 @@ export default function Dispatch() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Active Trips</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Active Trips
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.activeTrips}</div>
@@ -1057,7 +1209,9 @@ export default function Dispatch() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Upcoming Trips</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Upcoming Trips
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.upcomingTrips}</div>
@@ -1065,15 +1219,21 @@ export default function Dispatch() {
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Unassigned</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Unassigned
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-orange-500">{stats.unassignedTrips}</div>
+              <div className="text-2xl font-bold text-orange-500">
+                {stats.unassignedTrips}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Total Stops</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Total Stops
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalStops}</div>
@@ -1090,39 +1250,60 @@ export default function Dispatch() {
                 <CardTitle>Active & Upcoming Trips</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {filteredTrips.filter((t) => t.status !== "unassigned").length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">No active or upcoming trips</p>
+                {filteredTrips.filter(t => t.status !== "unassigned").length ===
+                0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No active or upcoming trips
+                  </p>
                 ) : (
                   filteredTrips
-                    .filter((t) => t.status !== "unassigned")
-                    .map((trip) => (
-                      <div key={trip.id} className="p-4 border rounded-lg space-y-2">
+                    .filter(t => t.status !== "unassigned")
+                    .map(trip => (
+                      <div
+                        key={trip.id}
+                        className="p-4 border rounded-lg space-y-2"
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <Checkbox
                               checked={selectedTrips.includes(trip.id)}
-                              onCheckedChange={(checked) => {
+                              onCheckedChange={checked => {
                                 if (checked) {
                                   setSelectedTrips([...selectedTrips, trip.id]);
                                 } else {
-                                  setSelectedTrips(selectedTrips.filter((id) => id !== trip.id));
+                                  setSelectedTrips(
+                                    selectedTrips.filter(id => id !== trip.id)
+                                  );
                                 }
                               }}
                             />
                             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-primary-foreground font-semibold">
-                              {trip.driverName?.split(" ").map((n) => n[0]).join("") || "?"}
+                              {trip.driverName
+                                ?.split(" ")
+                                .map(n => n[0])
+                                .join("") || "?"}
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
                                 <span className="font-semibold">{trip.id}</span>
-                                <Badge variant={trip.status === "active" ? "default" : "secondary"}>
+                                <Badge
+                                  variant={
+                                    trip.status === "active"
+                                      ? "default"
+                                      : "secondary"
+                                  }
+                                >
                                   {trip.status.toUpperCase()}
                                 </Badge>
                                 <Badge variant="outline">
-                                  {trip.direction === "outbound" ? "🏠→🏢 OUTBOUND" : "🏢→🏠 RETURN"}
+                                  {trip.direction === "outbound"
+                                    ? "🏠→🏢 OUTBOUND"
+                                    : "🏢→🏠 RETURN"}
                                 </Badge>
                               </div>
-                              <p className="text-sm text-muted-foreground">{trip.driverName}</p>
+                              <p className="text-sm text-muted-foreground">
+                                {trip.driverName}
+                              </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1176,16 +1357,19 @@ export default function Dispatch() {
                             {trip.stops.length} stops
                           </span>
                         </div>
-                        
+
                         {/* Trip Status Timeline */}
-                        {trip.statusTimeline && trip.statusTimeline.length > 0 && (
-                          <div className="mt-3 pt-3 border-t">
-                            <TripStatusTimeline 
-                              trip={trip} 
-                              onStatusUpdate={(status) => handleUpdateTripStatus(trip.id, status)}
-                            />
-                          </div>
-                        )}
+                        {trip.statusTimeline &&
+                          trip.statusTimeline.length > 0 && (
+                            <div className="mt-3 pt-3 border-t">
+                              <TripStatusTimeline
+                                trip={trip}
+                                onStatusUpdate={status =>
+                                  handleUpdateTripStatus(trip.id, status)
+                                }
+                              />
+                            </div>
+                          )}
                       </div>
                     ))
                 )}
@@ -1197,22 +1381,33 @@ export default function Dispatch() {
                 <CardTitle>Unassigned Trips</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {filteredTrips.filter((t) => t.status === "unassigned").length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">No unassigned trips</p>
+                {filteredTrips.filter(t => t.status === "unassigned").length ===
+                0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    No unassigned trips
+                  </p>
                 ) : (
                   filteredTrips
-                    .filter((t) => t.status === "unassigned")
-                    .map((trip) => (
-                      <div key={trip.id} className="p-4 border rounded-lg border-orange-200 bg-orange-50 space-y-2">
+                    .filter(t => t.status === "unassigned")
+                    .map(trip => (
+                      <div
+                        key={trip.id}
+                        className="p-4 border rounded-lg border-orange-200 bg-orange-50 space-y-2"
+                      >
                         <div className="flex items-center justify-between">
                           <div>
                             <div className="flex items-center gap-2">
                               <span className="font-semibold">{trip.id}</span>
-                              <Badge variant="outline" className="bg-orange-100">
+                              <Badge
+                                variant="outline"
+                                className="bg-orange-100"
+                              >
                                 UNASSIGNED
                               </Badge>
                               <Badge variant="outline">
-                                {trip.direction === "outbound" ? "🏠→🏢 OUTBOUND" : "🏢→🏠 RETURN"}
+                                {trip.direction === "outbound"
+                                  ? "🏠→🏢 OUTBOUND"
+                                  : "🏢→🏠 RETURN"}
                               </Badge>
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
@@ -1252,10 +1447,15 @@ export default function Dispatch() {
               </CardHeader>
               <CardContent className="space-y-3">
                 {getBookingsWithoutTrips().length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">All bookings have trips assigned</p>
+                  <p className="text-sm text-muted-foreground text-center py-8">
+                    All bookings have trips assigned
+                  </p>
                 ) : (
-                  getBookingsWithoutTrips().map((booking) => (
-                    <div key={booking.id} className="p-4 border rounded-lg space-y-2">
+                  getBookingsWithoutTrips().map(booking => (
+                    <div
+                      key={booking.id}
+                      className="p-4 border rounded-lg space-y-2"
+                    >
                       <div className="flex items-center justify-between">
                         <div>
                           <div className="flex items-center gap-2">
@@ -1265,21 +1465,25 @@ export default function Dispatch() {
                                 booking.priority === "high"
                                   ? "destructive"
                                   : booking.priority === "medium"
-                                  ? "default"
-                                  : "secondary"
+                                    ? "default"
+                                    : "secondary"
                               }
                             >
                               {booking.priority.toUpperCase()}
                             </Badge>
                           </div>
-                          <p className="text-sm font-medium mt-1">{booking.customer}</p>
+                          <p className="text-sm font-medium mt-1">
+                            {booking.customer}
+                          </p>
                           <p className="text-sm text-muted-foreground">
                             {booking.service} • {booking.location}
                           </p>
                           <p className="text-sm text-muted-foreground">
                             {booking.startTime} • {booking.duration}
                           </p>
-                          <p className="text-sm text-muted-foreground">Staff: {booking.staff.join(", ")}</p>
+                          <p className="text-sm text-muted-foreground">
+                            Staff: {booking.staff.join(", ")}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -1318,7 +1522,7 @@ export default function Dispatch() {
                   <Input
                     placeholder="Search by customer, booking ID, or service..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                     className="pl-10"
                   />
                 </div>
@@ -1329,28 +1533,40 @@ export default function Dispatch() {
                 <Label>Select Bookings & Trip Direction</Label>
                 <div className="space-y-3 max-h-[300px] overflow-y-auto border rounded-lg p-3">
                   {filteredBookings.length === 0 ? (
-                    <p className="text-sm text-muted-foreground text-center py-4">No bookings found</p>
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No bookings found
+                    </p>
                   ) : (
-                    filteredBookings.map((booking) => (
-                      <div key={booking.id} className="p-3 border rounded-lg space-y-3">
+                    filteredBookings.map(booking => (
+                      <div
+                        key={booking.id}
+                        className="p-3 border rounded-lg space-y-3"
+                      >
                         <div>
                           <div className="flex items-center gap-2">
                             <span className="font-semibold">{booking.id}</span>
-                            <span className="text-sm">- {booking.customer}</span>
+                            <span className="text-sm">
+                              - {booking.customer}
+                            </span>
                           </div>
                           <p className="text-sm text-muted-foreground">
                             {booking.service} • {booking.location}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            {booking.startTime} - {booking.endTime} • Staff: {booking.staff.join(", ")}
+                            {booking.startTime} - {booking.endTime} • Staff:{" "}
+                            {booking.staff.join(", ")}
                           </p>
                         </div>
                         <div className="flex gap-4">
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id={`${booking.id}-outbound`}
-                              checked={selectedBookings[booking.id]?.outbound || false}
-                              onCheckedChange={() => toggleBookingSelection(booking.id, "outbound")}
+                              checked={
+                                selectedBookings[booking.id]?.outbound || false
+                              }
+                              onCheckedChange={() =>
+                                toggleBookingSelection(booking.id, "outbound")
+                              }
                             />
                             <label
                               htmlFor={`${booking.id}-outbound`}
@@ -1362,8 +1578,12 @@ export default function Dispatch() {
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id={`${booking.id}-return`}
-                              checked={selectedBookings[booking.id]?.return || false}
-                              onCheckedChange={() => toggleBookingSelection(booking.id, "return")}
+                              checked={
+                                selectedBookings[booking.id]?.return || false
+                              }
+                              onCheckedChange={() =>
+                                toggleBookingSelection(booking.id, "return")
+                              }
                             />
                             <label
                               htmlFor={`${booking.id}-return`}
@@ -1382,24 +1602,31 @@ export default function Dispatch() {
               {/* Start Time */}
               <div className="space-y-2">
                 <Label htmlFor="startTime">
-                  Start Time <span className="text-muted-foreground text-xs">(Optional - Auto-recommended)</span>
+                  Start Time{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (Optional - Auto-recommended)
+                  </span>
                 </Label>
                 <Input
                   id="startTime"
                   type="time"
                   value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
+                  onChange={e => setStartTime(e.target.value)}
                   placeholder="Auto-calculated based on booking"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Leave empty to auto-calculate (30 minutes before booking start time)
+                  Leave empty to auto-calculate (30 minutes before booking start
+                  time)
                 </p>
               </div>
 
               {/* Trip Type */}
               <div className="space-y-2">
                 <Label htmlFor="tripType">
-                  Trip Type <span className="text-muted-foreground text-xs">(Optional)</span>
+                  Trip Type{" "}
+                  <span className="text-muted-foreground text-xs">
+                    (Optional)
+                  </span>
                 </Label>
                 <Select value={tripType} onValueChange={setTripType}>
                   <SelectTrigger>
@@ -1413,12 +1640,17 @@ export default function Dispatch() {
                     <SelectItem value="Special">Special</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground">For dispatcher reference only</p>
+                <p className="text-xs text-muted-foreground">
+                  For dispatcher reference only
+                </p>
               </div>
 
               {/* Actions */}
               <div className="flex justify-end gap-3">
-                <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCreateDialog(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleCreateTrips}>Create Trip(s)</Button>
@@ -1431,10 +1663,12 @@ export default function Dispatch() {
         <Dialog open={showAssignDialog} onOpenChange={setShowAssignDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Assign Driver to Trip {selectedTripForAssignment}</DialogTitle>
+              <DialogTitle>
+                Assign Driver to Trip {selectedTripForAssignment}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              {drivers.map((driver) => (
+              {drivers.map(driver => (
                 <div
                   key={driver.id}
                   onClick={() => handleAssignDriver(driver.id)}
@@ -1452,8 +1686,8 @@ export default function Dispatch() {
                             driver.status === "available"
                               ? "default"
                               : driver.status === "busy"
-                              ? "destructive"
-                              : "secondary"
+                                ? "destructive"
+                                : "secondary"
                           }
                         >
                           {driver.status.toUpperCase()}
@@ -1463,7 +1697,8 @@ export default function Dispatch() {
                         {driver.vehicle} • {driver.seats} Seats
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Current: {driver.currentTrips}, Completed: {driver.completedTrips}
+                        Current: {driver.currentTrips}, Completed:{" "}
+                        {driver.completedTrips}
                       </p>
                     </div>
                   </div>
@@ -1477,10 +1712,12 @@ export default function Dispatch() {
         <Dialog open={showReassignDialog} onOpenChange={setShowReassignDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Reassign Driver for Trip {selectedTripForAssignment}</DialogTitle>
+              <DialogTitle>
+                Reassign Driver for Trip {selectedTripForAssignment}
+              </DialogTitle>
             </DialogHeader>
             <div className="space-y-3">
-              {drivers.map((driver) => (
+              {drivers.map(driver => (
                 <div
                   key={driver.id}
                   onClick={() => handleReassignDriver(driver.id)}
@@ -1498,8 +1735,8 @@ export default function Dispatch() {
                             driver.status === "available"
                               ? "default"
                               : driver.status === "busy"
-                              ? "destructive"
-                              : "secondary"
+                                ? "destructive"
+                                : "secondary"
                           }
                         >
                           {driver.status.toUpperCase()}
@@ -1509,7 +1746,8 @@ export default function Dispatch() {
                         {driver.vehicle} • {driver.seats} Seats
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Current: {driver.currentTrips}, Completed: {driver.completedTrips}
+                        Current: {driver.currentTrips}, Completed:{" "}
+                        {driver.completedTrips}
                       </p>
                     </div>
                   </div>
@@ -1531,7 +1769,7 @@ export default function Dispatch() {
                 <Input
                   type="time"
                   value={editStartTime}
-                  onChange={(e) => setEditStartTime(e.target.value)}
+                  onChange={e => setEditStartTime(e.target.value)}
                 />
               </div>
 
@@ -1554,14 +1792,19 @@ export default function Dispatch() {
                 <Label>Trip Stops</Label>
                 <div className="space-y-2 mt-2">
                   {editTripStops.map((stop, index) => (
-                    <div key={index} className="p-3 border rounded-lg space-y-2">
+                    <div
+                      key={index}
+                      className="p-3 border rounded-lg space-y-2"
+                    >
                       <div className="flex items-center justify-between">
                         <span className="font-semibold">Stop #{index + 1}</span>
                         <Button
                           size="sm"
                           variant="ghost"
                           onClick={() => {
-                            setEditTripStops(editTripStops.filter((_, i) => i !== index));
+                            setEditTripStops(
+                              editTripStops.filter((_, i) => i !== index)
+                            );
                           }}
                         >
                           <X className="h-4 w-4" />
@@ -1571,9 +1814,12 @@ export default function Dispatch() {
                         <Label>Location</Label>
                         <Input
                           value={stop.location}
-                          onChange={(e) => {
+                          onChange={e => {
                             const newStops = [...editTripStops];
-                            newStops[index] = { ...stop, location: e.target.value };
+                            newStops[index] = {
+                              ...stop,
+                              location: e.target.value,
+                            };
                             setEditTripStops(newStops);
                           }}
                         />
@@ -1582,11 +1828,13 @@ export default function Dispatch() {
                         <Label>Staff Names (comma-separated)</Label>
                         <Input
                           value={stop.staff.join(", ")}
-                          onChange={(e) => {
+                          onChange={e => {
                             const newStops = [...editTripStops];
                             newStops[index] = {
                               ...stop,
-                              staff: e.target.value.split(",").map((s) => s.trim()),
+                              staff: e.target.value
+                                .split(",")
+                                .map(s => s.trim()),
                             };
                             setEditTripStops(newStops);
                           }}
@@ -1610,7 +1858,10 @@ export default function Dispatch() {
               </div>
 
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowEditDialog(false)}
+                >
                   Cancel
                 </Button>
                 <Button onClick={handleEditTrip}>Save Changes</Button>
@@ -1627,10 +1878,14 @@ export default function Dispatch() {
             </DialogHeader>
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Are you sure you want to cancel this trip? This action cannot be undone.
+                Are you sure you want to cancel this trip? This action cannot be
+                undone.
               </p>
               <div className="flex gap-2 justify-end">
-                <Button variant="outline" onClick={() => setShowCancelDialog(false)}>
+                <Button
+                  variant="outline"
+                  onClick={() => setShowCancelDialog(false)}
+                >
                   Keep Trip
                 </Button>
                 <Button variant="destructive" onClick={handleCancelTrip}>

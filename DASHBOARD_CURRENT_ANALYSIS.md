@@ -10,24 +10,28 @@
 ### **1. Top Metrics Row (4 KPI Cards)**
 
 #### **Card 1: Total Revenue**
+
 - **Value:** QAR 125,430
 - **Trend:** +12.5% (green, positive)
 - **Icon:** Dollar sign ($)
 - **Sparkline:** Small line chart showing upward trend
 
 #### **Card 2: Total Bookings**
+
 - **Value:** 1,234
 - **Trend:** +8.2% (green, positive)
 - **Icon:** Calendar
 - **Sparkline:** Small line chart showing upward trend
 
 #### **Card 3: Active Staff**
+
 - **Value:** 48
 - **Trend:** +2 (green, positive)
 - **Icon:** People/Users
 - **Sparkline:** Small line chart showing upward trend
 
 #### **Card 4: Service Utilization**
+
 - **Value:** 87%
 - **Trend:** +5.3% (green, positive)
 - **Icon:** Trending up arrow
@@ -40,6 +44,7 @@
 **Location:** Below KPI cards, full width
 
 **Features:**
+
 - **Filter Tabs:** All (3), Active (2), Pending (1)
 - **Map View:** Google Maps integration showing Qatar (Doha area)
 - **Route Visualization:**
@@ -51,6 +56,7 @@
 - **Map Controls:** Zoom, fullscreen, satellite view toggle
 
 **Visible Locations on Map:**
+
 - Pickup: Villa 123, Al Sadd
 - Pickup: Building 7, West Bay
 - Drop: Apartment 45, Al Sadd
@@ -66,6 +72,7 @@
 **Location:** Right side column (scrolled out of view, but extracted from markdown)
 
 **Recent Activities:**
+
 1. "New booking #1245 created by Ahmed Al-Mansoori" - 2 minutes ago
 2. "Payment received for booking #1243 - QAR 450" - 15 minutes ago
 3. "Mohammed Hassan marked as available" - 28 minutes ago
@@ -79,6 +86,7 @@
 **Location:** Below activity feed (extracted from markdown)
 
 **Alert Categories:**
+
 1. **High Priority:** 3 Pending Payments (count: 3)
 2. **High Priority:** 2 Staff Documents Expiring (count: 2)
 3. **Medium Priority:** 5 Bookings Awaiting Assignment (count: 5)
@@ -91,6 +99,7 @@
 **Location:** Lower section (extracted from markdown)
 
 **Status Distribution:**
+
 - **Confirmed:** 456 bookings (37.0%)
 - **Pending:** 234 bookings (19.0%)
 - **Completed:** 512 bookings (41.5%)
@@ -105,6 +114,7 @@
 **Location:** Right side, lower section (extracted from markdown)
 
 **Top 5 Staff:**
+
 1. **Mohammed Hassan (MH)** - 4.9 rating • 156 jobs
 2. **Ahmed Al-Mansoori (AA)** - 4.8 rating • 142 jobs
 3. **Ali Ahmed (AL)** - 4.7 rating • 138 jobs
@@ -116,15 +126,17 @@
 ## 🎨 **Design Observations**
 
 ### **Strengths:**
+
 ✅ Clean, modern card-based layout  
 ✅ Good use of color for trends (green = positive)  
 ✅ Sparklines provide quick visual context  
 ✅ Map integration for geographic awareness  
 ✅ Real-time activity feed for immediate updates  
 ✅ Priority-based alerts with color coding  
-✅ Performance leaderboard motivates staff  
+✅ Performance leaderboard motivates staff
 
 ### **Weaknesses:**
+
 ❌ No date range selector (Today? This week? This month?)  
 ❌ No comparison period (vs last month, vs last year)  
 ❌ Limited actionability (can't click through to details)  
@@ -133,7 +145,7 @@
 ❌ No capacity planning indicators  
 ❌ Missing financial metrics (profit, costs, pending payments total)  
 ❌ No workforce availability overview  
-❌ No service-specific performance  
+❌ No service-specific performance
 
 ---
 
@@ -167,6 +179,7 @@
 ## 🔍 **Data Sources (Assumed)**
 
 Based on the displayed data, the dashboard likely pulls from:
+
 - **Bookings database** - Total count, status, revenue
 - **Staff database** - Active count, availability, performance ratings
 - **Routes/Dispatch system** - Active trips, pickup/drop locations
@@ -179,19 +192,23 @@ Based on the displayed data, the dashboard likely pulls from:
 ## 💡 **Key Insights About Current Dashboard**
 
 ### **Purpose:**
+
 The dashboard serves as a **real-time operations command center** for:
+
 - Monitoring business health (revenue, bookings, staff)
 - Tracking active field operations (routes, trips)
 - Responding to urgent alerts (payments, documents)
 - Recognizing top performers (leaderboard)
 
 ### **Target Users:**
+
 - **Operations Managers** - Monitor active routes and staff
 - **Business Owners** - Track revenue and growth trends
 - **Dispatchers** - Assign bookings and manage routes
 - **HR/Admin** - Track staff documents and availability
 
 ### **Missing Critical Elements:**
+
 1. **Time period controls** - Can't filter by date range
 2. **Drill-down capability** - Can't click metrics to see details
 3. **Forecasting** - No predictive analytics
@@ -206,11 +223,13 @@ The dashboard serves as a **real-time operations command center** for:
 ## 🎯 **Dashboard Type Classification**
 
 **Current Type:** **Operational Dashboard**
+
 - Focus: Real-time monitoring and immediate action
 - Refresh: High frequency (real-time activity feed)
 - Audience: Operations team, dispatchers
 
 **Missing Types:**
+
 - **Strategic Dashboard** - Long-term trends, growth metrics
 - **Analytical Dashboard** - Deep-dive analysis, comparisons
 - **Tactical Dashboard** - Medium-term planning, resource allocation
@@ -220,6 +239,7 @@ The dashboard serves as a **real-time operations command center** for:
 ## 📝 **Technical Implementation Notes**
 
 Based on visual inspection:
+
 - **Framework:** React (based on project structure)
 - **Styling:** Tailwind CSS (consistent with project)
 - **Charts:** Likely using a charting library (sparklines visible)

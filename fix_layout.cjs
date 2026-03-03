@@ -1,7 +1,7 @@
-const fs = require('fs');
+const fs = require("fs");
 
-const file = 'client/src/pages/StaffPendingInviteDetails.tsx';
-let content = fs.readFileSync(file, 'utf8');
+const file = "client/src/pages/StaffPendingInviteDetails.tsx";
+let content = fs.readFileSync(file, "utf8");
 
 // The replacement script created <Card> opening tags, but the closing tags are still </div>
 // Let's replace the corresponding closing </div> with </Card>

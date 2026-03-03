@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -59,7 +63,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { format, addDays, startOfWeek, endOfWeek, eachDayOfInterval, parse, isSameDay } from "date-fns";
+import {
+  format,
+  addDays,
+  startOfWeek,
+  endOfWeek,
+  eachDayOfInterval,
+  parse,
+  isSameDay,
+} from "date-fns";
 import type { DateRange } from "react-day-picker";
 import { toast } from "sonner";
 
@@ -89,7 +101,11 @@ const mockBookings = [
     history: [
       { date: "2025-11-21 09:00", action: "Booking created", user: "System" },
       { date: "2025-11-21 09:15", action: "Staff assigned", user: "Admin" },
-      { date: "2025-11-21 11:00", action: "Service completed", user: "NISAR KORAMMAN" },
+      {
+        date: "2025-11-21 11:00",
+        action: "Service completed",
+        user: "NISAR KORAMMAN",
+      },
       { date: "2025-11-21 11:05", action: "Payment received", user: "System" },
     ],
   },
@@ -537,38 +553,52 @@ const generateTimeSlots = () => {
 const timeSlots = generateTimeSlots();
 
 export default function Bookings() {
-  const [viewMode, setViewMode] = useState<"list" | "cards" | "calendar" | "kanban">("list");
+  const [viewMode, setViewMode] = useState<
+    "list" | "cards" | "calendar" | "kanban"
+  >("list");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedTime, setSelectedTime] = useState("All Times");
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [selectedPayment, setSelectedPayment] = useState("All Payments");
-  const [selectedPaymentMode, setSelectedPaymentMode] = useState("All Payment Modes");
-  const [selectedAssignment, setSelectedAssignment] = useState("All Assignments");
+  const [selectedPaymentMode, setSelectedPaymentMode] =
+    useState("All Payment Modes");
+  const [selectedAssignment, setSelectedAssignment] =
+    useState("All Assignments");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [selectedBookings, setSelectedBookings] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
-  const [currentWeekStart, setCurrentWeekStart] = useState(startOfWeek(new Date(), { weekStartsOn: 0 }));
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(
+    null
+  );
+  const [currentWeekStart, setCurrentWeekStart] = useState(
+    startOfWeek(new Date(), { weekStartsOn: 0 })
+  );
 
   // Get unique categories
-  const categories = ["All Categories", ...Array.from(new Set(mockBookings.map((b) => b.serviceCategory)))];
+  const categories = [
+    "All Categories",
+    ...Array.from(new Set(mockBookings.map(b => b.serviceCategory))),
+  ];
 
   // Status counts
   const statusCounts = {
     total: mockBookings.length,
-    pending: mockBookings.filter((b) => b.status === "pending").length,
-    confirmed: mockBookings.filter((b) => b.status === "confirmed").length,
-    completed: mockBookings.filter((b) => b.status === "completed").length,
-    inProgress: mockBookings.filter((b) => b.status === "in-progress").length,
-    cancelled: mockBookings.filter((b) => b.status === "cancelled").length,
+    pending: mockBookings.filter(b => b.status === "pending").length,
+    confirmed: mockBookings.filter(b => b.status === "confirmed").length,
+    completed: mockBookings.filter(b => b.status === "completed").length,
+    inProgress: mockBookings.filter(b => b.status === "in-progress").length,
+    cancelled: mockBookings.filter(b => b.status === "cancelled").length,
   };
 
   // Filter bookings
-  const filteredBookings = mockBookings.filter((booking) => {
+  const filteredBookings = mockBookings.filter(booking => {
     // Search filter
-    if (searchQuery && !JSON.stringify(booking).toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (
+      searchQuery &&
+      !JSON.stringify(booking).toLowerCase().includes(searchQuery.toLowerCase())
+    ) {
       return false;
     }
 
@@ -583,33 +613,49 @@ export default function Bookings() {
     }
 
     // Category filter
-    if (selectedCategory !== "All Categories" && booking.serviceCategory !== selectedCategory) {
+    if (
+      selectedCategory !== "All Categories" &&
+      booking.serviceCategory !== selectedCategory
+    ) {
       return false;
     }
 
     // Payment status filter
     if (selectedPayment !== "All Payments") {
-      if (selectedPayment === "Paid" && booking.paymentStatus !== "paid") return false;
-      if (selectedPayment === "Unpaid" && booking.paymentStatus !== "unpaid") return false;
+      if (selectedPayment === "Paid" && booking.paymentStatus !== "paid")
+        return false;
+      if (selectedPayment === "Unpaid" && booking.paymentStatus !== "unpaid")
+        return false;
     }
 
     // Payment mode filter
     if (selectedPaymentMode !== "All Payment Modes") {
-      if (selectedPaymentMode === "Bank" && booking.paymentMode !== "bank") return false;
-      if (selectedPaymentMode === "Cash" && booking.paymentMode !== "cash") return false;
+      if (selectedPaymentMode === "Bank" && booking.paymentMode !== "bank")
+        return false;
+      if (selectedPaymentMode === "Cash" && booking.paymentMode !== "cash")
+        return false;
     }
 
     // Assignment filter
     if (selectedAssignment !== "All Assignments") {
-      if (selectedAssignment === "Assigned" && booking.assignmentStatus !== "assigned") return false;
-      if (selectedAssignment === "Unassigned" && booking.assignmentStatus !== "unassigned") return false;
+      if (
+        selectedAssignment === "Assigned" &&
+        booking.assignmentStatus !== "assigned"
+      )
+        return false;
+      if (
+        selectedAssignment === "Unassigned" &&
+        booking.assignmentStatus !== "unassigned"
+      )
+        return false;
     }
 
     // Date range filter
     if (dateRange?.from) {
       const bookingDate = new Date(booking.date);
       if (dateRange.to) {
-        if (bookingDate < dateRange.from || bookingDate > dateRange.to) return false;
+        if (bookingDate < dateRange.from || bookingDate > dateRange.to)
+          return false;
       } else {
         if (!isSameDay(bookingDate, dateRange.from)) return false;
       }
@@ -620,7 +666,10 @@ export default function Bookings() {
 
   // Pagination
   const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
-  const paginatedBookings = filteredBookings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const paginatedBookings = filteredBookings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
 
   // Check if any filters are active
   const hasActiveFilters =
@@ -647,13 +696,13 @@ export default function Bookings() {
     if (selectedBookings.length === paginatedBookings.length) {
       setSelectedBookings([]);
     } else {
-      setSelectedBookings(paginatedBookings.map((b) => b.id));
+      setSelectedBookings(paginatedBookings.map(b => b.id));
     }
   };
 
   const handleSelectBooking = (id: string) => {
     if (selectedBookings.includes(id)) {
-      setSelectedBookings(selectedBookings.filter((bid) => bid !== id));
+      setSelectedBookings(selectedBookings.filter(bid => bid !== id));
     } else {
       setSelectedBookings([...selectedBookings, id]);
     }
@@ -665,7 +714,9 @@ export default function Bookings() {
   };
 
   const handleExport = (format: string) => {
-    toast.success(`Exporting ${filteredBookings.length} bookings as ${format.toUpperCase()}`);
+    toast.success(
+      `Exporting ${filteredBookings.length} bookings as ${format.toUpperCase()}`
+    );
   };
 
   const getStatusIcon = (status: string) => {
@@ -726,7 +777,9 @@ export default function Bookings() {
   });
 
   const getBookingsForDay = (day: Date) => {
-    return filteredBookings.filter((booking) => isSameDay(new Date(booking.date), day));
+    return filteredBookings.filter(booking =>
+      isSameDay(new Date(booking.date), day)
+    );
   };
 
   const handlePreviousWeek = () => {
@@ -742,11 +795,16 @@ export default function Bookings() {
   };
 
   // Booking detail view
-  const selectedBooking = selectedBookingId ? mockBookings.find((b) => b.id === selectedBookingId) : null;
+  const selectedBooking = selectedBookingId
+    ? mockBookings.find(b => b.id === selectedBookingId)
+    : null;
 
   if (selectedBooking) {
     return (
-      <BookingDetail booking={selectedBooking} onBack={() => setSelectedBookingId(null)} />
+      <BookingDetail
+        booking={selectedBooking}
+        onBack={() => setSelectedBookingId(null)}
+      />
     );
   }
 
@@ -757,7 +815,9 @@ export default function Bookings() {
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">Booking Management</h1>
-            <p className="text-sm text-muted-foreground mt-1">Manage and track all your service bookings</p>
+            <p className="text-sm text-muted-foreground mt-1">
+              Manage and track all your service bookings
+            </p>
           </div>
           <Button>
             <CalendarIcon className="h-4 w-4 mr-2" />+ New Booking
@@ -775,8 +835,18 @@ export default function Bookings() {
             <CardContent className="p-4 h-full">
               <div className="flex items-center justify-between h-full">
                 <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-muted-foreground" style={{width: '37px', height: '20px'}}>Total</p>
-                  <p className="text-[25px] font-bold leading-none mt-1" style={{fontSize: '20px'}}>{statusCounts.total}</p>
+                  <p
+                    className="text-base font-medium text-muted-foreground"
+                    style={{ width: "37px", height: "20px" }}
+                  >
+                    Total
+                  </p>
+                  <p
+                    className="text-[25px] font-bold leading-none mt-1"
+                    style={{ fontSize: "20px" }}
+                  >
+                    {statusCounts.total}
+                  </p>
                 </div>
                 <FileText className="h-5 w-5 text-blue-600" />
               </div>
@@ -792,8 +862,15 @@ export default function Bookings() {
             <CardContent className="p-4 h-full">
               <div className="flex items-center justify-between h-full">
                 <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-muted-foreground">Pending</p>
-                  <p className="text-[25px] font-bold leading-none mt-1" style={{fontSize: '20px'}}>{statusCounts.pending}</p>
+                  <p className="text-base font-medium text-muted-foreground">
+                    Pending
+                  </p>
+                  <p
+                    className="text-[25px] font-bold leading-none mt-1"
+                    style={{ fontSize: "20px" }}
+                  >
+                    {statusCounts.pending}
+                  </p>
                 </div>
                 <Clock className="h-5 w-5 text-yellow-600" />
               </div>
@@ -809,8 +886,15 @@ export default function Bookings() {
             <CardContent className="p-4 h-full">
               <div className="flex items-center justify-between h-full">
                 <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-muted-foreground">Confirmed</p>
-                  <p className="text-[25px] font-bold leading-none mt-1" style={{fontSize: '20px'}}>{statusCounts.confirmed}</p>
+                  <p className="text-base font-medium text-muted-foreground">
+                    Confirmed
+                  </p>
+                  <p
+                    className="text-[25px] font-bold leading-none mt-1"
+                    style={{ fontSize: "20px" }}
+                  >
+                    {statusCounts.confirmed}
+                  </p>
                 </div>
                 <CheckCircle className="h-5 w-5 text-blue-600" />
               </div>
@@ -826,8 +910,15 @@ export default function Bookings() {
             <CardContent className="p-4 h-full">
               <div className="flex items-center justify-between h-full">
                 <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-muted-foreground">Completed</p>
-                  <p className="text-[25px] font-bold leading-none mt-1" style={{fontSize: '20px'}}>{statusCounts.completed}</p>
+                  <p className="text-base font-medium text-muted-foreground">
+                    Completed
+                  </p>
+                  <p
+                    className="text-[25px] font-bold leading-none mt-1"
+                    style={{ fontSize: "20px" }}
+                  >
+                    {statusCounts.completed}
+                  </p>
                 </div>
                 <CheckCircle className="h-5 w-5 text-green-600" />
               </div>
@@ -843,8 +934,15 @@ export default function Bookings() {
             <CardContent className="p-4 h-full">
               <div className="flex items-center justify-between h-full">
                 <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-muted-foreground">In Progress</p>
-                  <p className="text-[25px] font-bold leading-none mt-1" style={{fontSize: '20px'}}>{statusCounts.inProgress}</p>
+                  <p className="text-base font-medium text-muted-foreground">
+                    In Progress
+                  </p>
+                  <p
+                    className="text-[25px] font-bold leading-none mt-1"
+                    style={{ fontSize: "20px" }}
+                  >
+                    {statusCounts.inProgress}
+                  </p>
                 </div>
                 <Loader2 className="h-5 w-5 text-gray-600" />
               </div>
@@ -860,8 +958,15 @@ export default function Bookings() {
             <CardContent className="p-4 h-full">
               <div className="flex items-center justify-between h-full">
                 <div className="flex flex-col justify-center">
-                  <p className="text-base font-medium text-muted-foreground">Cancelled</p>
-                  <p className="text-[25px] font-bold leading-none mt-1" style={{fontSize: '20px'}}>{statusCounts.cancelled}</p>
+                  <p className="text-base font-medium text-muted-foreground">
+                    Cancelled
+                  </p>
+                  <p
+                    className="text-[25px] font-bold leading-none mt-1"
+                    style={{ fontSize: "20px" }}
+                  >
+                    {statusCounts.cancelled}
+                  </p>
                 </div>
                 <XCircle className="h-5 w-5 text-red-600" />
               </div>
@@ -876,7 +981,7 @@ export default function Bookings() {
             <Input
               placeholder="Search bookings"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="pl-9"
             />
           </div>
@@ -888,7 +993,8 @@ export default function Bookings() {
                 {dateRange?.from ? (
                   dateRange.to ? (
                     <>
-                      {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd")}
+                      {format(dateRange.from, "MMM dd")} -{" "}
+                      {format(dateRange.to, "MMM dd")}
                     </>
                   ) : (
                     format(dateRange.from, "MMM dd, yyyy")
@@ -899,7 +1005,12 @@ export default function Bookings() {
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
-              <Calendar mode="range" selected={dateRange} onSelect={setDateRange} numberOfMonths={2} />
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+              />
             </PopoverContent>
           </Popover>
 
@@ -908,7 +1019,7 @@ export default function Bookings() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {timeSlots.map((slot) => (
+              {timeSlots.map(slot => (
                 <SelectItem key={slot} value={slot}>
                   {slot}
                 </SelectItem>
@@ -921,7 +1032,7 @@ export default function Bookings() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {categories.map((cat) => (
+              {categories.map(cat => (
                 <SelectItem key={cat} value={cat}>
                   {cat}
                 </SelectItem>
@@ -940,18 +1051,26 @@ export default function Bookings() {
             </SelectContent>
           </Select>
 
-          <Select value={selectedPaymentMode} onValueChange={setSelectedPaymentMode}>
+          <Select
+            value={selectedPaymentMode}
+            onValueChange={setSelectedPaymentMode}
+          >
             <SelectTrigger className="w-[160px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="All Payment Modes">All Payment Modes</SelectItem>
+              <SelectItem value="All Payment Modes">
+                All Payment Modes
+              </SelectItem>
               <SelectItem value="Bank">Bank</SelectItem>
               <SelectItem value="Cash">Cash</SelectItem>
             </SelectContent>
           </Select>
 
-          <Select value={selectedAssignment} onValueChange={setSelectedAssignment}>
+          <Select
+            value={selectedAssignment}
+            onValueChange={setSelectedAssignment}
+          >
             <SelectTrigger className="w-[160px]">
               <SelectValue />
             </SelectTrigger>
@@ -978,20 +1097,29 @@ export default function Bookings() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleBulkAction("Assign Staff")}>
+                <DropdownMenuItem
+                  onClick={() => handleBulkAction("Assign Staff")}
+                >
                   <Users className="h-4 w-4 mr-2" />
                   Assign Staff
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleBulkAction("Change Status")}>
+                <DropdownMenuItem
+                  onClick={() => handleBulkAction("Change Status")}
+                >
                   <Edit className="h-4 w-4 mr-2" />
                   Change Status
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleBulkAction("Send Notification")}>
+                <DropdownMenuItem
+                  onClick={() => handleBulkAction("Send Notification")}
+                >
                   <Bell className="h-4 w-4 mr-2" />
                   Send Notification
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleBulkAction("Delete")} className="text-red-600">
+                <DropdownMenuItem
+                  onClick={() => handleBulkAction("Delete")}
+                  className="text-red-600"
+                >
                   <Trash2 className="h-4 w-4 mr-2" />
                   Delete
                 </DropdownMenuItem>
@@ -1007,8 +1135,12 @@ export default function Bookings() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExport("csv")}>Export as CSV</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExport("excel")}>Export as Excel</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("csv")}>
+                Export as CSV
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExport("excel")}>
+                Export as Excel
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
 
@@ -1053,7 +1185,12 @@ export default function Bookings() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">
-                        <Checkbox checked={selectedBookings.length === paginatedBookings.length} onCheckedChange={handleSelectAll} />
+                        <Checkbox
+                          checked={
+                            selectedBookings.length === paginatedBookings.length
+                          }
+                          onCheckedChange={handleSelectAll}
+                        />
                       </TableHead>
                       <TableHead>BOOKING</TableHead>
                       <TableHead>CUSTOMER</TableHead>
@@ -1064,58 +1201,88 @@ export default function Bookings() {
                       <TableHead>PAYMENT</TableHead>
                       <TableHead>MODE</TableHead>
                       <TableHead>ASSIGNMENT</TableHead>
-                      <TableHead className="text-right" style={{paddingRight: '26px'}}>PRICE</TableHead>
+                      <TableHead
+                        className="text-right"
+                        style={{ paddingRight: "26px" }}
+                      >
+                        PRICE
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {paginatedBookings.map((booking) => (
+                    {paginatedBookings.map(booking => (
                       <TableRow
                         key={booking.id}
                         className="cursor-pointer hover:bg-muted/50"
                         onClick={() => setSelectedBookingId(booking.id)}
                       >
-                        <TableCell onClick={(e) => e.stopPropagation()}>
+                        <TableCell onClick={e => e.stopPropagation()}>
                           <Checkbox
                             checked={selectedBookings.includes(booking.id)}
-                            onCheckedChange={() => handleSelectBooking(booking.id)}
+                            onCheckedChange={() =>
+                              handleSelectBooking(booking.id)
+                            }
                           />
                         </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-semibold">{booking.id}</p>
-                            <p className="text-xs text-muted-foreground">{booking.type}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {booking.type}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{booking.customer}</p>
-                            <p className="text-xs text-muted-foreground">{booking.customerDetails}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {booking.customerDetails}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
                             <p className="font-medium">{booking.service}</p>
-                            <p className="text-xs text-muted-foreground">{booking.duration}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {booking.duration}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium">{format(new Date(booking.date), "EEE, dd-MMM-yyyy")}</p>
-                            <p className="text-xs text-muted-foreground">{booking.time}</p>
+                            <p className="font-medium">
+                              {format(
+                                new Date(booking.date),
+                                "EEE, dd-MMM-yyyy"
+                              )}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {booking.time}
+                            </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="text-sm">
                             {booking.staff.map((s, i) => (
-                              <p key={i} className={i > 0 ? "text-muted-foreground" : "font-medium"}>
+                              <p
+                                key={i}
+                                className={
+                                  i > 0
+                                    ? "text-muted-foreground"
+                                    : "font-medium"
+                                }
+                              >
                                 {s}
                               </p>
                             ))}
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getStatusBadgeColor(booking.status)}>
-                            {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace("-", " ")}
+                          <Badge
+                            className={getStatusBadgeColor(booking.status)}
+                          >
+                            {booking.status.charAt(0).toUpperCase() +
+                              booking.status.slice(1).replace("-", " ")}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -1126,12 +1293,14 @@ export default function Bookings() {
                                 : "bg-orange-100 text-orange-700 border-orange-300"
                             }
                           >
-                            {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
+                            {booking.paymentStatus.charAt(0).toUpperCase() +
+                              booking.paymentStatus.slice(1)}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <Badge className="bg-purple-100 text-purple-700 border-purple-300">
-                            {booking.paymentMode.charAt(0).toUpperCase() + booking.paymentMode.slice(1)}
+                            {booking.paymentMode.charAt(0).toUpperCase() +
+                              booking.paymentMode.slice(1)}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -1142,10 +1311,13 @@ export default function Bookings() {
                                 : "bg-gray-100 text-gray-700 border-gray-300"
                             }
                           >
-                            {booking.assignmentStatus.charAt(0).toUpperCase() + booking.assignmentStatus.slice(1)}
+                            {booking.assignmentStatus.charAt(0).toUpperCase() +
+                              booking.assignmentStatus.slice(1)}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-right font-semibold">QAR {booking.price.toFixed(2)}</TableCell>
+                        <TableCell className="text-right font-semibold">
+                          QAR {booking.price.toFixed(2)}
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -1156,11 +1328,15 @@ export default function Bookings() {
             {/* Pagination */}
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredBookings.length)} of{" "}
-                {filteredBookings.length} results
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                {Math.min(currentPage * itemsPerPage, filteredBookings.length)}{" "}
+                of {filteredBookings.length} results
               </p>
               <div className="flex items-center gap-2">
-                <Select value={itemsPerPage.toString()} onValueChange={(v) => setItemsPerPage(Number(v))}>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={v => setItemsPerPage(Number(v))}
+                >
                   <SelectTrigger className="w-[120px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -1170,7 +1346,12 @@ export default function Bookings() {
                     <SelectItem value="50">50 per page</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" size="sm">
@@ -1193,7 +1374,7 @@ export default function Bookings() {
         {viewMode === "cards" && (
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {paginatedBookings.map((booking) => (
+              {paginatedBookings.map(booking => (
                 <Card
                   key={booking.id}
                   className="cursor-pointer hover:shadow-lg transition-shadow"
@@ -1203,10 +1384,13 @@ export default function Bookings() {
                     <div className="flex items-start justify-between">
                       <div>
                         <p className="font-bold text-lg">{booking.customer}</p>
-                        <p className="text-sm text-muted-foreground">{booking.id}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {booking.id}
+                        </p>
                       </div>
                       <Badge className={getStatusBadgeColor(booking.status)}>
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1).replace("-", " ")}
+                        {booking.status.charAt(0).toUpperCase() +
+                          booking.status.slice(1).replace("-", " ")}
                       </Badge>
                     </div>
 
@@ -1217,7 +1401,9 @@ export default function Bookings() {
                       </div>
                       <div className="flex items-center gap-2">
                         <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                        <span>{format(new Date(booking.date), "EEE, dd-MMM-yyyy")}</span>
+                        <span>
+                          {format(new Date(booking.date), "EEE, dd-MMM-yyyy")}
+                        </span>
                       </div>
                       <div className="flex items-center gap-2">
                         <Clock className="h-4 w-4 text-muted-foreground" />
@@ -1238,13 +1424,17 @@ export default function Bookings() {
                               : "bg-orange-100 text-orange-700"
                           }
                         >
-                          {booking.paymentStatus.charAt(0).toUpperCase() + booking.paymentStatus.slice(1)}
+                          {booking.paymentStatus.charAt(0).toUpperCase() +
+                            booking.paymentStatus.slice(1)}
                         </Badge>
                         <Badge className="bg-purple-100 text-purple-700">
-                          {booking.paymentMode.charAt(0).toUpperCase() + booking.paymentMode.slice(1)}
+                          {booking.paymentMode.charAt(0).toUpperCase() +
+                            booking.paymentMode.slice(1)}
                         </Badge>
                       </div>
-                      <p className="text-lg font-bold">QAR {booking.price.toFixed(2)}</p>
+                      <p className="text-lg font-bold">
+                        QAR {booking.price.toFixed(2)}
+                      </p>
                     </div>
 
                     {booking.hasInstructions && (
@@ -1261,11 +1451,15 @@ export default function Bookings() {
             {/* Pagination */}
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredBookings.length)} of{" "}
-                {filteredBookings.length} results
+                Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+                {Math.min(currentPage * itemsPerPage, filteredBookings.length)}{" "}
+                of {filteredBookings.length} results
               </p>
               <div className="flex items-center gap-2">
-                <Select value={itemsPerPage.toString()} onValueChange={(v) => setItemsPerPage(Number(v))}>
+                <Select
+                  value={itemsPerPage.toString()}
+                  onValueChange={v => setItemsPerPage(Number(v))}
+                >
                   <SelectTrigger className="w-[120px]">
                     <SelectValue />
                   </SelectTrigger>
@@ -1275,7 +1469,12 @@ export default function Bookings() {
                     <SelectItem value="50">50 per page</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" size="sm">
@@ -1301,17 +1500,30 @@ export default function Bookings() {
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-lg font-semibold">
-                    Calendar View - Week of {format(currentWeekStart, "MMMM dd")}-{format(endOfWeek(currentWeekStart, { weekStartsOn: 0 }), "dd, yyyy")}
+                    Calendar View - Week of{" "}
+                    {format(currentWeekStart, "MMMM dd")}-
+                    {format(
+                      endOfWeek(currentWeekStart, { weekStartsOn: 0 }),
+                      "dd, yyyy"
+                    )}
                   </h3>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={handlePreviousWeek}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handlePreviousWeek}
+                    >
                       <ChevronLeft className="h-4 w-4 mr-1" />
                       Previous
                     </Button>
                     <Button variant="outline" size="sm" onClick={handleToday}>
                       Today
                     </Button>
-                    <Button variant="outline" size="sm" onClick={handleNextWeek}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleNextWeek}
+                    >
                       Next
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
@@ -1320,51 +1532,73 @@ export default function Bookings() {
 
                 <div className="grid grid-cols-8 gap-2">
                   {/* Time column header */}
-                  <div className="font-semibold text-sm text-muted-foreground">Time</div>
+                  <div className="font-semibold text-sm text-muted-foreground">
+                    Time
+                  </div>
                   {/* Day headers */}
-                  {weekDays.map((day) => (
+                  {weekDays.map(day => (
                     <div key={day.toISOString()} className="text-center">
-                      <p className="text-sm font-semibold">{format(day, "EEE")}</p>
+                      <p className="text-sm font-semibold">
+                        {format(day, "EEE")}
+                      </p>
                       <p className="text-2xl font-bold">{format(day, "dd")}</p>
                     </div>
                   ))}
 
                   {/* Time slots */}
-                  {Array.from({ length: 18 }, (_, i) => i + 6).map((hour) => (
+                  {Array.from({ length: 18 }, (_, i) => i + 6).map(hour => (
                     <>
-                      <div key={`time-${hour}`} className="text-sm text-muted-foreground py-4">
-                        {hour > 12 ? hour - 12 : hour === 0 ? 12 : hour}:00 {hour >= 12 ? "PM" : "AM"}
+                      <div
+                        key={`time-${hour}`}
+                        className="text-sm text-muted-foreground py-4"
+                      >
+                        {hour > 12 ? hour - 12 : hour === 0 ? 12 : hour}:00{" "}
+                        {hour >= 12 ? "PM" : "AM"}
                       </div>
-                      {weekDays.map((day) => {
-                        const dayBookings = getBookingsForDay(day).filter((b) => {
+                      {weekDays.map(day => {
+                        const dayBookings = getBookingsForDay(day).filter(b => {
                           const bookingHour = parseInt(b.time.split(":")[0]);
                           const isPM = b.time.includes("PM");
-                          const hour24 = isPM && bookingHour !== 12 ? bookingHour + 12 : !isPM && bookingHour === 12 ? 0 : bookingHour;
+                          const hour24 =
+                            isPM && bookingHour !== 12
+                              ? bookingHour + 12
+                              : !isPM && bookingHour === 12
+                                ? 0
+                                : bookingHour;
                           return hour24 === hour;
                         });
 
                         return (
-                          <div key={`${day.toISOString()}-${hour}`} className="border rounded p-1 min-h-[80px] bg-gray-50">
-                            {dayBookings.map((booking) => (
+                          <div
+                            key={`${day.toISOString()}-${hour}`}
+                            className="border rounded p-1 min-h-[80px] bg-gray-50"
+                          >
+                            {dayBookings.map(booking => (
                               <div
                                 key={booking.id}
                                 className={`text-xs p-2 rounded mb-1 cursor-pointer hover:shadow-md transition-shadow ${
                                   booking.status === "pending"
                                     ? "bg-yellow-100 border-yellow-300"
                                     : booking.status === "confirmed"
-                                    ? "bg-blue-100 border-blue-300"
-                                    : booking.status === "completed"
-                                    ? "bg-green-100 border-green-300"
-                                    : booking.status === "in-progress"
-                                    ? "bg-gray-100 border-gray-300"
-                                    : "bg-red-100 border-red-300"
+                                      ? "bg-blue-100 border-blue-300"
+                                      : booking.status === "completed"
+                                        ? "bg-green-100 border-green-300"
+                                        : booking.status === "in-progress"
+                                          ? "bg-gray-100 border-gray-300"
+                                          : "bg-red-100 border-red-300"
                                 } border`}
                                 onClick={() => setSelectedBookingId(booking.id)}
                               >
-                                <p className="font-semibold truncate">{booking.customer}</p>
+                                <p className="font-semibold truncate">
+                                  {booking.customer}
+                                </p>
                                 <p className="truncate">{booking.service}</p>
-                                <p className="text-muted-foreground">{booking.time}</p>
-                                <p className="text-muted-foreground truncate text-[10px]">{booking.staff.join(", ")}</p>
+                                <p className="text-muted-foreground">
+                                  {booking.time}
+                                </p>
+                                <p className="text-muted-foreground truncate text-[10px]">
+                                  {booking.staff.join(", ")}
+                                </p>
                               </div>
                             ))}
                           </div>
@@ -1383,57 +1617,111 @@ export default function Bookings() {
           <div className="h-[calc(100vh-220px)] overflow-x-auto pb-4">
             <div className="flex gap-4 h-full min-w-[1500px]">
               {[
-                { id: "pending", label: "Pending", color: "bg-yellow-100 text-yellow-700 border-yellow-200" },
-                { id: "confirmed", label: "Confirmed", color: "bg-blue-100 text-blue-700 border-blue-200" },
-                { id: "in-progress", label: "In Progress", color: "bg-gray-100 text-gray-700 border-gray-200" },
-                { id: "completed", label: "Completed", color: "bg-green-100 text-green-700 border-green-200" },
-                { id: "cancelled", label: "Cancelled", color: "bg-red-100 text-red-700 border-red-200" },
-              ].map((column) => {
-                const columnBookings = filteredBookings.filter((b) => b.status === column.id);
+                {
+                  id: "pending",
+                  label: "Pending",
+                  color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+                },
+                {
+                  id: "confirmed",
+                  label: "Confirmed",
+                  color: "bg-blue-100 text-blue-700 border-blue-200",
+                },
+                {
+                  id: "in-progress",
+                  label: "In Progress",
+                  color: "bg-gray-100 text-gray-700 border-gray-200",
+                },
+                {
+                  id: "completed",
+                  label: "Completed",
+                  color: "bg-green-100 text-green-700 border-green-200",
+                },
+                {
+                  id: "cancelled",
+                  label: "Cancelled",
+                  color: "bg-red-100 text-red-700 border-red-200",
+                },
+              ].map(column => {
+                const columnBookings = filteredBookings.filter(
+                  b => b.status === column.id
+                );
                 return (
-                  <div key={column.id} className="flex-1 min-w-[300px] flex flex-col bg-muted/30 rounded-lg border border-dashed p-3">
-                    <div className={`p-3 rounded-lg border mb-4 font-semibold flex items-center justify-between ${column.color}`}>
+                  <div
+                    key={column.id}
+                    className="flex-1 min-w-[300px] flex flex-col bg-muted/30 rounded-lg border border-dashed p-3"
+                  >
+                    <div
+                      className={`p-3 rounded-lg border mb-4 font-semibold flex items-center justify-between ${column.color}`}
+                    >
                       <span>{column.label}</span>
-                      <Badge variant="outline" className="bg-white/50">{columnBookings.length}</Badge>
+                      <Badge variant="outline" className="bg-white/50">
+                        {columnBookings.length}
+                      </Badge>
                     </div>
-                    
+
                     <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                      {columnBookings.map((booking) => (
-                         <Card 
-                           key={booking.id} 
-                           className="cursor-pointer hover:shadow-md transition-all border-l-4"
-                           style={{ borderLeftColor: column.id === 'completed' ? '#22c55e' : column.id === 'cancelled' ? '#ef4444' : column.id === 'pending' ? '#eab308' : '#3b82f6' }}
-                           onClick={() => setSelectedBookingId(booking.id)}
-                         >
-                           <CardContent className="p-3">
-                             <div className="flex justify-between items-start mb-2">
-                               <span className="font-bold text-sm truncate w-32">{booking.customer}</span>
-                               <span className="text-xs font-mono text-muted-foreground">{booking.id}</span>
-                             </div>
-                             
-                             <div className="text-xs space-y-1.5 text-muted-foreground">
-                               <div className="flex items-center gap-2">
-                                  <FileText className="h-3 w-3" />
-                                  <span className="truncate">{booking.service}</span>
-                               </div>
-                               <div className="flex items-center gap-2">
-                                  <Clock className="h-3 w-3" />
-                                  <span>{format(new Date(booking.date), "MMM dd")} • {booking.time}</span>
-                               </div>
-                               <div className="flex items-center gap-2">
-                                  <Users className="h-3 w-3" />
-                                  <span className="truncate">{booking.staff.join(", ")}</span>
-                               </div>
-                             </div>
-                             
-                             <div className="mt-3 flex items-center justify-between">
-                                <Badge variant="secondary" className="text-[10px] h-5 px-1.5">
-                                  {booking.paymentStatus}
-                                </Badge>
-                                <span className="font-bold text-sm">QAR {booking.price}</span>
-                             </div>
-                           </CardContent>
-                         </Card>
+                      {columnBookings.map(booking => (
+                        <Card
+                          key={booking.id}
+                          className="cursor-pointer hover:shadow-md transition-all border-l-4"
+                          style={{
+                            borderLeftColor:
+                              column.id === "completed"
+                                ? "#22c55e"
+                                : column.id === "cancelled"
+                                  ? "#ef4444"
+                                  : column.id === "pending"
+                                    ? "#eab308"
+                                    : "#3b82f6",
+                          }}
+                          onClick={() => setSelectedBookingId(booking.id)}
+                        >
+                          <CardContent className="p-3">
+                            <div className="flex justify-between items-start mb-2">
+                              <span className="font-bold text-sm truncate w-32">
+                                {booking.customer}
+                              </span>
+                              <span className="text-xs font-mono text-muted-foreground">
+                                {booking.id}
+                              </span>
+                            </div>
+
+                            <div className="text-xs space-y-1.5 text-muted-foreground">
+                              <div className="flex items-center gap-2">
+                                <FileText className="h-3 w-3" />
+                                <span className="truncate">
+                                  {booking.service}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Clock className="h-3 w-3" />
+                                <span>
+                                  {format(new Date(booking.date), "MMM dd")} •{" "}
+                                  {booking.time}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Users className="h-3 w-3" />
+                                <span className="truncate">
+                                  {booking.staff.join(", ")}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 flex items-center justify-between">
+                              <Badge
+                                variant="secondary"
+                                className="text-[10px] h-5 px-1.5"
+                              >
+                                {booking.paymentStatus}
+                              </Badge>
+                              <span className="font-bold text-sm">
+                                QAR {booking.price}
+                              </span>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   </div>

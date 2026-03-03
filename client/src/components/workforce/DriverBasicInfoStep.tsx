@@ -11,11 +11,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { WorkforceMemberData } from "@/pages/AddWorkforceMember";
-import { 
-  UNIFORM_INPUT_CLASSES, 
-  UNIFORM_SELECT_TRIGGER_CLASSES, 
-  UNIFORM_SELECT_CONTENT_CLASSES, 
-  UNIFORM_SELECT_ITEM_CLASSES 
+import {
+  UNIFORM_INPUT_CLASSES,
+  UNIFORM_SELECT_TRIGGER_CLASSES,
+  UNIFORM_SELECT_CONTENT_CLASSES,
+  UNIFORM_SELECT_ITEM_CLASSES,
 } from "@/components/workforce/form-styles";
 
 interface DriverBasicInfoStepProps {
@@ -27,8 +27,17 @@ interface DriverBasicInfoStepProps {
   isLoading?: boolean; // Added like BasicInfoStep
 }
 
-export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, isLastStep, isLoading }: DriverBasicInfoStepProps) {
-  const [photoPreview, setPhotoPreview] = useState<string | null>(data.photoUrl || null);
+export default function DriverBasicInfoStep({
+  data,
+  onUpdate,
+  onNext,
+  onBack,
+  isLastStep,
+  isLoading,
+}: DriverBasicInfoStepProps) {
+  const [photoPreview, setPhotoPreview] = useState<string | null>(
+    data.photoUrl || null
+  );
 
   const handleChange = (field: keyof WorkforceMemberData, value: string) => {
     onUpdate({ [field]: value });
@@ -51,27 +60,32 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
     onUpdate({ photoUrl: "" });
   };
 
-  const canContinue = 
-    data.mobileNumber && 
-    data.emailAddress && 
-    data.gender;
+  const canContinue = data.mobileNumber && data.emailAddress && data.gender;
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-8">
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-2">
           <User className="h-5 w-5 text-gray-600" />
-          <h2 className="text-xl font-semibold text-gray-900">Driver Details</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Driver Details
+          </h2>
         </div>
-        <p className="text-gray-600">Review personal info and complete the draft profile.</p>
+        <p className="text-gray-600">
+          Review personal info and complete the draft profile.
+        </p>
       </div>
 
       <div className="space-y-8">
         {/* Staff Photo Upload */}
         <div>
-          <Label className="text-sm font-medium text-gray-700">Driver Photo</Label>
-          <p className="text-xs text-gray-500 mt-1 mb-3">Upload a professional photo (JPG, PNG, Max 5MB)</p>
-          
+          <Label className="text-sm font-medium text-gray-700">
+            Driver Photo
+          </Label>
+          <p className="text-xs text-gray-500 mt-1 mb-3">
+            Upload a professional photo (JPG, PNG, Max 5MB)
+          </p>
+
           {!photoPreview ? (
             <label className="w-full h-10 px-3 py-2 border border-gray-300 rounded-lg bg-white text-sm text-gray-400 hover:border-gray-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-200 transition-colors flex items-center justify-center cursor-pointer">
               <Upload className="h-4 w-4 mr-2" />
@@ -102,32 +116,41 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
 
         {/* Personal Details Section */}
         <div className="border-t border-gray-200 pt-6">
-          <h3 className="text-base font-semibold text-gray-900 mb-4">Personal Details</h3>
-          
+          <h3 className="text-base font-semibold text-gray-900 mb-4">
+            Personal Details
+          </h3>
+
           {/* Row 1: Full Name & Nickname */}
           <div className="grid grid-cols-2 gap-6 mb-4">
             <div>
               <Label className="text-sm font-medium text-gray-700">
                 Full Name <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License/QID</p>
+              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">
+                Auto-filled from License/QID
+              </p>
               <Input
                 type="text"
                 value={data.fullName || ""}
-                onChange={(e) => handleChange("fullName", e.target.value)}
+                onChange={e => handleChange("fullName", e.target.value)}
                 className={`${UNIFORM_INPUT_CLASSES} bg-gray-50`}
                 readOnly
               />
             </div>
             <div>
-              <Label htmlFor="nickname" className="text-sm font-medium text-gray-700">Nickname</Label>
+              <Label
+                htmlFor="nickname"
+                className="text-sm font-medium text-gray-700"
+              >
+                Nickname
+              </Label>
               <div className="h-6"></div>
               <Input
                 id="nickname"
                 type="text"
                 placeholder="Enter nickname"
                 value={data.nickname || ""}
-                onChange={(e) => handleChange("nickname", e.target.value)}
+                onChange={e => handleChange("nickname", e.target.value)}
                 className={UNIFORM_INPUT_CLASSES}
               />
             </div>
@@ -139,7 +162,9 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
               <Label className="text-sm font-medium text-gray-700">
                 QID Number <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License</p>
+              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">
+                Auto-filled from License
+              </p>
               <Input
                 type="text"
                 value={data.qidNumber || ""}
@@ -151,7 +176,9 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
               <Label className="text-sm font-medium text-gray-700">
                 Date of Birth <span className="text-red-500">*</span>
               </Label>
-              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License</p>
+              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">
+                Auto-filled from License
+              </p>
               <Input
                 type="text"
                 value={data.dateOfBirth || ""}
@@ -161,14 +188,16 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
             </div>
           </div>
 
-           {/* Row 3: Nationality & Gender */}
-           <div className="grid grid-cols-2 gap-6 mb-4">
+          {/* Row 3: Nationality & Gender */}
+          <div className="grid grid-cols-2 gap-6 mb-4">
             <div>
               <Label className="text-sm font-medium text-gray-700">
                 Nationality <span className="text-red-500">*</span>
               </Label>
-               <p className="text-xs text-gray-500 mt-0.5 mb-1.5">Auto-filled from License</p>
-               <Input
+              <p className="text-xs text-gray-500 mt-0.5 mb-1.5">
+                Auto-filled from License
+              </p>
+              <Input
                 type="text"
                 value={data.nationality || ""}
                 className={`${UNIFORM_INPUT_CLASSES} bg-gray-50`}
@@ -176,20 +205,39 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
               />
             </div>
             <div>
-              <Label htmlFor="gender" className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="gender"
+                className="text-sm font-medium text-gray-700"
+              >
                 Gender <span className="text-red-500">*</span>
               </Label>
               <div className="h-6"></div>
               <Select
                 value={data.gender || ""}
-                onValueChange={(value) => handleChange("gender", value)}
+                onValueChange={value => handleChange("gender", value)}
               >
-                <SelectTrigger id="gender" className={UNIFORM_SELECT_TRIGGER_CLASSES}>
-                  <SelectValue placeholder="Select gender" className="text-gray-400" />
+                <SelectTrigger
+                  id="gender"
+                  className={UNIFORM_SELECT_TRIGGER_CLASSES}
+                >
+                  <SelectValue
+                    placeholder="Select gender"
+                    className="text-gray-400"
+                  />
                 </SelectTrigger>
                 <SelectContent className={UNIFORM_SELECT_CONTENT_CLASSES}>
-                  <SelectItem value="Male" className={UNIFORM_SELECT_ITEM_CLASSES}>Male</SelectItem>
-                  <SelectItem value="Female" className={UNIFORM_SELECT_ITEM_CLASSES}>Female</SelectItem>
+                  <SelectItem
+                    value="Male"
+                    className={UNIFORM_SELECT_ITEM_CLASSES}
+                  >
+                    Male
+                  </SelectItem>
+                  <SelectItem
+                    value="Female"
+                    className={UNIFORM_SELECT_ITEM_CLASSES}
+                  >
+                    Female
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -198,7 +246,10 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
           {/* Row 4: Mobile Number & Email */}
           <div className="grid grid-cols-2 gap-6 mb-4">
             <div>
-              <Label htmlFor="mobileNumber" className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="mobileNumber"
+                className="text-sm font-medium text-gray-700"
+              >
                 Mobile Number <span className="text-red-500">*</span>
               </Label>
               <div className="h-6"></div>
@@ -207,12 +258,15 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
                 type="tel"
                 placeholder="+974 55687989"
                 value={data.mobileNumber || "+974 "}
-                onChange={(e) => handleChange("mobileNumber", e.target.value)}
+                onChange={e => handleChange("mobileNumber", e.target.value)}
                 className={UNIFORM_INPUT_CLASSES}
               />
             </div>
             <div>
-              <Label htmlFor="emailAddress" className="text-sm font-medium text-gray-700">
+              <Label
+                htmlFor="emailAddress"
+                className="text-sm font-medium text-gray-700"
+              >
                 Email Address <span className="text-red-500">*</span>
               </Label>
               <div className="h-6"></div>
@@ -221,13 +275,12 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
                 type="email"
                 placeholder="example@email.com"
                 value={data.emailAddress || ""}
-                onChange={(e) => handleChange("emailAddress", e.target.value)}
+                onChange={e => handleChange("emailAddress", e.target.value)}
                 className={UNIFORM_INPUT_CLASSES}
               />
             </div>
           </div>
         </div>
-
       </div>
 
       {/* Navigation */}
@@ -235,12 +288,12 @@ export default function DriverBasicInfoStep({ data, onUpdate, onNext, onBack, is
         <Button variant="ghost" onClick={onBack}>
           ← Back
         </Button>
-        <Button 
-          onClick={onNext} 
+        <Button
+          onClick={onNext}
           disabled={!canContinue || isLoading}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          {isLoading ? 'Processing...' : 'Create Draft Profile'}
+          {isLoading ? "Processing..." : "Create Draft Profile"}
         </Button>
       </div>
     </div>

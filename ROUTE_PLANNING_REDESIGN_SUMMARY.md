@@ -7,6 +7,7 @@ The Route Planning page has been completely redesigned to focus on **driver work
 ## Key Concept
 
 **Drivers** are responsible for:
+
 1. Picking up staff from their home locations
 2. Transporting them to customer job sites
 3. Dropping them back home or taking them to the next job
@@ -15,6 +16,7 @@ The Route Planning page has been completely redesigned to focus on **driver work
 ## Page Structure
 
 ### Header Section
+
 - **Title**: "Driver Route Planning"
 - **Subtitle**: "Manage driver routes for staff pickup, job locations, and drop-off"
 - **Filters**:
@@ -27,19 +29,17 @@ The Route Planning page has been completely redesigned to focus on **driver work
 1. **Driver Card** (Blue highlight)
    - Driver name
    - Vehicle information (model and plate number)
-   
 2. **Total Stops**
    - Number of stops in the route
-   
 3. **Distance**
    - Total kilometers to be traveled
-   
 4. **Duration**
    - Total time including driving and job durations
 
 ### Color-Coded Legend
 
 Simple visual guide with three colors:
+
 - 🟢 **Green** = Pick Up Staff (staff home location)
 - 🔵 **Blue** = Job Location (customer site)
 - 🟠 **Orange** = Drop Off Staff (staff home or next location)
@@ -49,6 +49,7 @@ Simple visual guide with three colors:
 A **vertical timeline** showing the complete route from start to finish:
 
 Each stop displays:
+
 - **Color-coded icon** (green/blue/orange circle with appropriate icon)
 - **Stop type badge** (Pick Up Staff / Job Location / Drop Off Staff)
 - **Time** (e.g., 08:00 AM)
@@ -56,11 +57,13 @@ Each stop displays:
 - **Stop number** (Stop 1, Stop 2, etc.)
 
 **For Pickup/Drop-off stops:**
+
 - Staff name
 - Staff role (e.g., Cleaner)
 - Staff home address
 
 **For Job stops:**
+
 - Customer name
 - Booking ID
 - Service type badge
@@ -92,12 +95,14 @@ Each stop displays:
 ## Design Standards
 
 ### Spacing & Layout
+
 - Page padding: p-8
 - Card padding: p-6
 - Timeline spacing: space-y-4
 - Max width: 1400px centered
 
 ### Typography
+
 - Page title: text-3xl font-bold
 - Section heading: text-xl font-bold
 - Card titles: text-lg font-bold
@@ -105,12 +110,14 @@ Each stop displays:
 - Labels: text-sm font-medium
 
 ### Colors
+
 - **Green** (Pickup): bg-green-100, text-green-700, border-green-300
 - **Blue** (Job): bg-blue-100, text-blue-700, border-blue-300
 - **Orange** (Drop-off): bg-orange-100, text-orange-700, border-orange-300
 - **Gray** (Background): bg-gray-50, bg-gray-100
 
 ### Icons
+
 - Home icon: Pickup/Drop-off locations
 - Briefcase icon: Job locations
 - Car icon: Driver
@@ -121,25 +128,30 @@ Each stop displays:
 ## User Experience Benefits
 
 ### 1. **Extremely Simple**
+
 - No complex features to confuse users
 - Clear visual hierarchy
 - One main action: view the route
 
 ### 2. **Easy to Understand**
+
 - Color-coding makes it instantly clear what each stop is
 - Timeline flows naturally from top to bottom
 - All information visible at a glance
 
 ### 3. **Driver-Friendly**
+
 - Focuses on driver's perspective
 - Shows exact sequence of stops
 - Displays all necessary information (times, locations, durations)
 
 ### 4. **Clear Workflow**
+
 - Pick up staff → Take to job → Pick up next staff → Take to job → Drop off all staff
 - Logical sequence that matches real-world operations
 
 ### 5. **Professional Appearance**
+
 - Clean card-based design
 - Consistent spacing and typography
 - Modern color scheme
@@ -150,31 +162,37 @@ Each stop displays:
 ### Mock Data Structure
 
 **Drivers:**
+
 - ID, Name, Vehicle (model and plate number)
 
 **Route Stops:**
 Each stop has:
+
 - Type: "pickup", "job", or "dropoff"
 - Time: Scheduled time
 - Duration: Expected duration
 - Location: Full address
 
 **Pickup/Drop-off specific:**
+
 - Staff name
 - Staff role
 
 **Job specific:**
+
 - Customer name
 - Booking ID
 - Service type
 - Assigned staff
 
 ### State Management
+
 - Selected driver (dropdown)
 - Selected date (dropdown)
 - Route data (array of stops)
 
 ### Responsive Design
+
 - Full-width layout
 - Scrollable timeline
 - Fixed header
