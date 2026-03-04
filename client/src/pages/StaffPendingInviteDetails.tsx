@@ -167,7 +167,7 @@ interface ExtendedStaffMember extends StaffMember {
   accommodationType?: "Company Accommodation" | "Self Accommodation" | string;
   latitude?: string;
   longitude?: string;
-  campName?: string;
+  accommodationName?: string;
   fullAddress?: string;
   serviceScope?: "all" | "specific";
   serviceAreas?: string[];
@@ -241,8 +241,6 @@ export default function StaffPendingInviteDetails() {
   const [finalStatus, setFinalStatus] = useState<"Active" | "Inactive" | null>(
     null
   );
-  const [inactiveReason, setInactiveReason] = useState<string>("");
-  const [inactiveNote, setInactiveNote] = useState<string>("");
 
   const profilePhotoInputRef = useRef<HTMLInputElement>(null);
 
@@ -287,32 +285,32 @@ export default function StaffPendingInviteDetails() {
   // "Draft" Data (Form)
   const [formData, setFormData] = useState<ExtendedStaffMember | null>(null);
 
-  // Camp Location State
-  const [campLocations, setCampLocations] = useState<any[]>([
+  // Accommodation Location State
+  const [accommodationLocations, setAccommodationLocations] = useState<any[]>([
     {
       id: "1",
-      name: "Camp A - Industrial Area",
+      name: "Accommodation A - Industrial Area",
       latitude: "25.1854",
       longitude: "51.3310",
       fullAddress: "Street 41, Industrial Area",
     },
     {
       id: "2",
-      name: "Camp B - Al Wakrah",
+      name: "Accommodation B - Al Wakrah",
       latitude: "25.1768",
       longitude: "51.5975",
       fullAddress: "Building 12, Wakrah",
     },
     {
       id: "3",
-      name: "Camp C - West Bay",
+      name: "Accommodation C - West Bay",
       latitude: "25.3182",
       longitude: "51.5296",
       fullAddress: "Tower 4, West Bay",
     },
   ]);
-  const [isCreatingCamp, setIsCreatingCamp] = useState(false);
-  const [newCamp, setNewCamp] = useState({
+  const [isCreatingAccommodation, setIsCreatingAccommodation] = useState(false);
+  const [newAccommodation, setNewAccommodation] = useState({
     name: "",
     coordinates: "",
     address: "",
@@ -611,7 +609,7 @@ export default function StaffPendingInviteDetails() {
           accommodationType: found.accommodationType || "Company Accommodation",
           latitude: found.latitude || "",
           longitude: found.longitude || "",
-          campName: found.campName || "",
+          accommodationName: found.accommodationName || "",
           fullAddress: found.fullAddress || "",
           dashboardAccess: found.dashboardAccess ?? false,
           systemRole: found.systemRole || "Manager",
@@ -874,10 +872,6 @@ export default function StaffPendingInviteDetails() {
   const handleConfirmActivation = () => {
     if (!finalStatus) {
       toast.error("Please select a final status.");
-      return;
-    }
-    if (finalStatus === "Inactive" && !inactiveReason) {
-      toast.error("Please provide a reason for inactive status.");
       return;
     }
     const statusVal = finalStatus === "Active" ? "available" : "offline";
@@ -2181,7 +2175,7 @@ export default function StaffPendingInviteDetails() {
                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
                           Industry Experience Start Date
                         </Label>
-                        <div className="flex flex-col md:flex-row md:items-center gap-4">
+                        <div className="flex flex-col md:flex-row md:items-start gap-4">
                           <div className="flex-1">
                             <Input
                               type="date"
@@ -2507,7 +2501,7 @@ export default function StaffPendingInviteDetails() {
                   <div className={STYLES.card}>
                     <SectionHeader
                       title="Accommodation Details"
-                      desc="Residential assignment, camp location, and geographical coordinates."
+                      desc="Residential assignment, accommodation location, and geographical coordinates."
                       icon={Layers}
                     />
 
@@ -2531,12 +2525,12 @@ export default function StaffPendingInviteDetails() {
                                     setFormData({
                                       ...formData,
                                       accommodationType: type,
-                                      campName: "",
+                                      accommodationName: "",
                                       latitude: "",
                                       longitude: "",
                                       fullAddress: "",
                                     });
-                                    setIsCreatingCamp(false);
+                                    setIsCreatingAccommodation(false);
                                   }
                                 }}
                                 className={`
@@ -2570,183 +2564,187 @@ export default function StaffPendingInviteDetails() {
                           <div className="space-y-4 animate-in fade-in slide-in-from-top-2 p-5 bg-gray-50/50 rounded-xl border border-gray-100 shadow-[inset_0_2px_10px_rgb(0,0,0,0.01)]">
                             <div className="space-y-1.5">
                               <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
-                                Camp Location{" "}
+                                Accommodation Location{" "}
                                 <span className="text-red-500">*</span>
                               </Label>
                               <Select
                                 disabled={!isEditing}
-                                value={formData.campName}
+                                value={formData.accommodationName}
                                 onValueChange={v => {
-                                  setIsCreatingCamp(false);
-                                  const loc = campLocations.find(
+                                  setIsCreatingAccommodation(false);
+                                  const loc = accommodationLocations.find(
                                     c => c.name === v
                                   );
                                   if (loc) {
                                     setFormData({
                                       ...formData,
-                                      campName: v,
+                                      accommodationName: v,
                                       latitude: loc.latitude,
                                       longitude: loc.longitude,
                                       fullAddress: loc.fullAddress,
                                     });
                                   } else {
-                                    setFormData({ ...formData, campName: v });
+                                    setFormData({ ...formData, accommodationName: v });
                                   }
                                 }}
                               >
                                 <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm font-medium shadow-sm hover:border-blue-400 w-full focus:ring-4 focus:ring-blue-50">
-                                  <SelectValue placeholder="Select Camp Location" />
+                                  <SelectValue placeholder="Select Accommodation Location" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  {campLocations.map(camp => (
-                                    <SelectItem key={camp.id} value={camp.name}>
-                                      {camp.name}
+                                  {accommodationLocations.map(accommodation => (
+                                    <SelectItem key={accommodation.id} value={accommodation.name}>
+                                      {accommodation.name}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
                               </Select>
 
-                              {!isCreatingCamp && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="mt-2.5 h-8 px-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold text-xs border border-transparent hover:border-blue-100"
-                                  onClick={() => {
-                                    if (isEditing) setIsCreatingCamp(true);
-                                  }}
-                                >
-                                  <Plus className="h-3.5 w-3.5 mr-1" /> Create
-                                  New Camp Location
-                                </Button>
-                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="mt-2.5 h-8 px-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 font-semibold text-xs border border-transparent hover:border-blue-100"
+                                onClick={() => {
+                                  if (isEditing) setIsCreatingAccommodation(true);
+                                }}
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-1" /> Create
+                                New Accommodation Location
+                              </Button>
                             </div>
 
-                            {isCreatingCamp && (
-                              <div className="pt-2">
-                                <div className="p-5 bg-white rounded-xl border border-blue-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] space-y-5 animate-in slide-in-from-top-2">
-                                  <div className="flex items-center gap-2 mb-2">
-                                    <div className="h-6 w-6 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                                      <MapPin className="h-3.5 w-3.5" />
+                            <Dialog open={isCreatingAccommodation} onOpenChange={setIsCreatingAccommodation}>
+                              <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
+                                <DialogHeader className="p-6 pb-4 border-b border-gray-100 bg-gray-50/50">
+                                  <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                      <MapPin className="h-5 w-5" />
                                     </div>
-                                    <h4 className="text-sm font-bold text-gray-900">
-                                      Add New Camp
-                                    </h4>
+                                    <div>
+                                      <DialogTitle className="text-lg font-bold text-gray-900 leading-tight">
+                                        Add New Accommodation
+                                      </DialogTitle>
+                                      <span className="text-[12px] text-gray-500 mt-0.5 block font-medium">
+                                        Define a new base location for staff logistics.
+                                      </span>
+                                    </div>
                                   </div>
+                                </DialogHeader>
+
+                                <div className="p-6 space-y-5">
                                   <div className="space-y-1.5">
-                                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
-                                      Camp Name{" "}
-                                      <span className="text-red-500">*</span>
+                                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest flex items-center gap-1.5">
+                                      Accommodation Name <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
-                                      value={newCamp.name}
+                                      value={newAccommodation.name}
                                       onChange={e =>
-                                        setNewCamp({
-                                          ...newCamp,
+                                        setNewAccommodation({
+                                          ...newAccommodation,
                                           name: e.target.value,
                                         })
                                       }
-                                      className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50"
-                                      placeholder="e.g. Camp A - Industrial Area"
+                                      className="h-11 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
+                                      placeholder="e.g. Accommodation A - Industrial Area"
                                     />
                                   </div>
+
                                   <div className="space-y-1.5">
                                     <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
-                                      Coordinates (Lat, Lng){" "}
-                                      <span className="text-red-500">*</span>
+                                      Coordinates <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
-                                      value={newCamp.coordinates}
+                                      value={newAccommodation.coordinates}
                                       onChange={e =>
-                                        setNewCamp({
-                                          ...newCamp,
+                                        setNewAccommodation({
+                                          ...newAccommodation,
                                           coordinates: e.target.value,
                                         })
                                       }
-                                      className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50"
+                                      className="h-11 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
                                       placeholder="25.2854, 51.5310"
                                     />
                                   </div>
+
                                   <div className="space-y-1.5">
                                     <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-widest">
-                                      Full Address{" "}
-                                      <span className="text-red-500">*</span>
+                                      Full Address <span className="text-red-500">*</span>
                                     </Label>
                                     <Input
-                                      value={newCamp.address}
+                                      value={newAccommodation.address}
                                       onChange={e =>
-                                        setNewCamp({
-                                          ...newCamp,
+                                        setNewAccommodation({
+                                          ...newAccommodation,
                                           address: e.target.value,
                                         })
                                       }
-                                      className="h-10 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50"
+                                      className="h-11 text-sm font-medium border-gray-200 hover:border-blue-300 focus:ring-4 focus:ring-blue-50 transition-all shadow-sm"
                                       placeholder="Street Name, Building Number, Zone"
                                     />
                                   </div>
-                                  <div className="pt-3 border-t border-gray-50 flex flex-col-reverse sm:flex-row justify-end gap-2.5">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setIsCreatingCamp(false)}
-                                      className="h-9 text-xs font-semibold w-full sm:w-auto"
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      className="h-9 text-xs font-bold bg-blue-600 hover:bg-blue-700 w-full sm:w-auto shadow-sm"
-                                      onClick={() => {
-                                        if (
-                                          newCamp.name &&
-                                          newCamp.coordinates &&
-                                          newCamp.address
-                                        ) {
-                                          const coords = newCamp.coordinates
-                                            .split(",")
-                                            .map(s => s.trim());
-                                          const lat = coords[0] || "";
-                                          const lng = coords[1] || "";
-                                          const newLoc = {
-                                            id: Date.now().toString(),
-                                            name: newCamp.name,
-                                            latitude: lat,
-                                            longitude: lng,
-                                            fullAddress: newCamp.address,
-                                          };
-                                          setCampLocations([
-                                            ...campLocations,
-                                            newLoc,
-                                          ]);
-                                          setFormData({
-                                            ...formData,
-                                            campName: newLoc.name,
-                                            latitude: newLoc.latitude,
-                                            longitude: newLoc.longitude,
-                                            fullAddress: newLoc.fullAddress,
-                                          });
-                                          setIsCreatingCamp(false);
-                                          setNewCamp({
-                                            name: "",
-                                            coordinates: "",
-                                            address: "",
-                                          });
-                                          toast.success(
-                                            "Camp location created & assigned"
-                                          );
-                                        } else {
-                                          toast.error(
-                                            "Please fill all camp details"
-                                          );
-                                        }
-                                      }}
-                                    >
-                                      <Save className="h-3.5 w-3.5 mr-1.5" />{" "}
-                                      Save Location
-                                    </Button>
-                                  </div>
                                 </div>
-                              </div>
-                            )}
+
+                                <div className="p-5 border-t border-gray-100 bg-gray-50/50 flex flex-col-reverse sm:flex-row justify-end gap-3">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => setIsCreatingAccommodation(false)}
+                                    className="h-10 text-sm font-bold w-full sm:w-auto border-gray-200 hover:bg-gray-100"
+                                  >
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    className="h-10 text-sm font-bold bg-blue-600 hover:bg-blue-700 w-full sm:w-auto shadow-sm"
+                                    onClick={() => {
+                                      if (
+                                        newAccommodation.name &&
+                                        newAccommodation.coordinates &&
+                                        newAccommodation.address
+                                      ) {
+                                        const coords = newAccommodation.coordinates
+                                          .split(",")
+                                          .map(s => s.trim());
+                                        const lat = coords[0] || "";
+                                        const lng = coords[1] || "";
+                                        const newLoc = {
+                                          id: Date.now().toString(),
+                                          name: newAccommodation.name,
+                                          latitude: lat,
+                                          longitude: lng,
+                                          fullAddress: newAccommodation.address,
+                                        };
+                                        setAccommodationLocations([
+                                          ...accommodationLocations,
+                                          newLoc,
+                                        ]);
+                                        setFormData({
+                                          ...formData,
+                                          accommodationName: newLoc.name,
+                                          latitude: newLoc.latitude,
+                                          longitude: newLoc.longitude,
+                                          fullAddress: newLoc.fullAddress,
+                                        });
+                                        setIsCreatingAccommodation(false);
+                                        setNewAccommodation({
+                                          name: "",
+                                          coordinates: "",
+                                          address: "",
+                                        });
+                                        toast.success(
+                                          "Accommodation location created & assigned"
+                                        );
+                                      } else {
+                                        toast.error(
+                                          "Please fill all accommodation details"
+                                        );
+                                      }
+                                    }}
+                                  >
+                                    <Save className="h-4 w-4 mr-2" />
+                                    Save Location
+                                  </Button>
+                                </div>
+                              </DialogContent>
+                            </Dialog>
                           </div>
                         )}
 
@@ -3430,20 +3428,16 @@ export default function StaffPendingInviteDetails() {
                             {formData.gender || "-"}
                           </span>
                         </div>
-                        <div className="pt-2 border-t border-gray-50 mt-1">
-                          <div className="flex justify-between items-center mb-2">
-                            <span className="text-gray-500 leading-none">
-                              Contact
-                            </span>{" "}
-                            <span className="font-semibold text-gray-900 text-right leading-none">
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Contact</span>
+                            <span className="font-semibold text-gray-900 text-right">
                               {formData.phone || "-"}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500 leading-none">
-                              Email
-                            </span>{" "}
-                            <span className="font-semibold text-gray-900 text-right leading-none">
+                            <span className="text-gray-500">Email</span>
+                            <span className="font-semibold text-gray-900 text-right">
                               {formData.email || "-"}
                             </span>
                           </div>
@@ -3495,52 +3489,50 @@ export default function StaffPendingInviteDetails() {
                           </span>
                         </div>
 
-                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Scheme</span>{" "}
-                            <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100 text-[11px]">
+                            <span className="text-gray-500">Scheme</span>
+                            <span className="font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-md border border-green-200 text-[11px]">
                               {formData.salaryType || "-"}
                             </span>
                           </div>
                           {(formData.salaryType === "Fixed Monthly" ||
                             formData.salaryType === "Fixed + Commission") && (
                             <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Base Salary</span>{" "}
+                              <span className="text-gray-500">Base Salary</span>
                               <span className="font-semibold text-gray-900">
-                                QAR {formData.salaryAmount}
+                                QAR {formData.salaryAmount || "0"}
                               </span>
                             </div>
                           )}
                           {(formData.salaryType === "Commission-Based" ||
                             formData.salaryType === "Fixed + Commission") && (
                             <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Commission</span>{" "}
+                              <span className="text-gray-500">Commission</span>
                               <span className="font-semibold text-gray-900">
-                                {formData.commissionRate}%
+                                {formData.commissionRate || "0"}%
                               </span>
                             </div>
                           )}
                           {formData.salaryType === "Hourly-Rate" && (
                             <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Hourly Rate</span>{" "}
+                              <span className="text-gray-500">Hourly Rate</span>
                               <span className="font-semibold text-gray-900">
-                                QAR {formData.hourlyRate}/hr
+                                QAR {formData.hourlyRate || "0"}/hr
                               </span>
                             </div>
                           )}
                         </div>
 
-                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Religion</span>{" "}
+                            <span className="text-gray-500">Religion</span>
                             <span className="font-semibold text-gray-900 text-right">
                               {formData.religion || "-"}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500">
-                              Marital Status
-                            </span>{" "}
+                            <span className="text-gray-500">Marital Status</span>
                             <span className="font-semibold text-gray-900 text-right">
                               {formData.maritalStatus || "-"}
                             </span>
@@ -3568,6 +3560,14 @@ export default function StaffPendingInviteDetails() {
                         </Badge>
                       </div>
                       <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-start pt-1">
+                          <span className="text-gray-500 shrink-0 mt-0.5">
+                            Total Experience
+                          </span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.experienceStartDate ? calculateExperience(formData.experienceStartDate) : "-"}
+                          </span>
+                        </div>
                         <div className="flex justify-between items-start">
                           <span className="text-gray-500 shrink-0 mt-0.5">
                             Skills
@@ -3577,7 +3577,7 @@ export default function StaffPendingInviteDetails() {
                               <Badge
                                 key={s}
                                 variant="outline"
-                                className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700"
+                                className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors"
                               >
                                 {s}
                               </Badge>
@@ -3596,7 +3596,7 @@ export default function StaffPendingInviteDetails() {
                               <Badge
                                 key={l}
                                 variant="outline"
-                                className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700"
+                                className="text-[10px] px-1.5 py-0 bg-gray-50 border-gray-200 text-gray-700 hover:bg-gray-100 transition-colors"
                               >
                                 {l}
                               </Badge>
@@ -3606,32 +3606,39 @@ export default function StaffPendingInviteDetails() {
                             )}
                           </div>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">
-                            Operational Scope
-                          </span>{" "}
-                          <span className="font-semibold text-gray-900 text-right">
-                            {formData.serviceScope === "all"
-                              ? "All Areas"
-                              : "Specific Regions"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Transportation</span>{" "}
-                          <span className="font-semibold text-gray-900 text-right max-w-[150px] truncate">
-                            {formData.transportationType || "-"}
-                          </span>
+
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Scope</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.serviceScope === "all"
+                                ? "All Regions"
+                                : "Specific Regions"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Transportation</span>
+                            <span className="font-semibold text-gray-900 text-right max-w-[160px] truncate" title={formData.transportationType === "Flexible" ? `Flexible (${formData.primaryTransport})` : formData.transportationType}>
+                              {formData.transportationType === "Flexible" ? `Flexible (${formData.primaryTransport || "TBC"})` : (formData.transportationType || "-")}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Accommodation</span>
+                            <span className="font-semibold text-gray-900 text-right max-w-[160px] truncate" title={formData.accommodationType === "Company Accommodation" ? formData.accommodationName : formData.accommodationType}>
+                              {formData.accommodationType === "Company Accommodation" ? (formData.accommodationName || "Company Base") : (formData.accommodationType || "-")}
+                            </span>
+                          </div>
                         </div>
 
-                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Shift System</span>{" "}
+                            <span className="text-gray-500">Shift System</span>
                             <span className="font-semibold text-gray-900">
                               {formData.shiftSystem || "-"}
                             </span>
                           </div>
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Working Days</span>{" "}
+                            <span className="text-gray-500">Working Days</span>
                             <span className="font-semibold text-gray-900">
                               {formData.shiftSystem === "Rotational"
                                 ? "Varied (Rotational)"
@@ -3641,10 +3648,10 @@ export default function StaffPendingInviteDetails() {
                           </div>
                           {formData.shiftSystem === "Fixed" && (
                             <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Shift Hours</span>{" "}
+                              <span className="text-gray-500">Shift Hours</span>
                               <span className="font-semibold text-gray-900">
-                                {formData.workHoursStart} -{" "}
-                                {formData.workHoursEnd}
+                                {formData.workHoursStart || "-"} -{" "}
+                                {formData.workHoursEnd || "-"}
                               </span>
                             </div>
                           )}
@@ -3652,7 +3659,7 @@ export default function StaffPendingInviteDetails() {
 
                         {/* Documents Indicator */}
                         {(formData.documents?.length || 0) > 0 && (
-                          <div className="pt-2 mt-1 border-t border-gray-50 flex items-center justify-between">
+                          <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
                             <span className="text-gray-500">Verified Docs</span>
                             <Badge className="bg-green-50 text-green-700 hover:bg-green-100 border-green-100 gap-1 px-2.5 py-0 rounded">
                               <CheckCircle className="h-3 w-3" />
@@ -3691,7 +3698,7 @@ export default function StaffPendingInviteDetails() {
                           </Badge>
                         </div>
 
-                        <div className="pt-2 border-t border-gray-50 mt-1 space-y-2">
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500">
                               Management Access
@@ -3739,7 +3746,7 @@ export default function StaffPendingInviteDetails() {
                       Back to Access & Security
                     </Button>
                     <Button
-                      className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-lg px-6 font-medium text-white transition-all h-[38px] flex items-center justify-center"
+                      className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-xl px-6 font-bold text-white transition-all h-12 flex items-center justify-center text-sm"
                       onClick={handleActivate}
                     >
                       Complete Activation
@@ -4135,54 +4142,6 @@ export default function StaffPendingInviteDetails() {
                 </div>
               </div>
             </div>
-
-            {finalStatus === "Inactive" && (
-              <div className="space-y-4 animate-in fade-in slide-in-from-top-1 bg-orange-50/30 p-4 border border-orange-100 rounded-lg">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">
-                    Reason for Inactive Status{" "}
-                    <span className="text-red-500">*</span>
-                  </Label>
-                  <Select
-                    value={inactiveReason}
-                    onValueChange={v => setInactiveReason(v)}
-                  >
-                    <SelectTrigger className="bg-white w-full h-[46px] border-orange-200 text-sm shadow-sm rounded-lg hover:border-orange-300 focus:ring-orange-100">
-                      <SelectValue placeholder="Select Reason" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pending Confirmation">
-                        Pending Confirmation
-                      </SelectItem>
-                      <SelectItem value="Documentation Review">
-                        Documentation / Visa Review
-                      </SelectItem>
-                      <SelectItem value="Joining Date Not Started">
-                        Joining Date Not Started
-                      </SelectItem>
-                      <SelectItem value="Operational Approval Delay">
-                        Operational Approval Delay
-                      </SelectItem>
-                      <SelectItem value="Other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold uppercase text-gray-600 tracking-wide">
-                    Additional Note{" "}
-                    <span className="text-gray-400 font-normal truncate">
-                      (Optional)
-                    </span>
-                  </Label>
-                  <Input
-                    placeholder="E.g., Waiting for QID renewal..."
-                    value={inactiveNote}
-                    onChange={e => setInactiveNote(e.target.value)}
-                    className="h-10 border-orange-200 bg-white"
-                  />
-                </div>
-              </div>
-            )}
           </div>
           <DialogFooter className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 sm:justify-between items-center flex-row">
             <Button
@@ -4220,7 +4179,7 @@ export default function StaffPendingInviteDetails() {
                 activated
                 {isEligibleForDispatch()
                   ? " and is now ready for deployment."
-                  : ` as ${activationStatusSelect}.`}
+                  : ` as ${data?.status || "Active"}.`}
               </span>
             </div>
             <div className="pt-2">

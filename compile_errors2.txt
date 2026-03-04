@@ -1,0 +1,30 @@
+
+> workbook-admin@1.0.0 check
+> tsc --noEmit
+
+client/src/components/workforce/ActivationStep.tsx(55,32): error TS2339: Property 'phoneVerified' does not exist on type 'WorkforceMemberData'.
+client/src/components/workforce/ActivationStep.tsx(56,32): error TS2339: Property 'emailVerified' does not exist on type 'WorkforceMemberData'.
+client/src/pages/AddCustomer.tsx(46,25): error TS2503: Cannot find namespace 'google'.
+client/src/pages/AddCustomer.tsx(47,28): error TS2503: Cannot find namespace 'google'.
+client/src/pages/AddCustomer.tsx(55,32): error TS2503: Cannot find namespace 'google'.
+client/src/pages/AddCustomer.tsx(59,31): error TS2339: Property 'google' does not exist on type 'Window & typeof globalThis'.
+client/src/pages/AddCustomer.tsx(69,43): error TS2503: Cannot find namespace 'google'.
+client/src/pages/AddCustomer.tsx(72,32): error TS2304: Cannot find name 'google'.
+client/src/pages/AddCustomer.tsx(96,53): error TS7006: Parameter 'c' implicitly has an 'any' type.
+client/src/pages/CreatePackage.tsx(168,21): error TS2339: Property 'name' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(169,27): error TS2339: Property 'categoryId' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(170,23): error TS2339: Property 'status' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(172,22): error TS2339: Property 'duration' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(174,25): error TS2339: Property 'staffReq' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(175,21): error TS2339: Property 'desc' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(176,21): error TS2339: Property 'code' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(179,17): error TS2339: Property 'skills' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(181,33): error TS2339: Property 'skills' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(185,17): error TS2339: Property 'serviceAreas' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(186,31): error TS2339: Property 'serviceAreas' does not exist on type '{}'.
+client/src/pages/CreatePackage.tsx(188,15): error TS2339: Property 'serviceAreas' does not exist on type '{}'.
+client/src/pages/ServiceDirectory.tsx(25,26): error TS2345: Argument of type 'Set<unknown>' is not assignable to parameter of type 'SetStateAction<Set<string>>'.
+  Type 'Set<unknown>' is not assignable to type 'Set<string>'.
+    Type 'unknown' is not assignable to type 'string'.
+client/src/pages/settings/Skills.tsx(151,9): error TS2783: 'id' is specified more than once, so this usage will be overwritten.
+client/src/pages/StaffPendingInviteDetails.tsx(4223,28): error TS2304: Cannot find name 'activationStatusSelect'.

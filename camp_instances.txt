@@ -1,0 +1,52 @@
+170: campName?: string;
+290: // Camp Location State
+291: const [campLocations, setCampLocations] = useState<any[]>([
+294: name: "Camp A - Industrial Area",
+301: name: "Camp B - Al Wakrah",
+308: name: "Camp C - West Bay",
+314: const [isCreatingCamp, setIsCreatingCamp] = useState(false);
+315: const [newCamp, setNewCamp] = useState({
+614: campName: found.campName || "",
+2510: desc="Residential assignment, camp location, and geographical coordinates."
+2534: campName: "",
+2539: setIsCreatingCamp(false);
+2573: Camp Location{" "}
+2578: value={formData.campName}
+2580: setIsCreatingCamp(false);
+2581: const loc = campLocations.find(
+2587: campName: v,
+2593: setFormData({ ...formData, campName: v });
+2598: <SelectValue placeholder="Select Camp Location" />
+2601: {campLocations.map(camp => (
+2602: <SelectItem key={camp.id} value={camp.name}>
+2603: {camp.name}
+2609: {!isCreatingCamp && (
+2615: if (isEditing) setIsCreatingCamp(true);
+2619: New Camp Location
+2624: {isCreatingCamp && (
+2632: Add New Camp
+2637: Camp Name{" "}
+2641: value={newCamp.name}
+2643: setNewCamp({
+2644: ...newCamp,
+2649: placeholder="e.g. Camp A - Industrial Area"
+2658: value={newCamp.coordinates}
+2660: setNewCamp({
+2661: ...newCamp,
+2675: value={newCamp.address}
+2677: setNewCamp({
+2678: ...newCamp,
+2690: onClick={() => setIsCreatingCamp(false)}
+2700: newCamp.name &&
+2701: newCamp.coordinates &&
+2702: newCamp.address
+2704: const coords = newCamp.coordinates
+2711: name: newCamp.name,
+2714: fullAddress: newCamp.address,
+2716: setCampLocations([
+2717: ...campLocations,
+2722: campName: newLoc.name,
+2727: setIsCreatingCamp(false);
+2728: setNewCamp({
+2734: "Camp location created & assigned"
+2738: "Please fill all camp details"
