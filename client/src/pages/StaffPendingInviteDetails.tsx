@@ -871,7 +871,7 @@ export default function StaffPendingInviteDetails() {
 
   const handleConfirmActivation = () => {
     if (!finalStatus) {
-      toast.error("Please select a final status.");
+      toast.error("Please select a final status (Active or Inactive).");
       return;
     }
     const statusVal = finalStatus === "Active" ? "available" : "offline";
@@ -4037,127 +4037,77 @@ export default function StaffPendingInviteDetails() {
         open={isActivationModalOpen}
         onOpenChange={setIsActivationModalOpen}
       >
-        <DialogContent className="sm:max-w-md p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
-          <DialogHeader className="p-6 pb-4 border-b border-gray-100 bg-gray-50/50">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0">
-                <User className="h-5 w-5" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg font-bold text-gray-900">
-                  Complete Activation
-                </DialogTitle>
-                <span className="text-xs text-gray-500 mt-1 block">
-                  Finalize the operational status for {data?.name}.
-                </span>
-              </div>
-            </div>
-          </DialogHeader>
-          <div className="p-6 space-y-6">
-            {/* Staff Summary Snapshot */}
-            <div className="bg-gray-50/50 border border-gray-100 rounded-lg p-4 flex items-center gap-4">
-              <Avatar className="h-12 w-12 border border-blue-100">
-                <AvatarImage src={data?.avatar} className="object-cover" />
-                <AvatarFallback className="bg-blue-50 text-blue-700 font-bold">
-                  {data?.name?.substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="overflow-hidden">
-                <div className="font-bold text-gray-900 truncate">
-                  {data?.name}
-                </div>
-                <div className="text-xs text-gray-500 mt-0.5">
-                  {data?.role} • {data?.department}
-                </div>
-              </div>
+        <DialogContent className="sm:max-w-[425px] p-6 bg-white border-0 shadow-2xl rounded-2xl gap-0">
+          <div className="space-y-4">
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">
+              Complete Activation?
+            </h2>
+            <div className="text-[15px] text-gray-600 space-y-2 leading-relaxed">
+              <p>
+                This will formally activate{" "}
+                <span className="font-semibold text-gray-900">
+                  {data?.name || "this staff member"}
+                </span>{" "}
+                within the system.
+              </p>
+              <p>
+                Their profile will become available for scheduling and dispatch,
+                and they will receive an automated welcome communication.
+              </p>
             </div>
 
-            <div className="space-y-3">
-              <Label className="text-[13px] font-bold text-gray-900 tracking-tight">
-                Set Final System Status <span className="text-red-500">*</span>
+            <div className="pt-2">
+              <Label className="text-[13px] font-bold text-gray-900 mb-3 block">
+                Final System Status <span className="text-red-500">*</span>
               </Label>
-
-              {/* Status Options - Segmented/Cards */}
-              <div className="grid grid-cols-2 gap-3">
-                <div
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  className={`flex-1 h-10 rounded-full border shadow-none font-semibold text-sm transition-all ${
+                    finalStatus === "Active"
+                      ? "border-green-500 text-green-700 bg-white"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                  }`}
                   onClick={() => setFinalStatus("Active")}
-                  className={`
-                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
-                                ${
-                                  finalStatus === "Active"
-                                    ? "bg-green-50/50 border-green-500 text-green-700 shadow-sm"
-                                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-                                }
-                            `}
                 >
-                  <div
-                    className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === "Active" ? "border-green-600" : "border-gray-300"}`}
-                  >
-                    {finalStatus === "Active" && (
-                      <div className="h-2 w-2 rounded-full bg-green-600" />
-                    )}
-                  </div>
                   <CheckCircle
-                    className={`w-6 h-6 ${finalStatus === "Active" ? "text-green-600" : "text-gray-400"}`}
+                    className={`w-4 h-4 mr-2 ${finalStatus === "Active" ? "text-green-600" : "text-gray-400"}`}
                   />
-                  <div>
-                    <div className="font-bold text-sm text-gray-900">
-                      Active
-                    </div>
-                    <span className="text-[10px] text-gray-500 mt-1 block leading-tight">
-                      Can receive assignments & be dispatched
-                    </span>
-                  </div>
-                </div>
-
-                <div
+                  Active
+                </Button>
+                <Button
+                  variant="outline"
+                  className={`flex-1 h-10 rounded-full border shadow-none font-semibold text-sm transition-all ${
+                    finalStatus === "Inactive"
+                      ? "border-gray-400 text-gray-800 bg-white"
+                      : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                  }`}
                   onClick={() => setFinalStatus("Inactive")}
-                  className={`
-                                relative p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-center gap-2
-                                ${
-                                  finalStatus === "Inactive"
-                                    ? "bg-orange-50/50 border-orange-500 text-orange-700 shadow-sm"
-                                    : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
-                                }
-                            `}
                 >
-                  <div
-                    className={`h-4 w-4 absolute top-3 right-3 rounded-full border flex items-center justify-center shrink-0 ${finalStatus === "Inactive" ? "border-orange-600" : "border-gray-300"}`}
-                  >
-                    {finalStatus === "Inactive" && (
-                      <div className="h-2 w-2 rounded-full bg-orange-600" />
-                    )}
-                  </div>
                   <AlertCircle
-                    className={`w-6 h-6 ${finalStatus === "Inactive" ? "text-orange-600" : "text-gray-400"}`}
+                    className={`w-4 h-4 mr-2 ${finalStatus === "Inactive" ? "text-gray-600" : "text-gray-400"}`}
                   />
-                  <div>
-                    <div className="font-bold text-sm text-gray-900">
-                      Inactive
-                    </div>
-                    <span className="text-[10px] text-gray-500 mt-1 block leading-tight">
-                      Profile saved but cannot be scheduled
-                    </span>
-                  </div>
-                </div>
+                  Inactive
+                </Button>
               </div>
             </div>
           </div>
-          <DialogFooter className="px-6 py-4 bg-gray-50/50 border-t border-gray-100 sm:justify-between items-center flex-row">
+
+          <div className="flex items-center justify-end gap-3 mt-8">
             <Button
               variant="ghost"
-              className="h-10 text-gray-600 font-medium hover:bg-white"
+              className="text-[13px] font-semibold text-gray-700 bg-transparent hover:bg-gray-100 rounded-full px-5 py-2 h-auto transition-colors"
               onClick={() => setIsActivationModalOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              className="h-10 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm px-6"
+              className="text-[13px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-full px-6 py-2 h-auto transition-colors shadow-none"
               onClick={handleConfirmActivation}
             >
-              Confirm & Update Status
+              {finalStatus === "Inactive" ? "Save Status" : "Activate"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 

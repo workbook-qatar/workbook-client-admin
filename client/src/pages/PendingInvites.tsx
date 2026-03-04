@@ -658,41 +658,33 @@ export default function PendingInvites() {
         open={!!inviteToDelete}
         onOpenChange={open => !open && setInviteToDelete(null)}
       >
-        <AlertDialogContent className="sm:max-w-[440px] p-0 overflow-hidden border-0 shadow-[0_8px_30px_rgb(0,0,0,0.12)] rounded-[24px] bg-white">
-          <div className="p-8 pb-7 flex flex-col items-center justify-center text-center relative selection:bg-red-100 selection:text-red-900">
-            <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-red-50/60 to-transparent pointer-events-none" />
+        <AlertDialogContent className="sm:max-w-[425px] p-8 bg-white border-0 shadow-2xl rounded-3xl gap-4 flex flex-col items-center justify-center text-center">
+          <div className="h-12 w-12 bg-red-50 rounded-2xl flex items-center justify-center text-red-600 shadow-sm border border-red-100/50">
+            <Trash2 className="h-5 w-5" />
+          </div>
 
-            <div className="h-14 w-14 bg-red-50 rounded-[16px] flex items-center justify-center mb-6 ring-1 ring-red-100/50 shadow-sm relative transition-transform duration-300">
-              <div className="absolute inset-0 bg-red-100/40 rounded-[16px]" />
-              <Trash2 className="h-6 w-6 text-red-600 relative z-10" />
-            </div>
-
-            <AlertDialogTitle className="text-xl font-bold text-gray-900 tracking-tight leading-none mb-3">
+          <div className="space-y-2 mb-2">
+            <AlertDialogTitle className="text-xl font-bold text-gray-900 tracking-tight">
               Delete Invitation?
             </AlertDialogTitle>
-
-            <AlertDialogDescription className="text-sm text-gray-500 leading-relaxed max-w-[340px] mx-auto font-medium">
+            <AlertDialogDescription className="text-[15px] text-gray-600 leading-relaxed font-medium mt-2">
               You are about to delete the pending invite for{" "}
               <strong className="font-bold text-gray-900">
                 {inviteToDelete?.name}
               </strong>
-              . This action is irreversible and all associated data will be
-              lost.
+              . This action is irreversible and all associated data will be lost.
             </AlertDialogDescription>
           </div>
 
-          <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100/60 flex flex-col-reverse sm:flex-row gap-3">
-            <AlertDialogCancel className="mt-0 sm:flex-1 h-11 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:border-gray-300 rounded-xl text-[14px] font-semibold transition-all shadow-sm focus:ring-2 focus:ring-gray-200 outline-none">
+          <div className="flex items-center justify-center gap-3 w-full mt-2">
+            <AlertDialogCancel className="h-11 flex-1 rounded-full border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-gray-900 font-semibold shadow-none m-0 transition-colors">
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              className="mt-0 sm:flex-1 h-11 bg-[#dc2626] hover:bg-[#b91c1c] text-white rounded-xl text-[14px] font-semibold shadow-[0_1px_2px_rgba(0,0,0,0.1)] overflow-hidden relative group transition-all focus:ring-2 focus:ring-red-500 outline-none"
+              className="h-11 flex-1 rounded-full bg-[#E53935] hover:bg-[#D32F2F] text-white font-semibold shadow-none m-0 transition-colors"
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="flex items-center justify-center gap-2 relative z-10">
-                <span>Delete Invite</span>
-              </div>
+              Delete Invite
             </AlertDialogAction>
           </div>
         </AlertDialogContent>

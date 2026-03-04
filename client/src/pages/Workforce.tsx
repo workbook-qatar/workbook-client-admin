@@ -873,27 +873,25 @@ export default function Workforce() {
 
       {/* Invite User Modal */}
       <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-        <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border border-gray-200 shadow-xl rounded-2xl">
-          <DialogHeader className="px-8 py-6 border-b border-gray-100 bg-gray-50/50">
+        <DialogContent className="sm:max-w-[425px] p-6 bg-white border-0 shadow-2xl rounded-2xl gap-0">
+          <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="text-blue-600 flex items-center justify-center">
                 <Mail className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-bold text-gray-900">
+                <h2 className="text-lg font-bold text-gray-900 tracking-tight">
                   Invite New Staff
-                </DialogTitle>
-                <p className="text-xs text-gray-500 mt-1">
+                </h2>
+                <p className="text-[13px] text-gray-500 mt-0.5">
                   Send an invitation link to onboard a new team member.
                 </p>
               </div>
             </div>
-          </DialogHeader>
 
-          <div className="px-8 py-6 bg-white">
-            <div className="grid grid-cols-1 gap-5">
-              <div className="flex flex-col h-full">
-                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+            <div className="space-y-4 pt-2">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wide">
                   Full Name <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -902,12 +900,12 @@ export default function Workforce() {
                   onChange={e =>
                     setInviteData({ ...inviteData, name: e.target.value })
                   }
-                  className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+                  className="h-10 border-gray-200 text-[13px] rounded-lg focus-visible:ring-1 focus-visible:ring-blue-500 shadow-none"
                 />
               </div>
 
-              <div className="flex flex-col h-full">
-                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wide">
                   Email Address <span className="text-red-500">*</span>
                 </Label>
                 <Input
@@ -917,19 +915,19 @@ export default function Workforce() {
                   onChange={e =>
                     setInviteData({ ...inviteData, email: e.target.value })
                   }
-                  className="mt-auto h-10 w-full border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+                  className="h-10 border-gray-200 text-[13px] rounded-lg focus-visible:ring-1 focus-visible:ring-blue-500 shadow-none"
                 />
               </div>
 
-              <div className="flex flex-col h-full">
-                <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide mb-1.5 block">
+              <div className="space-y-1.5">
+                <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wide">
                   Role <span className="text-red-500">*</span>
                 </Label>
                 <Select
                   value={inviteData.role}
                   onValueChange={v => setInviteData({ ...inviteData, role: v })}
                 >
-                  <SelectTrigger className="mt-auto bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-blue-100 text-gray-600">
+                  <SelectTrigger className="h-10 border-gray-200 text-[13px] rounded-lg focus:ring-1 focus:ring-blue-500 shadow-none text-gray-600 bg-white">
                     <SelectValue placeholder="Select role" />
                   </SelectTrigger>
                   <SelectContent>
@@ -946,21 +944,21 @@ export default function Workforce() {
             </div>
           </div>
 
-          <DialogFooter className="px-8 py-5 border-t border-gray-100 bg-gray-50/80 flex items-center justify-between sm:justify-between">
+          <div className="flex items-center justify-end gap-3 mt-8">
             <Button
               variant="ghost"
-              className="h-10 px-6 text-gray-600 hover:bg-gray-100 hover:text-gray-900 rounded-xl font-semibold transition-colors"
+              className="text-[13px] font-semibold text-gray-700 bg-transparent hover:bg-gray-100 rounded-full px-5 py-2 h-auto transition-colors"
               onClick={() => setIsInviteOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              className="h-10 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm shadow-blue-600/20 transition-all rounded-xl font-bold flex items-center gap-2 text-white text-sm"
+              className="text-[13px] font-semibold bg-blue-600 hover:bg-blue-700 text-white rounded-full px-5 py-2 h-auto transition-colors shadow-none"
               onClick={handleInviteSubmit}
             >
-              Send Invite <ArrowRight className="w-4 h-4" />
+              Send Invite <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
