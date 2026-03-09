@@ -1,0 +1,282 @@
+            <div className="flex-1 overflow-y-auto p-8 bg-white">
+              {/* 1. EMPLOYMENT DETAILS */}
+              {currentStep === 0 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* Section: Role Information */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                      <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                        <Briefcase className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Role Information
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          Define the position and departmental placement.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Position <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.role}
+                          onValueChange={v =>
+                            setFormData({ ...formData, role: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Position" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {positionOptions.map(p => (
+                              <SelectItem key={p} value={p}>
+                                {p}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Department <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.department}
+                          onValueChange={v =>
+                            setFormData({ ...formData, department: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Department" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {departmentOptions.map(d => (
+                              <SelectItem key={d} value={d}>
+                                {d}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Employment Type{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.employmentType}
+                          onValueChange={v =>
+                            setFormData({
+                              ...formData,
+                              employmentType: v as any,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {employmentTypeOptions.map(t => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Start Date <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          type="date"
+                          disabled={!isEditing}
+                          value={formData.startDate}
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                          onChange={e =>
+                            setFormData({
+                              ...formData,
+                              startDate: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section: Compensation */}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
+                      <div className="h-8 w-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
+                        <Banknote className="h-4 w-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">
+                          Compensation Package
+                        </h3>
+                        <p className="text-xs text-gray-500">
+                          Configure salary structure and payment terms.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1.5 md:col-span-2">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                            Salary Scheme{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            disabled={!isEditing}
+                            value={formData.salaryType}
+                            onValueChange={v =>
+                              setFormData({ ...formData, salaryType: v as any })
+                            }
+                          >
+                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm">
+                              <SelectValue placeholder="Select Salary Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Fixed Monthly">
+                                Fixed Monthly
+                              </SelectItem>
+                              <SelectItem value="Hourly-Rate">
+                                Hourly-Rate
+                              </SelectItem>
+                              <SelectItem value="Commission-Based">
+                                Commission
+                              </SelectItem>
+                              <SelectItem value="Fixed + Commission">
+                                Fixed + Commission
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-[11px] text-gray-500 pt-1">
+                            {formData.salaryType === "Fixed Monthly" &&
+                              "Driver receives a consistent monthly salary regardless of trips."}
+                            {formData.salaryType === "Commission-Based" &&
+                              "Earnings are based on completed deliveries or trips."}
+                            {formData.salaryType === "Hourly-Rate" &&
+                              "Pay is calculated based on total clocked working hours."}
+                            {formData.salaryType === "Fixed + Commission" &&
+                              "Driver receives a basic salary plus an incentive per trip."}
+                          </p>
+                        </div>
+
+                        {(formData.salaryType === "Fixed Monthly" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Monthly Base Salary{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.salaryAmount}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    salaryAmount: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {(formData.salaryType === "Commission-Based" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Per Trip / Delivery Incentive{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.commissionRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    commissionRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0"
+                                className="h-11 w-full pr-10 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-sm font-bold">
+                                %
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {formData.salaryType === "Hourly-Rate" && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Hourly Rate{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.hourlyRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    hourlyRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-xs font-medium">
+                                / hour
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setLocation("/workforce/pending")}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => saveChanges(true)}
+                      disabled={!reqs.profile}
+                    >
+                      Next: Operations & Compliance{" "}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. OPERATIONS & COMPLIANCE */}
+              {currentStep === 1 && (

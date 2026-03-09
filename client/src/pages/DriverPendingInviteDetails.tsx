@@ -39,6 +39,7 @@ import {
   Layers,
   Check,
   ChevronDown,
+    Info,
 } from "lucide-react";
 import {
   Select,
@@ -149,6 +150,10 @@ interface ExtendedStaffMember extends StaffMember {
   serviceScope?: "all" | "specific";
   serviceAreas?: string[];
   seatCapacity?: string; // New field for Personal Vehicle
+  // Access & Security
+  dashboardAccess?: boolean;
+  systemRole?: string;
+  permissionScope?: string;
 }
 
 const MOCK_SERVICE_AREAS = [
@@ -159,6 +164,31 @@ const MOCK_SERVICE_AREAS = [
   { id: "sa-5", name: "Al Wakrah" },
   { id: "sa-6", name: "Lusail" },
 ];
+
+
+const SectionHeader = ({
+  title,
+  desc,
+  icon: Icon,
+}: {
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+}) => (
+  <div className="flex items-start gap-4 mb-6 relative group">
+    <div className="h-10 w-10 text-blue-600 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 border border-blue-100/50 shadow-[inset_0_2px_4px_rgb(255,255,255,0.5)] group-hover:scale-105 transition-transform duration-300">
+      <Icon className="h-5 w-5" />
+    </div>
+    <div className="flex-1 mt-0.5">
+      <h3 className="text-base font-bold text-gray-900 tracking-tight">
+        {title}
+      </h3>
+      <span className="text-[13px] text-gray-400 mt-1 block leading-relaxed">
+        {desc}
+      </span>
+    </div>
+  </div>
+);
 
 export default function DriverPendingInviteDetails({
   initialData,
@@ -608,7 +638,7 @@ export default function DriverPendingInviteDetails({
   };
 
   // Check Requirements matching the new 3 Steps
-  // Check Requirements matching the new 3 Steps (Merged)
+  // Check Requirements matching the new 4 Steps
   const checkRequirements = () => {
     const d = formData || data;
     const opsValid =
@@ -617,20 +647,22 @@ export default function DriverPendingInviteDetails({
     const scheduleValid = (d.workingDays?.length || 0) > 0;
 
     const isCompVehicle = d.transportationType === "Company Vehicle";
-    // Validate vehicle assignment only if Company Vehicle.
-    // If Personal Vehicle, we don't strictly force plate number (as per "vehicle assignment not required"), but could be optional.
     const vehicleValid = isCompVehicle ? !!d.assignedVehicle : true;
 
     return {
-      employment: !!(
+      profile: !!(
+        d.name &&
+        d.phone &&
         d.role &&
         d.department &&
         d.employmentType &&
         d.startDate &&
         d.salaryType
       ),
-      // Combined validation
       ops: !!d.transportationType && vehicleValid && opsValid && scheduleValid,
+      access:
+        d.dashboardAccess === false ||
+        !!(d.dashboardAccess && d.systemRole),
       summary: true,
     };
   };
@@ -638,15 +670,16 @@ export default function DriverPendingInviteDetails({
   const reqs = checkRequirements();
   const steps = [
     {
-      id: "employment",
-      label: "Employment & Contracts",
-      completed: reqs.employment,
+      id: "profile",
+      label: "Driver Profile",
+      completed: reqs.profile,
     },
-    { id: "ops", label: "Operations & Compliance", completed: reqs.ops },
+    { id: "ops", label: "Operations Setup", completed: reqs.ops },
+    { id: "access", label: "Access & Security", completed: reqs.access },
     {
       id: "summary",
       label: "Summary & Activation",
-      completed: currentStep === 2,
+      completed: currentStep === 3,
     },
   ];
 
@@ -747,140 +780,142 @@ export default function DriverPendingInviteDetails({
 
         {/* Split View */}
         <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-6 animate-in fade-in slide-in-from-bottom-2">
-          {/* LEFT SIDEBAR - PROFILE DETAILS */}
+                    {/* LEFT SIDEBAR - PROFILE DETAILS */}
           <div className="w-full lg:w-80 shrink-0 space-y-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
-              {/* Header: Photo & Name */}
-              <div className="p-6 flex flex-col items-center text-center border-b border-gray-100 bg-gradient-to-b from-white to-gray-50/50 relative">
-                {/* Edit Action */}
-                <div className="absolute top-4 right-4">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-gray-400 hover:text-blue-600 hover:bg-white/80 transition-all rounded-full"
-                    onClick={() => setIsBasicInfoOpen(true)}
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                </div>
-
-                <div className="relative mb-4">
-                  <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+              {/* Essential Setup Info */}
+              <div className="bg-white border-b border-gray-100 p-6 space-y-6 shrink-0">
+                {/* Profile Info */}
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12 border border-gray-100 shadow-sm">
                     <AvatarImage src={data.avatar} className="object-cover" />
-                    <AvatarFallback className="text-2xl font-bold bg-gray-100 text-gray-600">
+                    <AvatarFallback className="font-bold bg-blue-50 text-blue-700">
                       {data.name.substring(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow-sm border border-gray-200">
-                    <User className="h-3 w-3 text-gray-500" />
+                  <div className="overflow-hidden">
+                    <h2 className="text-lg font-bold text-gray-900 leading-tight truncate">
+                      {data.name}
+                    </h2>
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[13px] text-gray-500">
+                      <Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      <span className="truncate">
+                        {data.email || "No email provided"}
+                      </span>
+                    </div>
                   </div>
                 </div>
-                <h2 className="font-bold text-lg text-gray-900 leading-tight">
-                  {data.name}
-                </h2>
-                <p className="text-sm text-gray-500 mt-1">
-                  {data.nickname || "No Nickname"}
-                </p>
+
+                {/* Role Type */}
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Role Type
+                  </span>
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-3 py-1 font-semibold shadow-sm border border-blue-100/50"
+                  >
+                    {data.role || "Driver"}
+                  </Badge>
+                </div>
+
+                {/* Invitation Status */}
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Invitation Status
+                  </span>
+                  <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-green-700 font-bold text-sm mb-1">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Accepted</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-green-600/80 ml-6">
+                      <Calendar className="h-3 w-3" />
+                      <span>Oct 24, 2025 ـ 09:41 AM</span>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              {/* Profile Details List */}
-              <div className="p-6 space-y-4 text-sm flex-1 overflow-y-auto">
-                <div className="space-y-4">
-                  {[
-                    { icon: Hash, label: "QID Number", value: data.qid },
-                    { icon: Calendar, label: "Date of Birth", value: data.dob },
-                    {
-                      icon: Flag,
-                      label: "Nationality",
-                      value: data.nationality,
-                    },
-                    { icon: User, label: "Gender", value: data.gender },
-                    { icon: Phone, label: "Mobile", value: data.phone },
-                    {
-                      icon: Mail,
-                      label: "Email",
-                      value: data.email,
-                      isMultiline: true,
-                    },
-                  ].map((item, i) => (
+              <div className="flex flex-col flex-1">
+                {/* Progress Badge */}
+                <div className="px-6 py-4 shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Setup Progress
+                    </span>
+                    <span className="text-xs font-bold text-blue-600">
+                      {progressPercent.toFixed(0)}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      key={i}
-                      className="flex items-start justify-between group"
+                      className="h-full bg-blue-600 transition-all duration-500"
+                      style={{ width: `${progressPercent}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Next Steps List */}
+                <div className="px-6 pb-6 space-y-2 shrink-0">
+                  {steps.map((step, idx) => (
+                    <div
+                      key={step.id}
+                      onClick={() => setCurrentStep(idx)}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                        currentStep === idx
+                          ? "bg-blue-50 border-blue-200 shadow-sm"
+                          : "bg-white border-transparent hover:bg-gray-50"
+                      }`}
                     >
-                      <div className="flex items-center gap-3 text-gray-500 shrink-0 mt-0.5">
-                        <item.icon className="h-4 w-4" />
-                        <span>{item.label}</span>
+                      <div
+                        className={`
+                                         h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0
+                                         ${
+                                           step.completed
+                                             ? "bg-green-100 text-green-600"
+                                             : currentStep === idx
+                                               ? "bg-blue-600 text-white"
+                                               : "bg-gray-100 text-gray-400"
+                                         }
+                                     `}
+                      >
+                        {step.completed ? (
+                          <CheckCircle className="h-3.5 w-3.5" />
+                        ) : (
+                          idx + 1
+                        )}
                       </div>
                       <span
-                        className={`font-medium text-gray-900 text-right ml-4 ${item.isMultiline ? "break-all" : ""}`}
+                        className={`text-sm font-medium ${currentStep === idx ? "text-blue-900" : "text-gray-600"}`}
                       >
-                        {item.value || "---"}
+                        {step.label}
                       </span>
                     </div>
                   ))}
                 </div>
-              </div>
 
-              {/* Progress Badge */}
-              <div className="px-6 py-2">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                    Setup Progress
-                  </span>
-                  <span className="text-xs font-bold text-blue-600">
-                    {progressPercent.toFixed(0)}%
-                  </span>
-                </div>
-                <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-blue-600 transition-all duration-500"
-                    style={{ width: `${progressPercent}%` }}
-                  ></div>
-                </div>
-              </div>
-
-              {/* Next Steps List */}
-              <div className="p-6 pt-2 space-y-2">
-                {steps.map((step, idx) => (
-                  <div
-                    key={step.id}
-                    onClick={() => setCurrentStep(idx)}
-                    className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
-                      currentStep === idx
-                        ? "bg-blue-50 border-blue-200 shadow-sm"
-                        : "bg-white border-transparent hover:bg-gray-50"
-                    }`}
-                  >
-                    <div
-                      className={`
-                                     h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0
-                                     ${
-                                       step.completed
-                                         ? "bg-green-100 text-green-600"
-                                         : currentStep === idx
-                                           ? "bg-blue-600 text-white"
-                                           : "bg-gray-100 text-gray-400"
-                                     }
-                                 `}
-                    >
-                      {step.completed ? (
-                        <CheckCircle className="h-3.5 w-3.5" />
-                      ) : (
-                        idx + 1
-                      )}
+                {/* Important Notes Box */}
+                <div className="px-6 pb-6 mt-auto">
+                  <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-5 w-5 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center shrink-0">
+                        <Info className="h-3 w-3" />
+                      </div>
+                      <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                        Important
+                      </span>
                     </div>
-                    <span
-                      className={`text-sm font-medium ${currentStep === idx ? "text-blue-900" : "text-gray-600"}`}
-                    >
-                      {step.label}
+                    <span className="block text-[11px] text-amber-800/90 leading-relaxed">
+                      Review all details carefully before final activation.
                     </span>
                   </div>
-                ))}
-              </div>
+                </div>
 
-              {/* Footer Action - Removed Activate Button from Sidebar */}
-              <div className="p-4 border-t bg-gray-50 mt-auto text-center text-xs text-gray-400">
-                Complete all steps to activate.
+                {/* Footer Action */}
+                <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 text-center text-[11px] font-medium text-gray-400 shrink-0">
+                  Complete all steps to activate.
+                </div>
               </div>
             </div>
           </div>
@@ -889,9 +924,98 @@ export default function DriverPendingInviteDetails({
           <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
             {/* Content Area */}
             <div className="flex-1 overflow-y-auto p-8 bg-white">
-              {/* 1. EMPLOYMENT DETAILS */}
+              {/* 1. DRIVER PROFILE */}
               {currentStep === 0 && (
                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* Section: Personal Details */}
+                  <div className="space-y-6">
+                    <SectionHeader
+                      title="Personal Details"
+                      desc="Driver identity and contact details."
+                      icon={User}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-1.5 md:col-span-2">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Profile Photo
+                        </Label>
+                        <div className="flex items-center gap-4 mt-2">
+                          <Avatar className="h-20 w-20 border border-gray-100 shadow-sm">
+                            <AvatarImage src={formData.avatar} className="object-cover" />
+                            <AvatarFallback className="font-bold bg-blue-50 text-blue-700 text-xl">
+                              {formData.name ? formData.name.substring(0, 2).toUpperCase() : "DR"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-2">
+                            <Button variant="outline" size="sm" className="h-8">
+                              Upload New Photo
+                            </Button>
+                            <p className="text-[11px] text-gray-500">
+                              JPG, PNG or GIF. Max size of 2MB.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Full Name <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          disabled={!isEditing}
+                          value={formData.name || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                          placeholder="Legal full name"
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Display Name
+                        </Label>
+                        <Input
+                          disabled={!isEditing}
+                          value={formData.nickname || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, nickname: e.target.value })
+                          }
+                          placeholder="Preferred name"
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Mobile Number <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          disabled={!isEditing}
+                          value={formData.phone || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
+                          placeholder="+974"
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Email Address
+                        </Label>
+                        <Input
+                          disabled={true}
+                          value={formData.email || ""}
+                          className="h-11 w-full bg-gray-50 cursor-not-allowed border-gray-200 text-gray-500 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Divider */}
+                  <div className="border-t border-gray-100"></div>
+
                   {/* Section: Role Information */}
                   <div className="space-y-6">
                     <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
@@ -1159,7 +1283,7 @@ export default function DriverPendingInviteDetails({
                     <Button
                       className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       onClick={() => saveChanges(true)}
-                      disabled={!reqs.employment}
+                      disabled={!reqs.profile}
                     >
                       Next: Operations & Compliance{" "}
                       <ArrowRight className="w-4 h-4 ml-2" />
@@ -1868,8 +1992,242 @@ export default function DriverPendingInviteDetails({
                 </div>
               )}
 
-              {/* 4. SUMMARY & ACTIVATION (Now Step 3 index 2) */}
+              {/* 3. ACCESS & SECURITY */}
               {currentStep === 2 && (
+                <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
+                  <div className="space-y-6 relative overflow-hidden transition-all duration-300">
+                    <SectionHeader
+                      title="System Access & Permissions"
+                      desc="Dashboard access levels, system roles, and platform permissions."
+                      icon={ShieldCheck}
+                    />
+
+                    <div className="space-y-6">
+                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900 mb-1">
+                            Dashboard Access
+                          </h4>
+                          <span className="text-[11px] text-gray-400 mt-1 block">
+                            Allow login to admin dashboard
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
+                          <button
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                dashboardAccess: true,
+                              })
+                            }
+                            className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === true ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                dashboardAccess: false,
+                              })
+                            }
+                            className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === false ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative overflow-hidden transition-all duration-300 pb-2">
+                        {formData.dashboardAccess === false && (
+                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center rounded-xl transition-all duration-300">
+                            <div className="bg-white px-5 py-3 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.06)] border border-gray-100 font-medium text-[13px] text-gray-700 flex items-center gap-2.5 animate-in zoom-in-95">
+                              <div className="h-7 w-7 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                                <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                              </div>
+                              Enable Dashboard Access to configure role
+                            </div>
+                          </div>
+                        )}
+
+                        <div
+                          className={`space-y-6 pt-2 transition-all duration-300 ${formData.dashboardAccess === false ? "opacity-40 pointer-events-none select-none blur-[1px]" : "animate-in fade-in slide-in-from-top-2"}`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-[13px] font-bold text-gray-900 tracking-tight">
+                                System Role{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Button
+                                variant="ghost"
+                                className="h-auto p-0 text-[12px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-transparent"
+                                onClick={() => setLocation("/settings")}
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-1" /> Create
+                                System Role
+                              </Button>
+                            </div>
+
+                            <Select
+                              value={formData.systemRole}
+                              onValueChange={(v) =>
+                                setFormData({ ...formData, systemRole: v })
+                              }
+                            >
+                              <SelectTrigger className="bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-purple-100 text-gray-700">
+                                <SelectValue placeholder="Select system role" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Manager">Manager</SelectItem>
+                                <SelectItem value="Supervisor">
+                                  Supervisor
+                                </SelectItem>
+                                <SelectItem value="Dispatcher">
+                                  Dispatcher
+                                </SelectItem>
+                                <SelectItem value="Admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {formData.systemRole && (
+                            <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-5 space-y-4 shadow-sm">
+                              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-6 w-6 rounded bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                                    <Briefcase className="h-3.5 w-3.5" />
+                                  </div>
+                                  <span className="text-sm font-bold text-gray-900">
+                                    {formData.systemRole} Access Preview
+                                  </span>
+                                </div>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-md px-2 py-0.5 text-[10px] font-bold border border-purple-100/50 uppercase tracking-widest shadow-sm"
+                                >
+                                  Read-Only
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                                {(() => {
+                                  const rolePermissions: Record<
+                                    string,
+                                    { module: string; access: string }[]
+                                  > = {
+                                    Manager: [
+                                      {
+                                        module: "Workforce",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Bookings",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Customers",
+                                        access: "Full Access",
+                                      },
+                                      { module: "Services", access: "Manage" },
+                                      {
+                                        module: "Finance",
+                                        access: "View Only",
+                                      },
+                                      {
+                                        module: "Settings",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Supervisor: [
+                                      {
+                                        module: "Workforce",
+                                        access: "View Only",
+                                      },
+                                      { module: "Bookings", access: "Manage" },
+                                      {
+                                        module: "Dispatch",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Customers",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Dispatcher: [
+                                      {
+                                        module: "Dispatch",
+                                        access: "Full Access",
+                                      },
+                                      { module: "Bookings", access: "Manage" },
+                                      {
+                                        module: "Workforce",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Admin: [
+                                      {
+                                        module: "All Modules",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "System Settings",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "User Management",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Billing",
+                                        access: "Full Access",
+                                      },
+                                    ],
+                                  };
+
+                                  const perms =
+                                    rolePermissions[formData.systemRole] || [];
+
+                                  return perms.map((p, i) => (
+                                    <div key={i} className="space-y-1">
+                                      <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                        {p.module}
+                                      </div>
+                                      <div className="text-[13px] font-medium text-gray-900 flex items-center gap-1.5">
+                                        <Check className="h-3.5 w-3.5 text-green-500" />
+                                        {p.access}
+                                      </div>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setCurrentStep(1)}
+                      className="h-12 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold transition-colors"
+                    >
+                      Previous Step
+                    </Button>
+                    <Button
+                      className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2"
+                      onClick={() => setCurrentStep(3)}
+                      disabled={!reqs.access}
+                    >
+                      Next: Final Review <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* 4. SUMMARY & ACTIVATION */}
+              {currentStep === 3 && (
                 <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
                   <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
                     <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
@@ -1878,279 +2236,266 @@ export default function DriverPendingInviteDetails({
                     <h2 className="text-xl font-bold text-gray-900">
                       Review & Activate
                     </h2>
-                    <p className="text-sm text-gray-500 max-w-md mx-auto mt-1">
-                      Finalize the staff member's profile for deployment.
-                    </p>
+                    <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
+                      Finalize the driver's profile for deployment.
+                    </span>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* PROFILE CARD */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                      <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                        <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4" />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* CARD 1: PERSONAL DETAILS */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                            <User className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Personal Details
+                          </span>
                         </div>
-                        <span className="font-bold text-sm text-gray-900">
-                          Personal Details
-                        </span>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 1
+                        </Badge>
                       </div>
-                      <div className="space-y-3 text-sm">
+                      <div className="space-y-3 text-[13px]">
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500">Full Name</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {data?.name}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.name || "-"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Role</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {formData.role}
+                          <span className="text-gray-500">Display Name</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.nickname || "N/A"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Gender</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {data?.gender}
+                          <span className="text-gray-500">Mobile</span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.phone || "-"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Nationality</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {data?.nationality}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Contact</span>{" "}
-                          <div className="text-right flex flex-col">
-                            <span className="font-medium text-gray-900">
-                              {data?.phone}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              {data?.email}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Religion</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {formData.religion || "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Marital Status</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {formData.maritalStatus || "-"}
+                          <span className="text-gray-500">Email</span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.email || "-"}
                           </span>
                         </div>
                       </div>
                     </div>
-
-                    {/* OPERATIONS & SKILLS CARD */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                      <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                        <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center">
-                          <Briefcase className="h-4 w-4" />
+                    {/* CARD 2: ROLE & COMPENSATION */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-purple-200 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0">
+                            <Briefcase className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Role & Compensation
+                          </span>
                         </div>
-                        <span className="font-bold text-sm text-gray-900">
-                          Operations & Logistics
-                        </span>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 1
+                        </Badge>
                       </div>
-                      <div className="space-y-3 text-sm">
+                      <div className="space-y-3 text-[13px]">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Department</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {formData.department}
+                          <span className="text-gray-500">Position</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.role || "-"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Emp. Type</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {formData.employmentType}
+                          <span className="text-gray-500">Department</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.department || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Type</span>{" "}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.employmentType || "-"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500">Start Date</span>{" "}
-                          <span className="font-medium text-gray-900 text-right">
-                            {formData.startDate}
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.startDate || "-"}
                           </span>
                         </div>
 
-                        <div className="pt-2 border-t border-gray-50">
-                          <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">
-                            Transportation
-                          </span>
-                          <div className="flex items-center justify-between">
-                            <span className="font-medium text-gray-900">
-                              {formData.transportationType}
-                              {formData.transportationType === "Flexible" &&
-                                formData.primaryTransport && (
-                                  <span className="text-gray-500 font-normal ml-1">
-                                    ({formData.primaryTransport})
-                                  </span>
-                                )}
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Scheme</span>
+                            <span className="font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-md border border-green-200 text-[11px]">
+                              {formData.salaryType || "-"}
                             </span>
                           </div>
+                          {(formData.salaryType === "Fixed Monthly" ||
+                            formData.salaryType === "Fixed + Commission") && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Base Salary</span>
+                              <span className="font-semibold text-gray-900">
+                                QAR {formData.salaryAmount || "0"}
+                              </span>
+                            </div>
+                          )}
+                          {(formData.salaryType === "Commission-Based" ||
+                            formData.salaryType === "Fixed + Commission") && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Commission</span>
+                              <span className="font-semibold text-gray-900">
+                                {formData.commissionRate || "0"}%
+                              </span>
+                            </div>
+                          )}
+                          {formData.salaryType === "Hourly-Rate" && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Hourly Rate</span>
+                              <span className="font-semibold text-gray-900">
+                                QAR {formData.hourlyRate || "0"}/hr
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 3: OPERATIONS SETUP */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-orange-200 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0">
+                            <Globe className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Operations Setup
+                          </span>
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 2
+                        </Badge>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Scope</span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.serviceScope === "all"
+                              ? "All Regions"
+                              : "Specific Regions"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-start pt-1 border-gray-100">
+                          <span className="text-gray-500 shrink-0 mt-0.5">
+                            Vehicle Addt.
+                          </span>
+                          <span className="font-semibold text-gray-900 text-right max-w-[160px] truncate" title={formData.transportationType === "Company Vehicle" ? formData.assignedVehicle : formData.transportationType}>
+                            {formData.transportationType === "Company Vehicle" ? (formData.assignedVehicle || "Pending Assignment") : (formData.transportationType || "-")}
+                          </span>
                         </div>
 
-                        <div>
-                          <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">
-                            Service Scope
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Shift System</span>
+                            <span className="font-semibold text-gray-900">
+                              {formData.shiftSystem || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Working Days</span>
+                            <span className="font-semibold text-gray-900">
+                              {formData.shiftSystem === "Rotational"
+                                ? "Varied (Rotational)"
+                                : (formData.workingDays?.length || 0) +
+                                  " Days/Week"}
+                            </span>
+                          </div>
+                          {formData.shiftSystem === "Fixed" && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Daily Hours</span>
+                              <span className="font-semibold text-gray-900">
+                                {formData.workHoursStart || "-"} -{" "}
+                                {formData.workHoursEnd || "-"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 4: ACCESS & SECURITY */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-gray-300 transition-colors">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center shrink-0">
+                            <ShieldCheck className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Access & Security
                           </span>
-                          <div className="flex flex-wrap gap-1">
-                            {formData.serviceScope === "all" ? (
-                              <Badge
-                                variant="secondary"
-                                className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md"
-                              >
-                                All Service Areas
+                        </div>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                        >
+                          Step 3
+                        </Badge>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">
+                            Driver App Access
+                          </span>
+                          <Badge className="bg-green-50 text-green-700 border-green-100 rounded hover:bg-green-100">
+                            Enabled
+                          </Badge>
+                        </div>
+
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">
+                              Management Access
+                            </span>
+                            {formData.dashboardAccess ? (
+                              <Badge className="bg-blue-50 text-blue-700 border-blue-100 rounded hover:bg-blue-100">
+                                Granted
                               </Badge>
                             ) : (
-                              <>
-                                {formData.serviceAreas?.map((area: string) => (
-                                  <Badge
-                                    key={area}
-                                    variant="secondary"
-                                    className="text-[10px] bg-blue-50 text-blue-700 border border-blue-100 rounded-md"
-                                  >
-                                    {area}
-                                  </Badge>
-                                ))}
-                                {!formData.serviceAreas?.length && (
-                                  <span className="text-gray-400 italic">
-                                    None
-                                  </span>
-                                )}
-                              </>
+                              <span className="font-semibold text-gray-500">
+                                No Access
+                              </span>
                             )}
                           </div>
-                        </div>
 
-                        <div className="pt-1">
-                          <span className="text-gray-500 block mb-1.5 text-xs uppercase font-semibold">
-                            License Details
-                          </span>
-                          <div className="space-y-1">
+                          {formData.dashboardAccess && (
                             <div className="flex justify-between items-center">
-                              <span className="text-gray-500 text-xs">
-                                Number
-                              </span>{" "}
-                              <span className="font-medium text-gray-900">
-                                {formData.licenseNumber || "-"}
+                              <span className="text-gray-500">System Role</span>
+                              <span className="font-semibold text-gray-900 text-right">
+                                {formData.systemRole || "-"}
                               </span>
                             </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500 text-xs">
-                                Category
-                              </span>{" "}
-                              <span className="font-medium text-gray-900">
-                                {formData.licenseCategory || "-"}
-                              </span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500 text-xs">
-                                Expiry
-                              </span>{" "}
-                              <span
-                                className={`font-medium ${new Date(formData.licenseExpiry!) < new Date() ? "text-red-600" : "text-gray-900"}`}
-                              >
-                                {formData.licenseExpiry || "-"}
-                              </span>
-                            </div>
-                          </div>
+                          )}
                         </div>
 
-                        {/* Documents Summary */}
-                        {(formData.documents?.length || 0) > 0 && (
-                          <div className="pt-2 mt-1 border-t border-gray-50 flex items-center gap-2">
-                            <ShieldCheck className="h-3.5 w-3.5 text-green-600" />
-                            <span className="text-xs text-gray-700 font-medium">
-                              {formData.documents?.length} Document(s) Verified
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* COMPENSATION CARD */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                      <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                        <div className="h-8 w-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center">
-                          <Banknote className="h-4 w-4" />
-                        </div>
-                        <span className="font-bold text-sm text-gray-900">
-                          Compensation
-                        </span>
-                      </div>
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Scheme</span>{" "}
-                          <span className="font-medium text-gray-900 badge bg-green-50 text-green-700 px-2 py-0.5 rounded border border-green-100">
-                            {formData.salaryType}
+                        <div className="mt-4 bg-orange-50/50 rounded-lg p-3 border border-orange-100 flex items-start gap-2">
+                          <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+                          <span className="block text-[11px] text-orange-800 leading-relaxed">
+                            This profile is ready for final activation.
+                            Activating will officially register this driver
+                            and send any automated welcome communications
+                            if configured.
                           </span>
                         </div>
-                        {(formData.salaryType === "Fixed Monthly" ||
-                          formData.salaryType === "Fixed + Commission") && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Base Salary</span>{" "}
-                            <span className="font-medium text-gray-900">
-                              QAR {formData.salaryAmount}
-                            </span>
-                          </div>
-                        )}
-                        {(formData.salaryType === "Commission-Based" ||
-                          formData.salaryType === "Fixed + Commission") && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Commission</span>{" "}
-                            <span className="font-medium text-gray-900">
-                              {formData.commissionRate}%
-                            </span>
-                          </div>
-                        )}
-                        {formData.salaryType === "Hourly-Rate" && (
-                          <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Hourly Rate</span>{" "}
-                            <span className="font-medium text-gray-900">
-                              QAR {formData.hourlyRate}/hr
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* SHIFT CARD */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4">
-                      <div className="flex items-center gap-3 border-b border-gray-100 pb-3">
-                        <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center">
-                          <Calendar className="h-4 w-4" />
-                        </div>
-                        <span className="font-bold text-sm text-gray-900">
-                          Shift Configuration
-                        </span>
-                      </div>
-                      <div className="space-y-3 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">System</span>{" "}
-                          <span className="font-medium text-gray-900">
-                            {formData.shiftSystem}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-500">Working Days</span>{" "}
-                          <span className="font-medium text-gray-900">
-                            {formData.shiftSystem === "Rotational"
-                              ? "Varied (Rotational)"
-                              : formData.workingDays?.length + " Days/Week"}
-                          </span>
-                        </div>
-                        {formData.shiftSystem === "Fixed" && (
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Hours</span>{" "}
-                            <span className="font-medium text-gray-900">
-                              {formData.workHoursStart} -{" "}
-                              {formData.workHoursEnd}
-                            </span>
-                          </div>
-                        )}
                       </div>
                     </div>
                   </div>
@@ -2158,13 +2503,13 @@ export default function DriverPendingInviteDetails({
                   <div className="pt-6 flex items-center gap-4">
                     <Button
                       variant="outline"
-                      onClick={() => setCurrentStep(1)}
+                      onClick={() => setCurrentStep(2)}
                       className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50"
                     >
-                      Back to Operations
+                      Back to Access & Security
                     </Button>
                     <Button
-                      className="flex-[2] h-12 bg-green-600 hover:bg-green-700 shadow-sm hover:shadow text-white font-semibold tracking-wide transition-all"
+                      className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-xl px-6 font-bold text-white transition-all h-12 flex items-center justify-center text-sm"
                       onClick={handleActivate}
                     >
                       Complete Activation
@@ -2177,6 +2522,7 @@ export default function DriverPendingInviteDetails({
           </div>
         </div>
       </div>
+
       {/* Single Day Shift Management Modal */}
       {activeDayModal && formData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
