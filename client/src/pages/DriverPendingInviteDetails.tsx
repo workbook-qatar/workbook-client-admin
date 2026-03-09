@@ -928,7 +928,7 @@ export default function DriverPendingInviteDetails({
               {currentStep === 0 && (
                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                   {/* Section: Personal Details */}
-                  <div className="space-y-6">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
                     <SectionHeader
                       title="Personal Details"
                       desc="Driver identity and contact details."
@@ -1013,24 +1013,15 @@ export default function DriverPendingInviteDetails({
                     </div>
                   </div>
 
-                  {/* Divider */}
-                  <div className="border-t border-gray-100"></div>
+                  
 
                   {/* Section: Role Information */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                      <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <Briefcase className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          Role Information
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Define the position and departmental placement.
-                        </p>
-                      </div>
-                    </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Role Information"
+                      desc="Define the position and departmental placement."
+                      icon={Briefcase}
+                    />
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-1.5">
@@ -1127,22 +1118,14 @@ export default function DriverPendingInviteDetails({
                   </div>
 
                   {/* Section: Compensation */}
-                  <div className="space-y-6">
-                    <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                      <div className="h-8 w-8 rounded-full bg-green-50 text-green-600 flex items-center justify-center">
-                        <Banknote className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          Compensation Package
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Configure salary structure and payment terms.
-                        </p>
-                      </div>
-                    </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Compensation Package"
+                      desc="Configure salary structure and payment terms."
+                      icon={Banknote}
+                    />
 
-                    <div className="bg-gray-50/50 border border-gray-200 rounded-xl p-6 space-y-6">
+                    <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-1.5 md:col-span-2">
                           <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
@@ -1296,22 +1279,12 @@ export default function DriverPendingInviteDetails({
               {currentStep === 1 && (
                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
                   {/* Section: Operations Config */}
-
-                  {/* Section: Operations Config */}
-                  <div className="space-y-6 pt-4">
-                    <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                      <div className="h-8 w-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                        <Globe className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          Operations Config
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Service areas and operational scope.
-                        </p>
-                      </div>
-                    </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Operations Config"
+                      desc="Service areas and operational scope."
+                      icon={Globe}
+                    />
 
                     <div className="space-y-4">
                       <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
@@ -1510,15 +1483,12 @@ export default function DriverPendingInviteDetails({
                   </div>
 
                   {/* Section: Logistics */}
-                  <div className="space-y-4 pt-4">
-                    <div className="border-b border-gray-100 pb-2">
-                      <h3 className="text-lg font-bold text-gray-900">
-                        Logistics
-                      </h3>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Used for dispatch and shift planning.
-                      </p>
-                    </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Logistics"
+                      desc="Used for dispatch and shift planning."
+                      icon={Truck}
+                    />
 
                     <div className="space-y-4">
                       {/* Main Transport Select */}
@@ -1665,20 +1635,12 @@ export default function DriverPendingInviteDetails({
                   </div>
 
                   {/* MOVED SCHEDULE SECTION HERE */}
-                  <div className="space-y-6 pt-8 border-t border-gray-100">
-                    <div className="flex items-center gap-3 pb-2 border-b border-gray-100">
-                      <div className="h-8 w-8 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center">
-                        <Calendar className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-gray-900">
-                          Schedule & Availability
-                        </h3>
-                        <p className="text-xs text-gray-500">
-                          Define working days and hours.
-                        </p>
-                      </div>
-                    </div>
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Schedule & Availability"
+                      desc="Define working days and hours."
+                      icon={Calendar}
+                    />
 
                     <div className="space-y-6">
                       <div className="max-w-xs space-y-1.5">
