@@ -1,0 +1,18 @@
+201: const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Ops&Skills, 2=Summary
+683: completed: currentStep === 4,
+867: currentStep === idx
+878: : currentStep === idx
+891: className={`text-sm font-medium ${currentStep === idx ? "text-blue-900" : "text-gray-600"}`}
+928: {/* 1. DRIVER PROFILE */}
+929: {currentStep === 0 && (
+931: {/* Section: Personal Details */}
+1019: {/* Section: Role Information */}
+1121: {/* Section: Compensation */}
+1280: {currentStep === 1 && (
+1282: {/* Section: Operations Config */}
+1486: {/* Section: Logistics */}
+1638: {/* MOVED SCHEDULE SECTION HERE */}
+1959: {currentStep === 2 && (
+2192: {/* 4. SUMMARY & ACTIVATION */}
+2193: {currentStep === 3 && (
+2334: {/* CARD 3: OPERATIONS SETUP */}

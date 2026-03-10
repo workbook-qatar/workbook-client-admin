@@ -1,0 +1,15 @@
+168: const SectionHeader = ({
+931: <SectionHeader
+932: title="Personal Details"
+1019: <SectionHeader
+1020: title="Role Information"
+1121: <SectionHeader
+1122: title="Compensation Package"
+1282: <SectionHeader
+1283: title="Operations Config"
+1486: <SectionHeader
+1487: title="Logistics"
+1638: <SectionHeader
+1639: title="Schedule & Availability"
+1960: <SectionHeader
+1961: title="System Access & Permissions"

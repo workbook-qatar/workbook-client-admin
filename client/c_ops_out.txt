@@ -1,0 +1,1202 @@
+  1:  0 | <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+  2:  0 |                     <SectionHeader
+  3:  0 |                       title="Operations Config"
+  4:  0 |                       desc="Service areas and operational scope."
+  5:  0 |                       icon={Globe}
+  6:  0 |                     />
+  7:  0 | 
+  8:  0 |                     <div className="space-y-4">
+  9:  0 |                       <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+ 10:  0 |                         Operational Scope{" "}
+ 11:  0 |                         <span className="text-red-500">*</span>
+ 12:  0 |                       </Label>
+ 13:  0 | 
+ 14:  0 |                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+ 15:  0 |                         <div
+ 16:  1 |                           onClick={() =>
+ 17:  1 |                             isEditing &&
+ 18:  2 |                             setFormData({
+ 19:  2 |                               ...formData,
+ 20:  2 |                               serviceScope: "all",
+ 21:  2 |                               serviceAreas: [],
+ 22:  1 |                             })
+ 23:  0 |                           }
+ 24:  1 |                           className={`
+ 25:  1 |                                                 relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+ 26:  2 |                                                 ${
+ 27:  2 |                                                   formData.serviceScope ===
+ 28:  2 |                                                   "all"
+ 29:  2 |                                                     ? "bg-blue-50/50 border-blue-600 shadow-sm"
+ 30:  2 |                                                     : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
+ 31:  1 |                                                 }
+ 32:  1 |                                                 ${!isEditing && "opacity-60 cursor-not-allowed"}
+ 33:  0 |                                             `}
+ 34:  0 |                         >
+ 35:  0 |                           <div
+ 36:  0 |                             className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "all" ? "border-blue-600" : "border-gray-300"}`}
+ 37:  0 |                           >
+ 38:  1 |                             {formData.serviceScope === "all" && (
+ 39:  1 |                               <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+ 40:  0 |                             )}
+ 41:  0 |                           </div>
+ 42:  0 |                           <div>
+ 43:  0 |                             <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+ 44:  0 |                               <Globe className="h-4 w-4 text-blue-500" />
+ 45:  0 |                               All Service Areas
+ 46:  0 |                             </div>
+ 47:  0 |                             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+ 48:  0 |                               Driver can be dispatched to any location within
+ 49:  0 |                               the operational territory.
+ 50:  0 |                             </p>
+ 51:  0 |                           </div>
+ 52:  0 |                         </div>
+ 53:  0 | 
+ 54:  0 |                         <div
+ 55:  1 |                           onClick={() =>
+ 56:  1 |                             isEditing &&
+ 57:  2 |                             setFormData({
+ 58:  2 |                               ...formData,
+ 59:  2 |                               serviceScope: "specific",
+ 60:  1 |                             })
+ 61:  0 |                           }
+ 62:  1 |                           className={`
+ 63:  1 |                                                 relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+ 64:  2 |                                                 ${
+ 65:  2 |                                                   formData.serviceScope ===
+ 66:  2 |                                                   "specific"
+ 67:  2 |                                                     ? "bg-blue-50/50 border-blue-600 shadow-sm"
+ 68:  2 |                                                     : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
+ 69:  1 |                                                 }
+ 70:  1 |                                                 ${!isEditing && "opacity-60 cursor-not-allowed"}
+ 71:  0 |                                             `}
+ 72:  0 |                         >
+ 73:  0 |                           <div
+ 74:  0 |                             className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "specific" ? "border-blue-600" : "border-gray-300"}`}
+ 75:  0 |                           >
+ 76:  1 |                             {formData.serviceScope === "specific" && (
+ 77:  1 |                               <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+ 78:  0 |                             )}
+ 79:  0 |                           </div>
+ 80:  0 |                           <div>
+ 81:  0 |                             <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+ 82:  0 |                               <MapPin className="h-4 w-4 text-orange-500" />
+ 83:  0 |                               Specific Zones
+ 84:  0 |                             </div>
+ 85:  0 |                             <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+ 86:  0 |                               Restrict driver availability to specific zones or
+ 87:  0 |                               regions only.
+ 88:  0 |                             </p>
+ 89:  0 |                           </div>
+ 90:  0 |                         </div>
+ 91:  0 |                       </div>
+ 92:  0 | 
+ 93:  0 |                       {/* CONDITIONAL RENDER: Specific Areas Selector - Refactored to match Languages/Skills Pattern */}
+ 94:  1 |                       {formData.serviceScope === "specific" && (
+ 95:  1 |                         <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
+ 96:  1 |                           <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+ 97:  1 |                             Selected Regions{" "}
+ 98:  1 |                             <span className="text-red-500">*</span>
+ 99:  1 |                           </Label>
+100:  1 |                           <Popover>
+101:  1 |                             <PopoverTrigger asChild disabled={!isEditing}>
+102:  1 |                               <Button
+103:  1 |                                 variant="outline"
+104:  1 |                                 role="combobox"
+105:  1 |                                 className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+106:  1 |                               >
+107:  2 |                                 {formData.serviceAreas &&
+108:  2 |                                 formData.serviceAreas.length > 0 ? (
+109:  2 |                                   <div className="flex flex-wrap gap-1.5">
+110:  3 |                                     {formData.serviceAreas.map(area => (
+111:  3 |                                       <Badge
+112:  3 |                                         key={area}
+113:  3 |                                         variant="secondary"
+114:  3 |                                         className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100"
+115:  3 |                                       >
+116:  3 |                                         {area}
+117:  4 |                                         {isEditing && (
+118:  4 |                                           <span
+119:  4 |                                             className="ml-1 cursor-pointer hover:text-red-600 transition-colors"
+120:  6 |                                             onClick={e => {
+121:  6 |                                               e.stopPropagation();
+122:  7 |                                               setFormData({
+123:  7 |                                                 ...formData,
+124:  7 |                                                 serviceAreas:
+125:  7 |                                                   formData.serviceAreas?.filter(
+126:  7 |                                                     s => s !== area
+127:  7 |                                                   ),
+128:  6 |                                               });
+129:  4 |                                             }}
+130:  4 |                                           >
+131:  4 |                                             <X className="h-3 w-3" />
+132:  4 |                                           </span>
+133:  3 |                                         )}
+134:  3 |                                       </Badge>
+135:  2 |                                     ))}
+136:  2 |                                   </div>
+137:  2 |                                 ) : (
+138:  2 |                                   <span className="text-gray-400">
+139:  2 |                                     Select service areas...
+140:  2 |                                   </span>
+141:  1 |                                 )}
+142:  1 |                                 <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+143:  1 |                               </Button>
+144:  1 |                             </PopoverTrigger>
+145:  1 |                             <PopoverContent
+146:  1 |                               className="w-[400px] p-0"
+147:  1 |                               align="start"
+148:  1 |                             >
+149:  1 |                               <Command>
+150:  1 |                                 <CommandInput placeholder="Search regions..." />
+151:  1 |                                 <CommandList>
+152:  1 |                                   <CommandEmpty>No region found.</CommandEmpty>
+153:  1 |                                   <CommandGroup>
+154:  2 |                                     {serviceAreaConfigs.map(area => (
+155:  2 |                                       <CommandItem
+156:  2 |                                         key={area.id}
+157:  2 |                                         value={area.name}
+158:  4 |                                         onSelect={() => {
+159:  4 |                                           const current =
+160:  4 |                                             formData.serviceAreas || [];
+161:  5 |                                           if (current.includes(area.name)) {
+162:  6 |                                             setFormData({
+163:  6 |                                               ...formData,
+164:  6 |                                               serviceAreas: current.filter(
+165:  6 |                                                 s => s !== area.name
+166:  6 |                                               ),
+167:  5 |                                             });
+168:  5 |                                           } else {
+169:  6 |                                             setFormData({
+170:  6 |                                               ...formData,
+171:  6 |                                               serviceAreas: [
+172:  6 |                                                 ...current,
+173:  6 |                                                 area.name,
+174:  6 |                                               ],
+175:  5 |                                             });
+176:  4 |                                           }
+177:  2 |                                         }}
+178:  2 |                                       >
+179:  2 |                                         <div
+180:  3 |                                           className={cn(
+181:  3 |                                             "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+182:  3 |                                             formData.serviceAreas?.includes(
+183:  3 |                                               area.name
+184:  3 |                                             )
+185:  3 |                                               ? "bg-primary text-primary-foreground"
+186:  3 |                                               : "opacity-50 [&_svg]:invisible"
+187:  2 |                                           )}
+188:  2 |                                         >
+189:  2 |                                           <Check className={cn("h-4 w-4")} />
+190:  2 |                                         </div>
+191:  2 |                                         {area.name}
+192:  2 |                                       </CommandItem>
+193:  1 |                                     ))}
+194:  1 |                                   </CommandGroup>
+195:  1 |                                 </CommandList>
+196:  1 |                               </Command>
+197:  1 |                             </PopoverContent>
+198:  1 |                           </Popover>
+199:  1 |                         </div>
+200:  0 |                       )}
+201:  0 |                     </div>
+202:  0 |                   </div>
+203:  0 | 
+204:  0 |                   {/* Section: Logistics */}
+205:  0 |                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+206:  0 |                     <SectionHeader
+207:  0 |                       title="Logistics"
+208:  0 |                       desc="Used for dispatch and shift planning."
+209:  0 |                       icon={Truck}
+210:  0 |                     />
+211:  0 | 
+212:  0 |                     <div className="space-y-4">
+213:  0 |                       {/* Main Transport Select */}
+214:  0 |                       {/* Main Transport Select */}
+215:  0 |                       <div className="space-y-4">
+216:  0 |                         <div className="space-y-1.5">
+217:  0 |                           <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+218:  0 |                             Vehicle & Transportation Model{" "}
+219:  0 |                             <span className="text-red-500">*</span>
+220:  0 |                           </Label>
+221:  0 |                           <Select
+222:  0 |                             disabled={!isEditing}
+223:  0 |                             value={formData.transportationType}
+224:  2 |                             onValueChange={v => {
+225:  3 |                               setFormData({
+226:  3 |                                 ...formData,
+227:  3 |                                 transportationType: v,
+228:  3 |                                 assignedVehicle: "", // Reset dependent fields
+229:  3 |                                 vehicleType: "",
+230:  3 |                                 plateNumber: "",
+231:  2 |                               });
+232:  0 |                             }}
+233:  0 |                           >
+234:  0 |                             <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
+235:  0 |                               <SelectValue placeholder="Select Vehicle Model" />
+236:  0 |                             </SelectTrigger>
+237:  0 |                             <SelectContent>
+238:  0 |                               <SelectItem value="Company Vehicle">
+239:  0 |                                 Company Vehicle
+240:  0 |                               </SelectItem>
+241:  0 |                               <SelectItem value="Personal Vehicle">
+242:  0 |                                 Personal Vehicle
+243:  0 |                               </SelectItem>
+244:  0 |                             </SelectContent>
+245:  0 |                           </Select>
+246:  0 | 
+247:  1 |                           {formData.transportationType && (
+248:  1 |                             <p className="text-xs text-gray-500 leading-relaxed px-1">
+249:  2 |                               {formData.transportationType ===
+250:  2 |                                 "Company Vehicle" &&
+251:  1 |                                 "Driver uses a company-owned vehicle assigned from the fleet."}
+252:  2 |                               {formData.transportationType ===
+253:  2 |                                 "Personal Vehicle" &&
+254:  1 |                                 "Driver uses their own vehicle (ensure license & insurance are valid)."}
+255:  1 |                             </p>
+256:  0 |                           )}
+257:  0 |                         </div>
+258:  0 | 
+259:  0 |                         {/* COMPANY VEHICLE: Assignment */}
+260:  1 |                         {formData.transportationType === "Company Vehicle" && (
+261:  1 |                           <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3 animate-in fade-in slide-in-from-top-2">
+262:  1 |                             <div className="flex items-center gap-2 text-blue-800 text-sm font-semibold">
+263:  1 |                               <Truck className="h-4 w-4" />
+264:  1 |                               Fleet Assignment
+265:  1 |                             </div>
+266:  1 | 
+267:  1 |                             <div className="grid grid-cols-1 gap-4">
+268:  1 |                               <div className="space-y-1.5">
+269:  1 |                                 <Label className="text-xs font-semibold text-gray-500">
+270:  1 |                                   Assigned Vehicle{" "}
+271:  1 |                                   <span className="text-red-500">*</span>
+272:  1 |                                 </Label>
+273:  1 |                                 <Select
+274:  1 |                                   disabled={!isEditing}
+275:  1 |                                   value={formData.assignedVehicle}
+276:  2 |                                   onValueChange={v =>
+277:  3 |                                     setFormData({
+278:  3 |                                       ...formData,
+279:  3 |                                       assignedVehicle: v,
+280:  2 |                                     })
+281:  1 |                                   }
+282:  1 |                                 >
+283:  1 |                                   <SelectTrigger className="bg-white h-10 border-blue-200 transition-all text-sm shadow-sm w-full">
+284:  1 |                                     <SelectValue placeholder="Select Vehicle from Fleet" />
+285:  1 |                                   </SelectTrigger>
+286:  1 |                                   <SelectContent>
+287:  2 |                                     {companyVehicles.length > 0 ? (
+288:  2 |                                       companyVehicles.map(v => (
+289:  2 |                                         <SelectItem key={v.id} value={v.name}>
+290:  2 |                                           {v.name}
+291:  2 |                                         </SelectItem>
+292:  2 |                                       ))
+293:  2 |                                     ) : (
+294:  2 |                                       <div className="p-2 text-xs text-center text-gray-500">
+295:  2 |                                         No vehicles found. <br />
+296:  2 |                                         <span
+297:  2 |                                           className="text-blue-600 cursor-pointer hover:underline"
+298:  3 |                                           onClick={() =>
+299:  3 |                                             window.open("/vehicles", "_blank")
+300:  2 |                                           }
+301:  2 |                                         >
+302:  2 |                                           Add in Vehicles Module
+303:  2 |                                         </span>
+304:  2 |                                       </div>
+305:  1 |                                     )}
+306:  1 |                                   </SelectContent>
+307:  1 |                                 </Select>
+308:  1 |                               </div>
+309:  1 |                             </div>
+310:  1 |                           </div>
+311:  0 |                         )}
+312:  0 | 
+313:  0 |                         {/* PERSONAL VEHICLE: Seat Capacity Only */}
+314:  1 |                         {formData.transportationType === "Personal Vehicle" && (
+315:  1 |                           <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
+316:  1 |                             <div className="flex items-center justify-between">
+317:  1 |                               <div className="space-y-0.5">
+318:  1 |                                 <div className="flex items-center gap-2 text-gray-800 text-sm font-semibold">
+319:  1 |                                   <Truck className="h-4 w-4" />
+320:  1 |                                   Vehicle Capacity
+321:  1 |                                 </div>
+322:  1 |                                 <p className="text-xs text-gray-500">
+323:  1 |                                   How many passengers/staff can this vehicle
+324:  1 |                                   carry?
+325:  1 |                                 </p>
+326:  1 |                               </div>
+327:  1 | 
+328:  1 |                               <div className="w-32">
+329:  1 |                                 <div className="relative">
+330:  1 |                                   <Input
+331:  1 |                                     disabled={!isEditing}
+332:  1 |                                     type="number"
+333:  1 |                                     placeholder="0"
+334:  1 |                                     min="1"
+335:  1 |                                     value={formData.seatCapacity || ""}
+336:  2 |                                     onChange={e =>
+337:  3 |                                       setFormData({
+338:  3 |                                         ...formData,
+339:  3 |                                         seatCapacity: e.target.value,
+340:  2 |                                       })
+341:  1 |                                     }
+342:  1 |                                     className="bg-white h-10 border-gray-200 pr-8 text-right font-medium"
+343:  1 |                                   />
+344:  1 |                                   <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium h-full pointer-events-none">
+345:  1 |                                     Pax
+346:  1 |                                   </span>
+347:  1 |                                 </div>
+348:  1 |                               </div>
+349:  1 |                             </div>
+350:  1 |                           </div>
+351:  0 |                         )}
+352:  0 |                       </div>
+353:  0 |                     </div>
+354:  0 |                   </div>
+355:  0 | 
+356:  0 |                   {/* MOVED SCHEDULE SECTION HERE */}
+357:  0 |                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+358:  0 |                     <SectionHeader
+359:  0 |                       title="Schedule & Availability"
+360:  0 |                       desc="Define working days and hours."
+361:  0 |                       icon={Calendar}
+362:  0 |                     />
+363:  0 | 
+364:  0 |                     <div className="space-y-6">
+365:  0 |                       <div className="max-w-xs space-y-1.5">
+366:  0 |                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+367:  0 |                           Shift System
+368:  0 |                         </Label>
+369:  0 |                         <Select
+370:  0 |                           disabled={!isEditing}
+371:  0 |                           value={formData.shiftSystem}
+372:  1 |                           onValueChange={v =>
+373:  1 |                             setFormData({ ...formData, shiftSystem: v as any })
+374:  0 |                           }
+375:  0 |                         >
+376:  0 |                           <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+377:  0 |                             <SelectValue placeholder="Select System" />
+378:  0 |                           </SelectTrigger>
+379:  0 |                           <SelectContent>
+380:  1 |                             {enabledShiftSystems.map(s => (
+381:  1 |                               <SelectItem key={s} value={s}>
+382:  1 |                                 {s}
+383:  1 |                               </SelectItem>
+384:  0 |                             ))}
+385:  0 |                           </SelectContent>
+386:  0 |                         </Select>
+387:  0 |                       </div>
+388:  0 | 
+389:  0 |                       {/* FIXED SHIFT UI */}
+390:  1 |                       {formData.shiftSystem === "Fixed" && (
+391:  1 |                         <div className="space-y-5 animate-in fade-in">
+392:  1 |                           <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row items-start md:items-center gap-4">
+393:  1 |                             <div className="space-y-1.5 flex-1">
+394:  1 |                               <Label className="text-xs font-semibold uppercase text-blue-800">
+395:  1 |                                 Standard Daily Hours
+396:  1 |                               </Label>
+397:  1 |                               <div className="flex items-center gap-2">
+398:  1 |                                 <Input
+399:  1 |                                   type="time"
+400:  1 |                                   disabled={!isEditing}
+401:  1 |                                   value={formData.workHoursStart}
+402:  2 |                                   onChange={e =>
+403:  3 |                                     setFormData({
+404:  3 |                                       ...formData,
+405:  3 |                                       workHoursStart: e.target.value,
+406:  2 |                                     })
+407:  1 |                                   }
+408:  1 |                                   className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+409:  1 |                                 />
+410:  1 |                                 <span className="text-blue-400 font-medium">
+411:  1 |                                   to
+412:  1 |                                 </span>
+413:  1 |                                 <Input
+414:  1 |                                   type="time"
+415:  1 |                                   disabled={!isEditing}
+416:  1 |                                   value={formData.workHoursEnd}
+417:  2 |                                   onChange={e =>
+418:  3 |                                     setFormData({
+419:  3 |                                       ...formData,
+420:  3 |                                       workHoursEnd: e.target.value,
+421:  2 |                                     })
+422:  1 |                                   }
+423:  1 |                                   className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+424:  1 |                                 />
+425:  1 |                               </div>
+426:  1 |                             </div>
+427:  1 |                             <div className="hidden md:block w-px h-10 bg-blue-200"></div>
+428:  1 |                             <div className="text-xs text-blue-700 max-w-sm">
+429:  1 |                               These hours will apply to all selected days below.
+430:  1 |                               Uncheck days to mark them as "Off".
+431:  1 |                             </div>
+432:  1 |                           </div>
+433:  1 | 
+434:  1 |                           <div className="space-y-2">
+435:  1 |                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+436:  1 |                               Working Days
+437:  1 |                             </Label>
+438:  1 |                             <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+439:  2 |                               {[
+440:  2 |                                 "Mon",
+441:  2 |                                 "Tue",
+442:  2 |                                 "Wed",
+443:  2 |                                 "Thu",
+444:  2 |                                 "Fri",
+445:  2 |                                 "Sat",
+446:  2 |                                 "Sun",
+447:  3 |                               ].map(day => {
+448:  3 |                                 const isActive =
+449:  3 |                                   formData.workingDays?.includes(day);
+450:  3 |                                 return (
+451:  3 |                                   <div
+452:  3 |                                     key={day}
+453:  5 |                                     onClick={() => {
+454:  5 |                                       if (!isEditing) return;
+455:  5 |                                       const current =
+456:  5 |                                         formData.workingDays || [];
+457:  6 |                                       if (current.includes(day)) {
+458:  7 |                                         setFormData({
+459:  7 |                                           ...formData,
+460:  7 |                                           workingDays: current.filter(
+461:  7 |                                             d => d !== day
+462:  7 |                                           ),
+463:  6 |                                         });
+464:  6 |                                       } else {
+465:  7 |                                         setFormData({
+466:  7 |                                           ...formData,
+467:  7 |                                           workingDays: [...current, day],
+468:  6 |                                         });
+469:  5 |                                       }
+470:  3 |                                     }}
+471:  4 |                                     className={`
+472:  4 |                                                                     flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-24
+473:  5 |                                                                     ${
+474:  5 |                                                                       isActive
+475:  5 |                                                                         ? "bg-green-50 border-green-200 text-green-700 shadow-sm ring-1 ring-green-100"
+476:  5 |                                                                         : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:border-gray-300"
+477:  4 |                                                                     }
+478:  3 |                                                                 `}
+479:  3 |                                   >
+480:  3 |                                     <span className="font-bold text-sm mb-1">
+481:  3 |                                       {day}
+482:  3 |                                     </span>
+483:  4 |                                     {isActive ? (
+484:  4 |                                       <div className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">
+485:  4 |                                         {formData.workHoursStart || "09:00"} -{" "}
+486:  4 |                                         {formData.workHoursEnd || "17:00"}
+487:  4 |                                       </div>
+488:  4 |                                     ) : (
+489:  4 |                                       <span className="text-[10px] italic">
+490:  4 |                                         Off Day
+491:  4 |                                       </span>
+492:  3 |                                     )}
+493:  3 |                                   </div>
+494:  3 |                                 );
+495:  1 |                               })}
+496:  1 |                             </div>
+497:  1 |                           </div>
+498:  1 |                         </div>
+499:  0 |                       )}
+500:  0 | 
+501:  0 |                       {/* FLEXIBLE SHIFT UI */}
+502:  1 |                       {formData.shiftSystem === "Flexible" && (
+503:  1 |                         <div className="space-y-5 animate-in fade-in">
+504:  1 |                           <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 text-purple-700 text-sm">
+505:  1 |                             Flexible staff do not have fixed start/end times.
+506:  1 |                             Select the days they are generally available to
+507:  1 |                             accept jobs.
+508:  1 |                           </div>
+509:  1 | 
+510:  1 |                           <div className="space-y-2">
+511:  1 |                             <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+512:  1 |                               Availability Days
+513:  1 |                             </Label>
+514:  1 |                             <div className="grid grid-cols-7 gap-2">
+515:  2 |                               {[
+516:  2 |                                 "Mon",
+517:  2 |                                 "Tue",
+518:  2 |                                 "Wed",
+519:  2 |                                 "Thu",
+520:  2 |                                 "Fri",
+521:  2 |                                 "Sat",
+522:  2 |                                 "Sun",
+523:  3 |                               ].map(day => {
+524:  3 |                                 const isActive =
+525:  3 |                                   formData.workingDays?.includes(day);
+526:  3 |                                 return (
+527:  3 |                                   <div
+528:  3 |                                     key={day}
+529:  5 |                                     onClick={() => {
+530:  5 |                                       if (!isEditing) return;
+531:  5 |                                       const current =
+532:  5 |                                         formData.workingDays || [];
+533:  6 |                                       if (current.includes(day)) {
+534:  7 |                                         setFormData({
+535:  7 |                                           ...formData,
+536:  7 |                                           workingDays: current.filter(
+537:  7 |                                             d => d !== day
+538:  7 |                                           ),
+539:  6 |                                         });
+540:  6 |                                       } else {
+541:  7 |                                         setFormData({
+542:  7 |                                           ...formData,
+543:  7 |                                           workingDays: [...current, day],
+544:  6 |                                         });
+545:  5 |                                       }
+546:  3 |                                     }}
+547:  4 |                                     className={`
+548:  4 |                                                                     flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-20
+549:  5 |                                                                     ${
+550:  5 |                                                                       isActive
+551:  5 |                                                                         ? "bg-purple-50 border-purple-200 text-purple-700 shadow-sm"
+552:  5 |                                                                         : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
+553:  4 |                                                                     }
+554:  3 |                                                                 `}
+555:  3 |                                   >
+556:  3 |                                     <span className="font-bold text-sm">
+557:  3 |                                       {day}
+558:  3 |                                     </span>
+559:  3 |                                     <span className="text-[10px] mt-1">
+560:  3 |                                       {isActive ? "Available" : "-"}
+561:  3 |                                     </span>
+562:  3 |                                   </div>
+563:  3 |                                 );
+564:  1 |                               })}
+565:  1 |                             </div>
+566:  1 |                           </div>
+567:  1 |                         </div>
+568:  0 |                       )}
+569:  0 | 
+570:  0 |                       {/* ROTATIONAL SHIFT UI - Summary View */}
+571:  1 |                       {formData.shiftSystem === "Rotational" && (
+572:  1 |                         <div className="space-y-6 animate-in fade-in">
+573:  1 |                           {/* Summary Header */}
+574:  1 |                           <div className="flex items-center justify-between bg-green-50 p-4 rounded-lg border border-green-100">
+575:  1 |                             <div className="flex items-center gap-2 text-green-800 text-sm font-medium">
+576:  1 |                               <div className="w-2 h-2 rounded-full bg-green-500"></div>
+577:  1 |                               Weekly Coverage Preview
+578:  1 |                             </div>
+579:  1 |                             <div className="text-xs text-green-600 italic">
+580:  1 |                               Click on any day to configure multiple shifts.
+581:  1 |                             </div>
+582:  1 |                           </div>
+583:  1 | 
+584:  1 |                           {/* Weekly Visual Columns */}
+585:  1 |                           <div className="grid grid-cols-7 gap-2">
+586:  2 |                             {[
+587:  2 |                               "Sun",
+588:  2 |                               "Mon",
+589:  2 |                               "Tue",
+590:  2 |                               "Wed",
+591:  2 |                               "Thu",
+592:  2 |                               "Fri",
+593:  2 |                               "Sat",
+594:  3 |                             ].map(day => {
+595:  3 |                               const slots =
+596:  3 |                                 formData.rotationalSchedule?.[day] || [];
+597:  3 |                               const hasShift = slots.length > 0;
+598:  3 | 
+599:  3 |                               // Calculate total hours for the day for display
+600:  4 |                               const totalHours = slots.reduce((acc, slot) => {
+601:  4 |                                 const start = parseInt(
+602:  4 |                                   slot.start.split(":")[0]
+603:  4 |                                 );
+604:  4 |                                 const end = parseInt(slot.end.split(":")[0]);
+605:  4 |                                 return acc + (end - start);
+606:  3 |                               }, 0);
+607:  3 | 
+608:  3 |                               return (
+609:  3 |                                 <div key={day} className="flex flex-col gap-2">
+610:  3 |                                   <div className="text-center">
+611:  3 |                                     <div className="text-xs font-bold text-gray-700 uppercase">
+612:  3 |                                       {day}
+613:  3 |                                     </div>
+614:  3 |                                     <div className="text-[10px] text-gray-400">
+615:  3 |                                       {hasShift ? `(${totalHours}h)` : "(0h)"}
+616:  3 |                                     </div>
+617:  3 |                                   </div>
+618:  3 | 
+619:  3 |                                   <div
+620:  3 |                                     onClick={() => setActiveDayModal(day)}
+621:  4 |                                     className={`
+622:  4 |                                                                     h-40 rounded-lg border flex flex-col items-center justify-start p-1.5 gap-1.5 cursor-pointer transition-all hover:ring-2 hover:ring-green-200 hover:border-green-300
+623:  4 |                                                                     ${hasShift ? "bg-white border-gray-200" : "bg-gray-50/50 border-gray-100 opacity-70"}
+624:  3 |                                                                 `}
+625:  3 |                                   >
+626:  4 |                                     {hasShift ? (
+627:  4 |                                       slots.map((slot, idx) => (
+628:  4 |                                         <div
+629:  4 |                                           key={idx}
+630:  4 |                                           className="w-full bg-green-100 text-green-800 text-[10px] py-1 px-1 rounded font-medium border border-green-200 flex flex-col items-center justify-center flex-shrink-0 min-h-[28px]"
+631:  4 |                                         >
+632:  4 |                                           <span>{slot.start}</span>
+633:  4 |                                           <span className="w-full h-px bg-green-200 my-0.5"></span>
+634:  4 |                                           <span>{slot.end}</span>
+635:  4 |                                         </div>
+636:  4 |                                       ))
+637:  4 |                                     ) : (
+638:  4 |                                       <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-300 italic">
+639:  4 |                                         Off
+640:  4 |                                       </div>
+641:  3 |                                     )}
+642:  3 | 
+643:  3 |                                     {/* Hover Hint */}
+644:  3 |                                     <div className="mt-auto pt-1 text-[9px] text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+645:  3 |                                       Edit
+646:  3 |                                     </div>
+647:  3 |                                   </div>
+648:  3 |                                 </div>
+649:  3 |                               );
+650:  1 |                             })}
+651:  1 |                           </div>
+652:  1 |                         </div>
+653:  0 |                       )}
+654:  0 |                     </div>
+655:  0 |                   </div>
+656:  0 | 
+657:  0 |                   <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+658:  0 |                     <Button
+659:  0 |                       variant="outline"
+660:  0 |                       onClick={() => setCurrentStep(0)}
+661:  0 |                       className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
+662:  0 |                     >
+663:  0 |                       Previous Step
+664:  0 |                     </Button>
+665:  0 |                     <Button
+666:  0 |                       className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+667:  0 |                       onClick={() => saveChanges(true)}
+668:  0 |                       disabled={!reqs.ops}
+669:  0 |                     >
+670:  0 |                       Next: Summary <ArrowRight className="w-4 h-4 ml-2" />
+671:  0 |                     </Button>
+672:  0 |                   </div>
+673:  0 |                 </div>
+674: -1 |               )}
+675: -1 | 
+676: -1 |               {/* 3. ACCESS & SECURITY */}
+677:  0 |               {currentStep === 2 && (
+678:  0 |                 <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
+679:  0 |                   <div className="space-y-6 relative overflow-hidden transition-all duration-300">
+680:  0 |                     <SectionHeader
+681:  0 |                       title="System Access & Permissions"
+682:  0 |                       desc="Dashboard access levels, system roles, and platform permissions."
+683:  0 |                       icon={ShieldCheck}
+684:  0 |                     />
+685:  0 | 
+686:  0 |                     <div className="space-y-6">
+687:  0 |                       <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
+688:  0 |                         <div>
+689:  0 |                           <h4 className="text-sm font-bold text-gray-900 mb-1">
+690:  0 |                             Dashboard Access
+691:  0 |                           </h4>
+692:  0 |                           <span className="text-[11px] text-gray-400 mt-1 block">
+693:  0 |                             Allow login to admin dashboard
+694:  0 |                           </span>
+695:  0 |                         </div>
+696:  0 |                         <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
+697:  0 |                           <button
+698:  1 |                             onClick={() =>
+699:  2 |                               setFormData({
+700:  2 |                                 ...formData,
+701:  2 |                                 dashboardAccess: true,
+702:  1 |                               })
+703:  0 |                             }
+704:  0 |                             className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === true ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+705:  0 |                           >
+706:  0 |                             Yes
+707:  0 |                           </button>
+708:  0 |                           <button
+709:  1 |                             onClick={() =>
+710:  2 |                               setFormData({
+711:  2 |                                 ...formData,
+712:  2 |                                 dashboardAccess: false,
+713:  1 |                               })
+714:  0 |                             }
+715:  0 |                             className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === false ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+716:  0 |                           >
+717:  0 |                             No
+718:  0 |                           </button>
+719:  0 |                         </div>
+720:  0 |                       </div>
+721:  0 | 
+722:  0 |                       <div className="relative overflow-hidden transition-all duration-300 pb-2">
+723:  1 |                         {formData.dashboardAccess === false && (
+724:  1 |                           <div className="absolute inset-0 bg-white/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center rounded-xl transition-all duration-300">
+725:  1 |                             <div className="bg-white px-5 py-3 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.06)] border border-gray-100 font-medium text-[13px] text-gray-700 flex items-center gap-2.5 animate-in zoom-in-95">
+726:  1 |                               <div className="h-7 w-7 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+727:  1 |                                 <ShieldCheck className="h-4 w-4 text-indigo-600" />
+728:  1 |                               </div>
+729:  1 |                               Enable Dashboard Access to configure role
+730:  1 |                             </div>
+731:  1 |                           </div>
+732:  0 |                         )}
+733:  0 | 
+734:  0 |                         <div
+735:  0 |                           className={`space-y-6 pt-2 transition-all duration-300 ${formData.dashboardAccess === false ? "opacity-40 pointer-events-none select-none blur-[1px]" : "animate-in fade-in slide-in-from-top-2"}`}
+736:  0 |                         >
+737:  0 |                           <div className="space-y-2">
+738:  0 |                             <div className="flex items-center justify-between">
+739:  0 |                               <Label className="text-[13px] font-bold text-gray-900 tracking-tight">
+740:  0 |                                 System Role{" "}
+741:  0 |                                 <span className="text-red-500">*</span>
+742:  0 |                               </Label>
+743:  0 |                               <Button
+744:  0 |                                 variant="ghost"
+745:  0 |                                 className="h-auto p-0 text-[12px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-transparent"
+746:  0 |                                 onClick={() => setLocation("/settings")}
+747:  0 |                               >
+748:  0 |                                 <Plus className="h-3.5 w-3.5 mr-1" /> Create
+749:  0 |                                 System Role
+750:  0 |                               </Button>
+751:  0 |                             </div>
+752:  0 | 
+753:  0 |                             <Select
+754:  0 |                               value={formData.systemRole}
+755:  1 |                               onValueChange={(v) =>
+756:  1 |                                 setFormData({ ...formData, systemRole: v })
+757:  0 |                               }
+758:  0 |                             >
+759:  0 |                               <SelectTrigger className="bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-purple-100 text-gray-700">
+760:  0 |                                 <SelectValue placeholder="Select system role" />
+761:  0 |                               </SelectTrigger>
+762:  0 |                               <SelectContent>
+763:  0 |                                 <SelectItem value="Manager">Manager</SelectItem>
+764:  0 |                                 <SelectItem value="Supervisor">
+765:  0 |                                   Supervisor
+766:  0 |                                 </SelectItem>
+767:  0 |                                 <SelectItem value="Dispatcher">
+768:  0 |                                   Dispatcher
+769:  0 |                                 </SelectItem>
+770:  0 |                                 <SelectItem value="Admin">Admin</SelectItem>
+771:  0 |                               </SelectContent>
+772:  0 |                             </Select>
+773:  0 |                           </div>
+774:  0 | 
+775:  1 |                           {formData.systemRole && (
+776:  1 |                             <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-5 space-y-4 shadow-sm">
+777:  1 |                               <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+778:  1 |                                 <div className="flex items-center gap-2">
+779:  1 |                                   <div className="h-6 w-6 rounded bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+780:  1 |                                     <Briefcase className="h-3.5 w-3.5" />
+781:  1 |                                   </div>
+782:  1 |                                   <span className="text-sm font-bold text-gray-900">
+783:  1 |                                     {formData.systemRole} Access Preview
+784:  1 |                                   </span>
+785:  1 |                                 </div>
+786:  1 |                                 <Badge
+787:  1 |                                   variant="secondary"
+788:  1 |                                   className="bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-md px-2 py-0.5 text-[10px] font-bold border border-purple-100/50 uppercase tracking-widest shadow-sm"
+789:  1 |                                 >
+790:  1 |                                   Read-Only
+791:  1 |                                 </Badge>
+792:  1 |                               </div>
+793:  1 |                               <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+794:  3 |                                 {(() => {
+795:  3 |                                   const rolePermissions: Record<
+796:  3 |                                     string,
+797:  3 |                                     { module: string; access: string }[]
+798:  4 |                                   > = {
+799:  4 |                                     Manager: [
+800:  5 |                                       {
+801:  5 |                                         module: "Workforce",
+802:  5 |                                         access: "Full Access",
+803:  4 |                                       },
+804:  5 |                                       {
+805:  5 |                                         module: "Bookings",
+806:  5 |                                         access: "Full Access",
+807:  4 |                                       },
+808:  5 |                                       {
+809:  5 |                                         module: "Customers",
+810:  5 |                                         access: "Full Access",
+811:  4 |                                       },
+812:  4 |                                       { module: "Services", access: "Manage" },
+813:  5 |                                       {
+814:  5 |                                         module: "Finance",
+815:  5 |                                         access: "View Only",
+816:  4 |                                       },
+817:  5 |                                       {
+818:  5 |                                         module: "Settings",
+819:  5 |                                         access: "View Only",
+820:  4 |                                       },
+821:  4 |                                     ],
+822:  4 |                                     Supervisor: [
+823:  5 |                                       {
+824:  5 |                                         module: "Workforce",
+825:  5 |                                         access: "View Only",
+826:  4 |                                       },
+827:  4 |                                       { module: "Bookings", access: "Manage" },
+828:  5 |                                       {
+829:  5 |                                         module: "Dispatch",
+830:  5 |                                         access: "Full Access",
+831:  4 |                                       },
+832:  5 |                                       {
+833:  5 |                                         module: "Customers",
+834:  5 |                                         access: "View Only",
+835:  4 |                                       },
+836:  4 |                                     ],
+837:  4 |                                     Dispatcher: [
+838:  5 |                                       {
+839:  5 |                                         module: "Dispatch",
+840:  5 |                                         access: "Full Access",
+841:  4 |                                       },
+842:  4 |                                       { module: "Bookings", access: "Manage" },
+843:  5 |                                       {
+844:  5 |                                         module: "Workforce",
+845:  5 |                                         access: "View Only",
+846:  4 |                                       },
+847:  4 |                                     ],
+848:  4 |                                     Admin: [
+849:  5 |                                       {
+850:  5 |                                         module: "All Modules",
+851:  5 |                                         access: "Full Access",
+852:  4 |                                       },
+853:  5 |                                       {
+854:  5 |                                         module: "System Settings",
+855:  5 |                                         access: "Full Access",
+856:  4 |                                       },
+857:  5 |                                       {
+858:  5 |                                         module: "User Management",
+859:  5 |                                         access: "Full Access",
+860:  4 |                                       },
+861:  5 |                                       {
+862:  5 |                                         module: "Billing",
+863:  5 |                                         access: "Full Access",
+864:  4 |                                       },
+865:  4 |                                     ],
+866:  3 |                                   };
+867:  3 | 
+868:  3 |                                   const perms =
+869:  3 |                                     rolePermissions[formData.systemRole] || [];
+870:  3 | 
+871:  3 |                                   return perms.map((p, i) => (
+872:  3 |                                     <div key={i} className="space-y-1">
+873:  3 |                                       <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+874:  3 |                                         {p.module}
+875:  3 |                                       </div>
+876:  3 |                                       <div className="text-[13px] font-medium text-gray-900 flex items-center gap-1.5">
+877:  3 |                                         <Check className="h-3.5 w-3.5 text-green-500" />
+878:  3 |                                         {p.access}
+879:  3 |                                       </div>
+880:  3 |                                     </div>
+881:  3 |                                   ));
+882:  1 |                                 })()}
+883:  1 |                               </div>
+884:  1 |                             </div>
+885:  0 |                           )}
+886:  0 |                         </div>
+887:  0 |                       </div>
+888:  0 |                     </div>
+889:  0 |                   </div>
+890:  0 | 
+891:  0 |                   <div className="pt-4 flex items-center justify-between">
+892:  0 |                     <Button
+893:  0 |                       variant="outline"
+894:  0 |                       onClick={() => setCurrentStep(1)}
+895:  0 |                       className="h-12 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold transition-colors"
+896:  0 |                     >
+897:  0 |                       Previous Step
+898:  0 |                     </Button>
+899:  0 |                     <Button
+900:  0 |                       className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2"
+901:  0 |                       onClick={() => setCurrentStep(3)}
+902:  0 |                       disabled={!reqs.access}
+903:  0 |                     >
+904:  0 |                       Next: Final Review <ArrowRight className="w-4 h-4" />
+905:  0 |                     </Button>
+906:  0 |                   </div>
+907:  0 |                 </div>
+908: -1 |               )}
+909: -1 | 
+910: -1 |               {/* 4. SUMMARY & ACTIVATION */}
+911:  0 |               {currentStep === 3 && (
+912:  0 |                 <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
+913:  0 |                   <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
+914:  0 |                     <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
+915:  0 |                       <ShieldCheck className="h-7 w-7" />
+916:  0 |                     </div>
+917:  0 |                     <h2 className="text-xl font-bold text-gray-900">
+918:  0 |                       Review & Activate
+919:  0 |                     </h2>
+920:  0 |                     <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
+921:  0 |                       Finalize the driver's profile for deployment.
+922:  0 |                     </span>
+923:  0 |                   </div>
+924:  0 | 
+925:  0 |                   <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+926:  0 |                     {/* CARD 1: PERSONAL DETAILS */}
+927:  0 |                     <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors">
+928:  0 |                       <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+929:  0 |                         <div className="flex items-center gap-3">
+930:  0 |                           <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+931:  0 |                             <User className="h-4 w-4" />
+932:  0 |                           </div>
+933:  0 |                           <span className="font-bold text-sm text-gray-900">
+934:  0 |                             Personal Details
+935:  0 |                           </span>
+936:  0 |                         </div>
+937:  0 |                         <Badge
+938:  0 |                           variant="outline"
+939:  0 |                           className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+940:  0 |                         >
+941:  0 |                           Step 1
+942:  0 |                         </Badge>
+943:  0 |                       </div>
+944:  0 |                       <div className="space-y-3 text-[13px]">
+945:  0 |                         <div className="flex justify-between items-center">
+946:  0 |                           <span className="text-gray-500">Full Name</span>{" "}
+947:  0 |                           <span className="font-semibold text-gray-900 text-right">
+948:  0 |                             {formData.name || "-"}
+949:  0 |                           </span>
+950:  0 |                         </div>
+951:  0 |                         <div className="flex justify-between items-center">
+952:  0 |                           <span className="text-gray-500">Display Name</span>{" "}
+953:  0 |                           <span className="font-semibold text-gray-900 text-right">
+954:  0 |                             {formData.nickname || "N/A"}
+955:  0 |                           </span>
+956:  0 |                         </div>
+957:  0 |                         <div className="flex justify-between items-center">
+958:  0 |                           <span className="text-gray-500">Mobile</span>
+959:  0 |                           <span className="font-semibold text-gray-900 text-right">
+960:  0 |                             {formData.phone || "-"}
+961:  0 |                           </span>
+962:  0 |                         </div>
+963:  0 |                         <div className="flex justify-between items-center">
+964:  0 |                           <span className="text-gray-500">Email</span>
+965:  0 |                           <span className="font-semibold text-gray-900 text-right">
+966:  0 |                             {formData.email || "-"}
+967:  0 |                           </span>
+968:  0 |                         </div>
+969:  0 |                       </div>
+970:  0 |                     </div>
+971:  0 |                     {/* CARD 2: ROLE & COMPENSATION */}
+972:  0 |                     <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-purple-200 transition-colors">
+973:  0 |                       <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+974:  0 |                         <div className="flex items-center gap-3">
+975:  0 |                           <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0">
+976:  0 |                             <Briefcase className="h-4 w-4" />
+977:  0 |                           </div>
+978:  0 |                           <span className="font-bold text-sm text-gray-900">
+979:  0 |                             Role & Compensation
+980:  0 |                           </span>
+981:  0 |                         </div>
+982:  0 |                         <Badge
+983:  0 |                           variant="outline"
+984:  0 |                           className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+985:  0 |                         >
+986:  0 |                           Step 1
+987:  0 |                         </Badge>
+988:  0 |                       </div>
+989:  0 |                       <div className="space-y-3 text-[13px]">
+990:  0 |                         <div className="flex justify-between items-center">
+991:  0 |                           <span className="text-gray-500">Position</span>{" "}
+992:  0 |                           <span className="font-semibold text-gray-900 text-right">
+993:  0 |                             {formData.role || "-"}
+994:  0 |                           </span>
+995:  0 |                         </div>
+996:  0 |                         <div className="flex justify-between items-center">
+997:  0 |                           <span className="text-gray-500">Department</span>{" "}
+998:  0 |                           <span className="font-semibold text-gray-900 text-right">
+999:  0 |                             {formData.department || "-"}
+1000:  0 |                           </span>
+1001:  0 |                         </div>
+1002:  0 |                         <div className="flex justify-between items-center">
+1003:  0 |                           <span className="text-gray-500">Type</span>{" "}
+1004:  0 |                           <span className="font-semibold text-gray-900 text-right">
+1005:  0 |                             {formData.employmentType || "-"}
+1006:  0 |                           </span>
+1007:  0 |                         </div>
+1008:  0 |                         <div className="flex justify-between items-center">
+1009:  0 |                           <span className="text-gray-500">Start Date</span>{" "}
+1010:  0 |                           <span className="font-semibold text-gray-900 text-right">
+1011:  0 |                             {formData.startDate || "-"}
+1012:  0 |                           </span>
+1013:  0 |                         </div>
+1014:  0 | 
+1015:  0 |                         <div className="pt-3 border-t border-gray-100 space-y-2.5">
+1016:  0 |                           <div className="flex justify-between items-center">
+1017:  0 |                             <span className="text-gray-500">Scheme</span>
+1018:  0 |                             <span className="font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-md border border-green-200 text-[11px]">
+1019:  0 |                               {formData.salaryType || "-"}
+1020:  0 |                             </span>
+1021:  0 |                           </div>
+1022:  1 |                           {(formData.salaryType === "Fixed Monthly" ||
+1023:  1 |                             formData.salaryType === "Fixed + Commission") && (
+1024:  1 |                             <div className="flex justify-between items-center">
+1025:  1 |                               <span className="text-gray-500">Base Salary</span>
+1026:  1 |                               <span className="font-semibold text-gray-900">
+1027:  1 |                                 QAR {formData.salaryAmount || "0"}
+1028:  1 |                               </span>
+1029:  1 |                             </div>
+1030:  0 |                           )}
+1031:  1 |                           {(formData.salaryType === "Commission-Based" ||
+1032:  1 |                             formData.salaryType === "Fixed + Commission") && (
+1033:  1 |                             <div className="flex justify-between items-center">
+1034:  1 |                               <span className="text-gray-500">Commission</span>
+1035:  1 |                               <span className="font-semibold text-gray-900">
+1036:  1 |                                 {formData.commissionRate || "0"}%
+1037:  1 |                               </span>
+1038:  1 |                             </div>
+1039:  0 |                           )}
+1040:  1 |                           {formData.salaryType === "Hourly-Rate" && (
+1041:  1 |                             <div className="flex justify-between items-center">
+1042:  1 |                               <span className="text-gray-500">Hourly Rate</span>
+1043:  1 |                               <span className="font-semibold text-gray-900">
+1044:  1 |                                 QAR {formData.hourlyRate || "0"}/hr
+1045:  1 |                               </span>
+1046:  1 |                             </div>
+1047:  0 |                           )}
+1048:  0 |                         </div>
+1049:  0 |                       </div>
+1050:  0 |                     </div>
+1051:  0 | 
+1052:  0 |                     {/* CARD 3: OPERATIONS SETUP */}
+1053:  0 |                     <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-orange-200 transition-colors">
+1054:  0 |                       <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+1055:  0 |                         <div className="flex items-center gap-3">
+1056:  0 |                           <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0">
+1057:  0 |                             <Globe className="h-4 w-4" />
+1058:  0 |                           </div>
+1059:  0 |                           <span className="font-bold text-sm text-gray-900">
+1060:  0 |                             Operations Setup
+1061:  0 |                           </span>
+1062:  0 |                         </div>
+1063:  0 |                         <Badge
+1064:  0 |                           variant="outline"
+1065:  0 |                           className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+1066:  0 |                         >
+1067:  0 |                           Step 2
+1068:  0 |                         </Badge>
+1069:  0 |                       </div>
+1070:  0 |                       <div className="space-y-3 text-[13px]">
+1071:  0 |                         <div className="flex justify-between items-center">
+1072:  0 |                           <span className="text-gray-500">Scope</span>
+1073:  0 |                           <span className="font-semibold text-gray-900 text-right">
+1074:  1 |                             {formData.serviceScope === "all"
+1075:  1 |                               ? "All Regions"
+1076:  0 |                               : "Specific Regions"}
+1077:  0 |                           </span>
+1078:  0 |                         </div>
+1079:  0 |                         <div className="flex justify-between items-start pt-1 border-gray-100">
+1080:  0 |                           <span className="text-gray-500 shrink-0 mt-0.5">
+1081:  0 |                             Vehicle Addt.
+1082:  0 |                           </span>
+1083:  0 |                           <span className="font-semibold text-gray-900 text-right max-w-[160px] truncate" title={formData.transportationType === "Company Vehicle" ? formData.assignedVehicle : formData.transportationType}>
+1084:  0 |                             {formData.transportationType === "Company Vehicle" ? (formData.assignedVehicle || "Pending Assignment") : (formData.transportationType || "-")}
+1085:  0 |                           </span>
+1086:  0 |                         </div>
+1087:  0 | 
+1088:  0 |                         <div className="pt-3 border-t border-gray-100 space-y-2.5">
+1089:  0 |                           <div className="flex justify-between items-center">
+1090:  0 |                             <span className="text-gray-500">Shift System</span>
+1091:  0 |                             <span className="font-semibold text-gray-900">
+1092:  0 |                               {formData.shiftSystem || "-"}
+1093:  0 |                             </span>
+1094:  0 |                           </div>
+1095:  0 |                           <div className="flex justify-between items-center">
+1096:  0 |                             <span className="text-gray-500">Working Days</span>
+1097:  0 |                             <span className="font-semibold text-gray-900">
+1098:  1 |                               {formData.shiftSystem === "Rotational"
+1099:  1 |                                 ? "Varied (Rotational)"
+1100:  1 |                                 : (formData.workingDays?.length || 0) +
+1101:  0 |                                   " Days/Week"}
+1102:  0 |                             </span>
+1103:  0 |                           </div>
+1104:  1 |                           {formData.shiftSystem === "Fixed" && (
+1105:  1 |                             <div className="flex justify-between items-center">
+1106:  1 |                               <span className="text-gray-500">Daily Hours</span>
+1107:  1 |                               <span className="font-semibold text-gray-900">
+1108:  1 |                                 {formData.workHoursStart || "-"} -{" "}
+1109:  1 |                                 {formData.workHoursEnd || "-"}
+1110:  1 |                               </span>
+1111:  1 |                             </div>
+1112:  0 |                           )}
+1113:  0 |                         </div>
+1114:  0 |                       </div>
+1115:  0 |                     </div>
+1116:  0 | 
+1117:  0 |                     {/* CARD 4: ACCESS & SECURITY */}
+1118:  0 |                     <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-gray-300 transition-colors">
+1119:  0 |                       <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+1120:  0 |                         <div className="flex items-center gap-3">
+1121:  0 |                           <div className="h-8 w-8 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center shrink-0">
+1122:  0 |                             <ShieldCheck className="h-4 w-4" />
+1123:  0 |                           </div>
+1124:  0 |                           <span className="font-bold text-sm text-gray-900">
+1125:  0 |                             Access & Security
+1126:  0 |                           </span>
+1127:  0 |                         </div>
+1128:  0 |                         <Badge
+1129:  0 |                           variant="outline"
+1130:  0 |                           className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+1131:  0 |                         >
+1132:  0 |                           Step 3
+1133:  0 |                         </Badge>
+1134:  0 |                       </div>
+1135:  0 |                       <div className="space-y-3 text-[13px]">
+1136:  0 |                         <div className="flex justify-between items-center">
+1137:  0 |                           <span className="text-gray-500">
+1138:  0 |                             Driver App Access
+1139:  0 |                           </span>
+1140:  0 |                           <Badge className="bg-green-50 text-green-700 border-green-100 rounded hover:bg-green-100">
+1141:  0 |                             Enabled
+1142:  0 |                           </Badge>
+1143:  0 |                         </div>
+1144:  0 | 
+1145:  0 |                         <div className="pt-3 border-t border-gray-100 space-y-2.5">
+1146:  0 |                           <div className="flex justify-between items-center">
+1147:  0 |                             <span className="text-gray-500">
+1148:  0 |                               Management Access
+1149:  0 |                             </span>
+1150:  1 |                             {formData.dashboardAccess ? (
+1151:  1 |                               <Badge className="bg-blue-50 text-blue-700 border-blue-100 rounded hover:bg-blue-100">
+1152:  1 |                                 Granted
+1153:  1 |                               </Badge>
+1154:  1 |                             ) : (
+1155:  1 |                               <span className="font-semibold text-gray-500">
+1156:  1 |                                 No Access
+1157:  1 |                               </span>
+1158:  0 |                             )}
+1159:  0 |                           </div>
+1160:  0 | 
+1161:  1 |                           {formData.dashboardAccess && (
+1162:  1 |                             <div className="flex justify-between items-center">
+1163:  1 |                               <span className="text-gray-500">System Role</span>
+1164:  1 |                               <span className="font-semibold text-gray-900 text-right">
+1165:  1 |                                 {formData.systemRole || "-"}
+1166:  1 |                               </span>
+1167:  1 |                             </div>
+1168:  0 |                           )}
+1169:  0 |                         </div>
+1170:  0 | 
+1171:  0 |                         <div className="mt-4 bg-orange-50/50 rounded-lg p-3 border border-orange-100 flex items-start gap-2">
+1172:  0 |                           <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
+1173:  0 |                           <span className="block text-[11px] text-orange-800 leading-relaxed">
+1174:  0 |                             This profile is ready for final activation.
+1175:  0 |                             Activating will officially register this driver
+1176:  0 |                             and send any automated welcome communications
+1177:  0 |                             if configured.
+1178:  0 |                           </span>
+1179:  0 |                         </div>
+1180:  0 |                       </div>
+1181:  0 |                     </div>
+1182:  0 |                   </div>
+1183:  0 | 
+1184:  0 |                   <div className="pt-6 flex items-center gap-4">
+1185:  0 |                     <Button
+1186:  0 |                       variant="outline"
+1187:  0 |                       onClick={() => setCurrentStep(2)}
+1188:  0 |                       className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50"
+1189:  0 |                     >
+1190:  0 |                       Back to Access & Security
+1191:  0 |                     </Button>
+1192:  0 |                     <Button
+1193:  0 |                       className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-xl px-6 font-bold text-white transition-all h-12 flex items-center justify-center text-sm"
+1194:  0 |                       onClick={handleActivate}
+1195:  0 |                     >
+1196:  0 |                       Complete Activation
+1197:  0 |                       <CheckCircle className="ml-2 w-5 h-5" />
+1198:  0 |                     </Button>
+1199:  0 |                   </div>
+1200:  0 |                 </div>
+1201: -1 |               )}
+1202: -1 |             </div>

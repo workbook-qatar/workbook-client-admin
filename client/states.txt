@@ -1,0 +1,8 @@
+const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Ops&Skills, 2=Summary
+const [isEditing, setIsEditing] = useState(false);
+const [isAddingCert, setIsAddingCert] = useState(false);
+const [tempCert, setTempCert] = useState({ name: "", expiry: "" });
+const [isBasicInfoOpen, setIsBasicInfoOpen] = useState(false);
+const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
+const [newTemplateData, setNewTemplateData] = useState({

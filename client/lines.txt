@@ -1,0 +1,20 @@
+2950:                     <Button
+2951:                       className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+2952:                       onClick={() => window.scrollTo(0,0) || setCurrentStep(3)}
+2953:                       disabled={!reqs.ops}
+2954:                     >
+2955:                       Next: Access Control <ArrowRight className="w-4 h-4 ml-2" />
+2956:                     </Button>
+2957:                   </div>
+2958:                 </div>
+2959:               )}
+2960: {/* 4. ACCESS CONTROL */}
+2961:               {currentStep === 3 && (
+2962:                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+2963:                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+2964: <div className="space-y-6 relative overflow-hidden transition-all duration-300">
+2965:                     <SectionHeader
+2966:                       title="System Access & Permissions"
+2967:                       desc="Dashboard access levels, system roles, and platform permissions."
+2968:                       icon={ShieldCheck}
+2969:                     />

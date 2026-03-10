@@ -1,0 +1,5 @@
+src/pages/DriverPendingInviteDetails.tsx(2960,16): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/pages/DriverPendingInviteDetails.tsx(3234,11): error TS17002: Expected corresponding JSX closing tag for 'DashboardLayout'.
+src/pages/DriverPendingInviteDetails.tsx(3235,7): error TS1005: ')' expected.
+src/pages/DriverPendingInviteDetails.tsx(3760,5): error TS1128: Declaration or statement expected.
+src/pages/DriverPendingInviteDetails.tsx(3761,3): error TS1109: Expression expected.

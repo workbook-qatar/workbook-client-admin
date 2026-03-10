@@ -644,7 +644,7 @@ export default function DriverPendingInviteDetails({
     const opsValid =
       d.serviceScope === "all" ||
       (d.serviceScope === "specific" && (d.serviceAreas?.length || 0) > 0);
-    const scheduleValid = (d.workingDays?.length || 0) > 0;
+    const scheduleValid = (d.workingDays?.length || 0) > 0 || (d.shiftSystem === "Rotational");
 
     const isCompVehicle = d.transportationType === "Company Vehicle";
     const vehicleValid = isCompVehicle ? !!d.assignedVehicle : true;
@@ -656,10 +656,10 @@ export default function DriverPendingInviteDetails({
         d.role &&
         d.department &&
         d.employmentType &&
-        d.startDate &&
-        d.salaryType
+        d.startDate
       ),
-      ops: !!d.transportationType && vehicleValid && opsValid && scheduleValid,
+      workSetup: !!d.salaryType && scheduleValid,
+      ops: !!d.transportationType && vehicleValid && opsValid,
       access:
         d.dashboardAccess === false ||
         !!(d.dashboardAccess && d.systemRole),
@@ -674,12 +674,13 @@ export default function DriverPendingInviteDetails({
       label: "Driver Profile",
       completed: reqs.profile,
     },
+    { id: "workSetup", label: "Work Setup", completed: reqs.workSetup },
     { id: "ops", label: "Operations Setup", completed: reqs.ops },
-    { id: "access", label: "Access & Security", completed: reqs.access },
+    { id: "access", label: "Access Control", completed: reqs.access },
     {
       id: "summary",
-      label: "Summary & Activation",
-      completed: currentStep === 3,
+      label: "Review & Activate",
+      completed: currentStep === 4,
     },
   ];
 
@@ -1015,6 +1016,7 @@ export default function DriverPendingInviteDetails({
 
                   
 
+                  
                   {/* Section: Role Information */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
                     <SectionHeader
@@ -1117,144 +1119,7 @@ export default function DriverPendingInviteDetails({
                     </div>
                   </div>
 
-                  {/* Section: Compensation */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
-                    <SectionHeader
-                      title="Compensation Package"
-                      desc="Configure salary structure and payment terms."
-                      icon={Banknote}
-                    />
-
-                    <div className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-1.5 md:col-span-2">
-                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                            Salary Scheme{" "}
-                            <span className="text-red-500">*</span>
-                          </Label>
-                          <Select
-                            disabled={!isEditing}
-                            value={formData.salaryType}
-                            onValueChange={v =>
-                              setFormData({ ...formData, salaryType: v as any })
-                            }
-                          >
-                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm">
-                              <SelectValue placeholder="Select Salary Type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Fixed Monthly">
-                                Fixed Monthly
-                              </SelectItem>
-                              <SelectItem value="Hourly-Rate">
-                                Hourly-Rate
-                              </SelectItem>
-                              <SelectItem value="Commission-Based">
-                                Commission
-                              </SelectItem>
-                              <SelectItem value="Fixed + Commission">
-                                Fixed + Commission
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <p className="text-[11px] text-gray-500 pt-1">
-                            {formData.salaryType === "Fixed Monthly" &&
-                              "Driver receives a consistent monthly salary regardless of trips."}
-                            {formData.salaryType === "Commission-Based" &&
-                              "Earnings are based on completed deliveries or trips."}
-                            {formData.salaryType === "Hourly-Rate" &&
-                              "Pay is calculated based on total clocked working hours."}
-                            {formData.salaryType === "Fixed + Commission" &&
-                              "Driver receives a basic salary plus an incentive per trip."}
-                          </p>
-                        </div>
-
-                        {(formData.salaryType === "Fixed Monthly" ||
-                          formData.salaryType === "Fixed + Commission") && (
-                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                              Monthly Base Salary{" "}
-                              <span className="text-red-500">*</span>
-                            </Label>
-                            <div className="relative group">
-                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
-                                QAR
-                              </div>
-                              <Input
-                                disabled={!isEditing}
-                                value={formData.salaryAmount}
-                                onChange={e =>
-                                  setFormData({
-                                    ...formData,
-                                    salaryAmount: e.target.value,
-                                  })
-                                }
-                                placeholder="0.00"
-                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
-                              />
-                            </div>
-                          </div>
-                        )}
-
-                        {(formData.salaryType === "Commission-Based" ||
-                          formData.salaryType === "Fixed + Commission") && (
-                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                              Per Trip / Delivery Incentive{" "}
-                              <span className="text-red-500">*</span>
-                            </Label>
-                            <div className="relative group">
-                              <Input
-                                disabled={!isEditing}
-                                value={formData.commissionRate}
-                                onChange={e =>
-                                  setFormData({
-                                    ...formData,
-                                    commissionRate: e.target.value,
-                                  })
-                                }
-                                placeholder="0"
-                                className="h-11 w-full pr-10 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
-                              />
-                              <div className="absolute right-3 top-3.5 text-gray-400 text-sm font-bold">
-                                %
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {formData.salaryType === "Hourly-Rate" && (
-                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
-                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                              Hourly Rate{" "}
-                              <span className="text-red-500">*</span>
-                            </Label>
-                            <div className="relative group">
-                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
-                                QAR
-                              </div>
-                              <Input
-                                disabled={!isEditing}
-                                value={formData.hourlyRate}
-                                onChange={e =>
-                                  setFormData({
-                                    ...formData,
-                                    hourlyRate: e.target.value,
-                                  })
-                                }
-                                placeholder="0.00"
-                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
-                              />
-                              <div className="absolute right-3 top-3.5 text-gray-400 text-xs font-medium">
-                                / hour
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
+                  
                   <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
                     <Button
                       variant="outline"
@@ -1265,375 +1130,17 @@ export default function DriverPendingInviteDetails({
                     </Button>
                     <Button
                       className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={() => saveChanges(true)}
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(1); }}
                       disabled={!reqs.profile}
                     >
-                      Next: Operations & Compliance{" "}
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      Next: Work Setup <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
               )}
-
-              {/* 2. OPERATIONS & COMPLIANCE */}
+{/* 2. WORK SETUP */}
               {currentStep === 1 && (
                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
-                  {/* Section: Operations Config */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
-                    <SectionHeader
-                      title="Operations Config"
-                      desc="Service areas and operational scope."
-                      icon={Globe}
-                    />
-
-                    <div className="space-y-4">
-                      <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                        Operational Scope{" "}
-                        <span className="text-red-500">*</span>
-                      </Label>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div
-                          onClick={() =>
-                            isEditing &&
-                            setFormData({
-                              ...formData,
-                              serviceScope: "all",
-                              serviceAreas: [],
-                            })
-                          }
-                          className={`
-                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
-                                                ${
-                                                  formData.serviceScope ===
-                                                  "all"
-                                                    ? "bg-blue-50/50 border-blue-600 shadow-sm"
-                                                    : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
-                                                }
-                                                ${!isEditing && "opacity-60 cursor-not-allowed"}
-                                            `}
-                        >
-                          <div
-                            className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "all" ? "border-blue-600" : "border-gray-300"}`}
-                          >
-                            {formData.serviceScope === "all" && (
-                              <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
-                              <Globe className="h-4 w-4 text-blue-500" />
-                              All Service Areas
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                              Driver can be dispatched to any location within
-                              the operational territory.
-                            </p>
-                          </div>
-                        </div>
-
-                        <div
-                          onClick={() =>
-                            isEditing &&
-                            setFormData({
-                              ...formData,
-                              serviceScope: "specific",
-                            })
-                          }
-                          className={`
-                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
-                                                ${
-                                                  formData.serviceScope ===
-                                                  "specific"
-                                                    ? "bg-blue-50/50 border-blue-600 shadow-sm"
-                                                    : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
-                                                }
-                                                ${!isEditing && "opacity-60 cursor-not-allowed"}
-                                            `}
-                        >
-                          <div
-                            className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "specific" ? "border-blue-600" : "border-gray-300"}`}
-                          >
-                            {formData.serviceScope === "specific" && (
-                              <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
-                            )}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
-                              <MapPin className="h-4 w-4 text-orange-500" />
-                              Specific Zones
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-                              Restrict driver availability to specific zones or
-                              regions only.
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* CONDITIONAL RENDER: Specific Areas Selector - Refactored to match Languages/Skills Pattern */}
-                      {formData.serviceScope === "specific" && (
-                        <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
-                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                            Selected Regions{" "}
-                            <span className="text-red-500">*</span>
-                          </Label>
-                          <Popover>
-                            <PopoverTrigger asChild disabled={!isEditing}>
-                              <Button
-                                variant="outline"
-                                role="combobox"
-                                className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
-                              >
-                                {formData.serviceAreas &&
-                                formData.serviceAreas.length > 0 ? (
-                                  <div className="flex flex-wrap gap-1.5">
-                                    {formData.serviceAreas.map(area => (
-                                      <Badge
-                                        key={area}
-                                        variant="secondary"
-                                        className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100"
-                                      >
-                                        {area}
-                                        {isEditing && (
-                                          <span
-                                            className="ml-1 cursor-pointer hover:text-red-600 transition-colors"
-                                            onClick={e => {
-                                              e.stopPropagation();
-                                              setFormData({
-                                                ...formData,
-                                                serviceAreas:
-                                                  formData.serviceAreas?.filter(
-                                                    s => s !== area
-                                                  ),
-                                              });
-                                            }}
-                                          >
-                                            <X className="h-3 w-3" />
-                                          </span>
-                                        )}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                ) : (
-                                  <span className="text-gray-400">
-                                    Select service areas...
-                                  </span>
-                                )}
-                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-[400px] p-0"
-                              align="start"
-                            >
-                              <Command>
-                                <CommandInput placeholder="Search regions..." />
-                                <CommandList>
-                                  <CommandEmpty>No region found.</CommandEmpty>
-                                  <CommandGroup>
-                                    {serviceAreaConfigs.map(area => (
-                                      <CommandItem
-                                        key={area.id}
-                                        value={area.name}
-                                        onSelect={() => {
-                                          const current =
-                                            formData.serviceAreas || [];
-                                          if (current.includes(area.name)) {
-                                            setFormData({
-                                              ...formData,
-                                              serviceAreas: current.filter(
-                                                s => s !== area.name
-                                              ),
-                                            });
-                                          } else {
-                                            setFormData({
-                                              ...formData,
-                                              serviceAreas: [
-                                                ...current,
-                                                area.name,
-                                              ],
-                                            });
-                                          }
-                                        }}
-                                      >
-                                        <div
-                                          className={cn(
-                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
-                                            formData.serviceAreas?.includes(
-                                              area.name
-                                            )
-                                              ? "bg-primary text-primary-foreground"
-                                              : "opacity-50 [&_svg]:invisible"
-                                          )}
-                                        >
-                                          <Check className={cn("h-4 w-4")} />
-                                        </div>
-                                        {area.name}
-                                      </CommandItem>
-                                    ))}
-                                  </CommandGroup>
-                                </CommandList>
-                              </Command>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Section: Logistics */}
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
-                    <SectionHeader
-                      title="Logistics"
-                      desc="Used for dispatch and shift planning."
-                      icon={Truck}
-                    />
-
-                    <div className="space-y-4">
-                      {/* Main Transport Select */}
-                      {/* Main Transport Select */}
-                      <div className="space-y-4">
-                        <div className="space-y-1.5">
-                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                            Vehicle & Transportation Model{" "}
-                            <span className="text-red-500">*</span>
-                          </Label>
-                          <Select
-                            disabled={!isEditing}
-                            value={formData.transportationType}
-                            onValueChange={v => {
-                              setFormData({
-                                ...formData,
-                                transportationType: v,
-                                assignedVehicle: "", // Reset dependent fields
-                                vehicleType: "",
-                                plateNumber: "",
-                              });
-                            }}
-                          >
-                            <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
-                              <SelectValue placeholder="Select Vehicle Model" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Company Vehicle">
-                                Company Vehicle
-                              </SelectItem>
-                              <SelectItem value="Personal Vehicle">
-                                Personal Vehicle
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-
-                          {formData.transportationType && (
-                            <p className="text-xs text-gray-500 leading-relaxed px-1">
-                              {formData.transportationType ===
-                                "Company Vehicle" &&
-                                "Driver uses a company-owned vehicle assigned from the fleet."}
-                              {formData.transportationType ===
-                                "Personal Vehicle" &&
-                                "Driver uses their own vehicle (ensure license & insurance are valid)."}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* COMPANY VEHICLE: Assignment */}
-                        {formData.transportationType === "Company Vehicle" && (
-                          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3 animate-in fade-in slide-in-from-top-2">
-                            <div className="flex items-center gap-2 text-blue-800 text-sm font-semibold">
-                              <Truck className="h-4 w-4" />
-                              Fleet Assignment
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-4">
-                              <div className="space-y-1.5">
-                                <Label className="text-xs font-semibold text-gray-500">
-                                  Assigned Vehicle{" "}
-                                  <span className="text-red-500">*</span>
-                                </Label>
-                                <Select
-                                  disabled={!isEditing}
-                                  value={formData.assignedVehicle}
-                                  onValueChange={v =>
-                                    setFormData({
-                                      ...formData,
-                                      assignedVehicle: v,
-                                    })
-                                  }
-                                >
-                                  <SelectTrigger className="bg-white h-10 border-blue-200 transition-all text-sm shadow-sm w-full">
-                                    <SelectValue placeholder="Select Vehicle from Fleet" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {companyVehicles.length > 0 ? (
-                                      companyVehicles.map(v => (
-                                        <SelectItem key={v.id} value={v.name}>
-                                          {v.name}
-                                        </SelectItem>
-                                      ))
-                                    ) : (
-                                      <div className="p-2 text-xs text-center text-gray-500">
-                                        No vehicles found. <br />
-                                        <span
-                                          className="text-blue-600 cursor-pointer hover:underline"
-                                          onClick={() =>
-                                            window.open("/vehicles", "_blank")
-                                          }
-                                        >
-                                          Add in Vehicles Module
-                                        </span>
-                                      </div>
-                                    )}
-                                  </SelectContent>
-                                </Select>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
-                        {/* PERSONAL VEHICLE: Seat Capacity Only */}
-                        {formData.transportationType === "Personal Vehicle" && (
-                          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
-                            <div className="flex items-center justify-between">
-                              <div className="space-y-0.5">
-                                <div className="flex items-center gap-2 text-gray-800 text-sm font-semibold">
-                                  <Truck className="h-4 w-4" />
-                                  Vehicle Capacity
-                                </div>
-                                <p className="text-xs text-gray-500">
-                                  How many passengers/staff can this vehicle
-                                  carry?
-                                </p>
-                              </div>
-
-                              <div className="w-32">
-                                <div className="relative">
-                                  <Input
-                                    disabled={!isEditing}
-                                    type="number"
-                                    placeholder="0"
-                                    min="1"
-                                    value={formData.seatCapacity || ""}
-                                    onChange={e =>
-                                      setFormData({
-                                        ...formData,
-                                        seatCapacity: e.target.value,
-                                      })
-                                    }
-                                    className="bg-white h-10 border-gray-200 pr-8 text-right font-medium"
-                                  />
-                                  <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium h-full pointer-events-none">
-                                    Pax
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
                   {/* MOVED SCHEDULE SECTION HERE */}
                   <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
                     <SectionHeader
@@ -1935,29 +1442,548 @@ export default function DriverPendingInviteDetails({
                     </div>
                   </div>
 
+                  
+                  {/* Section: Compensation */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Compensation Package"
+                      desc="Configure salary structure and payment terms."
+                      icon={Banknote}
+                    />
+
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1.5 md:col-span-2">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                            Salary Scheme{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            disabled={!isEditing}
+                            value={formData.salaryType}
+                            onValueChange={v =>
+                              setFormData({ ...formData, salaryType: v as any })
+                            }
+                          >
+                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm">
+                              <SelectValue placeholder="Select Salary Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Fixed Monthly">
+                                Fixed Monthly
+                              </SelectItem>
+                              <SelectItem value="Hourly-Rate">
+                                Hourly-Rate
+                              </SelectItem>
+                              <SelectItem value="Commission-Based">
+                                Commission
+                              </SelectItem>
+                              <SelectItem value="Fixed + Commission">
+                                Fixed + Commission
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-[11px] text-gray-500 pt-1">
+                            {formData.salaryType === "Fixed Monthly" &&
+                              "Driver receives a consistent monthly salary regardless of trips."}
+                            {formData.salaryType === "Commission-Based" &&
+                              "Earnings are based on completed deliveries or trips."}
+                            {formData.salaryType === "Hourly-Rate" &&
+                              "Pay is calculated based on total clocked working hours."}
+                            {formData.salaryType === "Fixed + Commission" &&
+                              "Driver receives a basic salary plus an incentive per trip."}
+                          </p>
+                        </div>
+
+                        {(formData.salaryType === "Fixed Monthly" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Monthly Base Salary{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.salaryAmount}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    salaryAmount: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {(formData.salaryType === "Commission-Based" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Per Trip / Delivery Incentive{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.commissionRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    commissionRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0"
+                                className="h-11 w-full pr-10 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-sm font-bold">
+                                %
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {formData.salaryType === "Hourly-Rate" && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Hourly Rate{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.hourlyRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    hourlyRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-xs font-medium">
+                                / hour
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  
                   <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
                     <Button
                       variant="outline"
-                      onClick={() => setCurrentStep(0)}
-                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(0); }}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 bg-white"
                     >
                       Previous Step
                     </Button>
                     <Button
                       className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      onClick={() => saveChanges(true)}
-                      disabled={!reqs.ops}
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(2); }}
+                      disabled={!reqs.workSetup}
                     >
-                      Next: Summary <ArrowRight className="w-4 h-4 ml-2" />
+                      Next: Operations Setup <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
               )}
-
-              {/* 3. ACCESS & SECURITY */}
+{/* 3. OPERATIONS SETUP */}
               {currentStep === 2 && (
-                <div className="max-w-4xl mx-auto animate-in fade-in space-y-8 pt-2">
-                  <div className="space-y-6 relative overflow-hidden transition-all duration-300">
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* Section: Operations Config */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Operations Config"
+                      desc="Service areas and operational scope."
+                      icon={Globe}
+                    />
+
+                    <div className="space-y-4">
+                      <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                        Operational Scope{" "}
+                        <span className="text-red-500">*</span>
+                      </Label>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div
+                          onClick={() =>
+                            isEditing &&
+                            setFormData({
+                              ...formData,
+                              serviceScope: "all",
+                              serviceAreas: [],
+                            })
+                          }
+                          className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${
+                                                  formData.serviceScope ===
+                                                  "all"
+                                                    ? "bg-blue-50/50 border-blue-600 shadow-sm"
+                                                    : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
+                                                }
+                                                ${!isEditing && "opacity-60 cursor-not-allowed"}
+                                            `}
+                        >
+                          <div
+                            className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "all" ? "border-blue-600" : "border-gray-300"}`}
+                          >
+                            {formData.serviceScope === "all" && (
+                              <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                              <Globe className="h-4 w-4 text-blue-500" />
+                              All Service Areas
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                              Driver can be dispatched to any location within
+                              the operational territory.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div
+                          onClick={() =>
+                            isEditing &&
+                            setFormData({
+                              ...formData,
+                              serviceScope: "specific",
+                            })
+                          }
+                          className={`
+                                                relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all
+                                                ${
+                                                  formData.serviceScope ===
+                                                  "specific"
+                                                    ? "bg-blue-50/50 border-blue-600 shadow-sm"
+                                                    : "bg-white border-gray-100 hover:border-blue-200 hover:bg-gray-50"
+                                                }
+                                                ${!isEditing && "opacity-60 cursor-not-allowed"}
+                                            `}
+                        >
+                          <div
+                            className={`mt-0.5 h-5 w-5 rounded-full border flex items-center justify-center shrink-0 ${formData.serviceScope === "specific" ? "border-blue-600" : "border-gray-300"}`}
+                          >
+                            {formData.serviceScope === "specific" && (
+                              <div className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 font-bold text-gray-900 text-sm">
+                              <MapPin className="h-4 w-4 text-orange-500" />
+                              Specific Zones
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+                              Restrict driver availability to specific zones or
+                              regions only.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* CONDITIONAL RENDER: Specific Areas Selector - Refactored to match Languages/Skills Pattern */}
+                      {formData.serviceScope === "specific" && (
+                        <div className="space-y-3 pt-2 animate-in fade-in slide-in-from-top-1">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                            Selected Regions{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Popover>
+                            <PopoverTrigger asChild disabled={!isEditing}>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between font-normal h-auto min-h-[44px] px-3 py-2 text-left bg-white border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
+                              >
+                                {formData.serviceAreas &&
+                                formData.serviceAreas.length > 0 ? (
+                                  <div className="flex flex-wrap gap-1.5">
+                                    {formData.serviceAreas.map(area => (
+                                      <Badge
+                                        key={area}
+                                        variant="secondary"
+                                        className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100"
+                                      >
+                                        {area}
+                                        {isEditing && (
+                                          <span
+                                            className="ml-1 cursor-pointer hover:text-red-600 transition-colors"
+                                            onClick={e => {
+                                              e.stopPropagation();
+                                              setFormData({
+                                                ...formData,
+                                                serviceAreas:
+                                                  formData.serviceAreas?.filter(
+                                                    s => s !== area
+                                                  ),
+                                              });
+                                            }}
+                                          >
+                                            <X className="h-3 w-3" />
+                                          </span>
+                                        )}
+                                      </Badge>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <span className="text-gray-400">
+                                    Select service areas...
+                                  </span>
+                                )}
+                                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              className="w-[400px] p-0"
+                              align="start"
+                            >
+                              <Command>
+                                <CommandInput placeholder="Search regions..." />
+                                <CommandList>
+                                  <CommandEmpty>No region found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {serviceAreaConfigs.map(area => (
+                                      <CommandItem
+                                        key={area.id}
+                                        value={area.name}
+                                        onSelect={() => {
+                                          const current =
+                                            formData.serviceAreas || [];
+                                          if (current.includes(area.name)) {
+                                            setFormData({
+                                              ...formData,
+                                              serviceAreas: current.filter(
+                                                s => s !== area.name
+                                              ),
+                                            });
+                                          } else {
+                                            setFormData({
+                                              ...formData,
+                                              serviceAreas: [
+                                                ...current,
+                                                area.name,
+                                              ],
+                                            });
+                                          }
+                                        }}
+                                      >
+                                        <div
+                                          className={cn(
+                                            "mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary",
+                                            formData.serviceAreas?.includes(
+                                              area.name
+                                            )
+                                              ? "bg-primary text-primary-foreground"
+                                              : "opacity-50 [&_svg]:invisible"
+                                          )}
+                                        >
+                                          <Check className={cn("h-4 w-4")} />
+                                        </div>
+                                        {area.name}
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  
+                  {/* Section: Logistics */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Logistics"
+                      desc="Used for dispatch and shift planning."
+                      icon={Truck}
+                    />
+
+                    <div className="space-y-4">
+                      {/* Main Transport Select */}
+                      {/* Main Transport Select */}
+                      <div className="space-y-4">
+                        <div className="space-y-1.5">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                            Vehicle & Transportation Model{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            disabled={!isEditing}
+                            value={formData.transportationType}
+                            onValueChange={v => {
+                              setFormData({
+                                ...formData,
+                                transportationType: v,
+                                assignedVehicle: "", // Reset dependent fields
+                                vehicleType: "",
+                                plateNumber: "",
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="bg-white h-11 border-gray-200 transition-all text-sm shadow-sm hover:border-blue-300 w-full">
+                              <SelectValue placeholder="Select Vehicle Model" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Company Vehicle">
+                                Company Vehicle
+                              </SelectItem>
+                              <SelectItem value="Personal Vehicle">
+                                Personal Vehicle
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+
+                          {formData.transportationType && (
+                            <p className="text-xs text-gray-500 leading-relaxed px-1">
+                              {formData.transportationType ===
+                                "Company Vehicle" &&
+                                "Driver uses a company-owned vehicle assigned from the fleet."}
+                              {formData.transportationType ===
+                                "Personal Vehicle" &&
+                                "Driver uses their own vehicle (ensure license & insurance are valid)."}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* COMPANY VEHICLE: Assignment */}
+                        {formData.transportationType === "Company Vehicle" && (
+                          <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-3 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center gap-2 text-blue-800 text-sm font-semibold">
+                              <Truck className="h-4 w-4" />
+                              Fleet Assignment
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
+                              <div className="space-y-1.5">
+                                <Label className="text-xs font-semibold text-gray-500">
+                                  Assigned Vehicle{" "}
+                                  <span className="text-red-500">*</span>
+                                </Label>
+                                <Select
+                                  disabled={!isEditing}
+                                  value={formData.assignedVehicle}
+                                  onValueChange={v =>
+                                    setFormData({
+                                      ...formData,
+                                      assignedVehicle: v,
+                                    })
+                                  }
+                                >
+                                  <SelectTrigger className="bg-white h-10 border-blue-200 transition-all text-sm shadow-sm w-full">
+                                    <SelectValue placeholder="Select Vehicle from Fleet" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    {companyVehicles.length > 0 ? (
+                                      companyVehicles.map(v => (
+                                        <SelectItem key={v.id} value={v.name}>
+                                          {v.name}
+                                        </SelectItem>
+                                      ))
+                                    ) : (
+                                      <div className="p-2 text-xs text-center text-gray-500">
+                                        No vehicles found. <br />
+                                        <span
+                                          className="text-blue-600 cursor-pointer hover:underline"
+                                          onClick={() =>
+                                            window.open("/vehicles", "_blank")
+                                          }
+                                        >
+                                          Add in Vehicles Module
+                                        </span>
+                                      </div>
+                                    )}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* PERSONAL VEHICLE: Seat Capacity Only */}
+                        {formData.transportationType === "Personal Vehicle" && (
+                          <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-0.5">
+                                <div className="flex items-center gap-2 text-gray-800 text-sm font-semibold">
+                                  <Truck className="h-4 w-4" />
+                                  Vehicle Capacity
+                                </div>
+                                <p className="text-xs text-gray-500">
+                                  How many passengers/staff can this vehicle
+                                  carry?
+                                </p>
+                              </div>
+
+                              <div className="w-32">
+                                <div className="relative">
+                                  <Input
+                                    disabled={!isEditing}
+                                    type="number"
+                                    placeholder="0"
+                                    min="1"
+                                    value={formData.seatCapacity || ""}
+                                    onChange={e =>
+                                      setFormData({
+                                        ...formData,
+                                        seatCapacity: e.target.value,
+                                      })
+                                    }
+                                    className="bg-white h-10 border-gray-200 pr-8 text-right font-medium"
+                                  />
+                                  <span className="absolute right-3 top-2.5 text-xs text-gray-400 font-medium h-full pointer-events-none">
+                                    Pax
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(1); }}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 bg-white"
+                    >
+                      Previous Step
+                    </Button>
+                    <Button
+                      className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(3); }}
+                      disabled={!reqs.ops}
+                    >
+                      Next: Access Control <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+{/* 4. ACCESS CONTROL */}
+              {currentStep === 3 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+<div className="space-y-6 relative overflow-hidden transition-all duration-300">
                     <SectionHeader
                       title="System Access & Permissions"
                       desc="Dashboard access levels, system roles, and platform permissions."
@@ -2169,29 +2195,32 @@ export default function DriverPendingInviteDetails({
                     </div>
                   </div>
 
-                  <div className="pt-4 flex items-center justify-between">
+                  
+</div>
+
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
                     <Button
                       variant="outline"
-                      onClick={() => setCurrentStep(1)}
-                      className="h-12 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 rounded-xl font-semibold transition-colors"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(2); }}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 bg-white"
                     >
                       Previous Step
                     </Button>
                     <Button
-                      className="h-12 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed rounded-xl font-bold text-white flex items-center gap-2"
-                      onClick={() => setCurrentStep(3)}
+                      className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(4); }}
                       disabled={!reqs.access}
                     >
-                      Next: Final Review <ArrowRight className="w-4 h-4" />
+                      Next: Final Review <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
                   </div>
                 </div>
               )}
-
-              {/* 4. SUMMARY & ACTIVATION */}
-              {currentStep === 3 && (
+{/* 5. SUMMARY & ACTIVATION */}
+              {currentStep === 4 && (
                 <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
-                  <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6">
+                    <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
                     <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
                       <ShieldCheck className="h-7 w-7" />
                     </div>
@@ -2462,17 +2491,20 @@ export default function DriverPendingInviteDetails({
                     </div>
                   </div>
 
+                  
+                  </div>
                   <div className="pt-6 flex items-center gap-4">
                     <Button
                       variant="outline"
-                      onClick={() => setCurrentStep(2)}
-                      className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(3); }}
+                      className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50 bg-white"
                     >
-                      Back to Access & Security
+                      Back to Access Control
                     </Button>
                     <Button
                       className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-xl px-6 font-bold text-white transition-all h-12 flex items-center justify-center text-sm"
                       onClick={handleActivate}
+                      
                     >
                       Complete Activation
                       <CheckCircle className="ml-2 w-5 h-5" />
@@ -2480,12 +2512,12 @@ export default function DriverPendingInviteDetails({
                   </div>
                 </div>
               )}
+
             </div>
           </div>
         </div>
       </div>
-
-      {/* Single Day Shift Management Modal */}
+{/* Single Day Shift Management Modal */}
       {activeDayModal && formData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
