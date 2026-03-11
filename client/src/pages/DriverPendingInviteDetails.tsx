@@ -197,6 +197,8 @@ export default function DriverPendingInviteDetails({
 }) {
   const [, params] = useRoute("/workforce/pending/:id");
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  const [isActivationConfirmOpen, setIsActivationConfirmOpen] = useState(false);
+  const [finalSystemStatus, setFinalSystemStatus] = useState<"Active" | "Inactive">("Active");
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Ops&Skills, 2=Summary
   const [isEditing, setIsEditing] = useState(false);
@@ -528,6 +530,8 @@ export default function DriverPendingInviteDetails({
           licenseExpiry: found.licenseExpiry || "",
           serviceScope: "" as any, // Start empty
           serviceAreas: found.serviceAreas || [],
+          dashboardAccess: false,
+          systemRole: "",
         };
 
         // Check for Default Business Hours override if new/empty
@@ -696,15 +700,16 @@ export default function DriverPendingInviteDetails({
         s.id === data.id
           ? {
               ...s,
-              membershipStatus: "active",
-              employmentStatus: "Active",
-              status: "available",
+              membershipStatus: finalSystemStatus === "Active" ? "active" : "inactive",
+              employmentStatus: finalSystemStatus === "Active" ? "Active" : "Inactive",
+              status: finalSystemStatus === "Active" ? "available" : "unavailable",
             }
           : s
       );
       localStorage.setItem("vendor_staff", JSON.stringify(list));
 
       // Show success
+      setIsActivationConfirmOpen(false);
       setIsSuccessOpen(true);
     }
   };
@@ -1028,29 +1033,6 @@ export default function DriverPendingInviteDetails({
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-1.5">
                         <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
-                          Position <span className="text-red-500">*</span>
-                        </Label>
-                        <Select
-                          disabled={!isEditing}
-                          value={formData.role}
-                          onValueChange={v =>
-                            setFormData({ ...formData, role: v })
-                          }
-                        >
-                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
-                            <SelectValue placeholder="Select Position" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {positionOptions.map(p => (
-                              <SelectItem key={p} value={p}>
-                                {p}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
                           Department <span className="text-red-500">*</span>
                         </Label>
                         <Select
@@ -1067,6 +1049,29 @@ export default function DriverPendingInviteDetails({
                             {departmentOptions.map(d => (
                               <SelectItem key={d} value={d}>
                                 {d}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Position <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.role}
+                          onValueChange={v =>
+                            setFormData({ ...formData, role: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Position" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {positionOptions.map(p => (
+                              <SelectItem key={p} value={p}>
+                                {p}
                               </SelectItem>
                             ))}
                           </SelectContent>
@@ -1982,7 +1987,7 @@ export default function DriverPendingInviteDetails({
 {/* 4. ACCESS CONTROL */}
               {currentStep === 3 && (
                 <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                  <div className="space-y-6 mb-6">
 <div className="space-y-6 relative overflow-hidden transition-all duration-300">
                     <SectionHeader
                       title="System Access & Permissions"
@@ -2219,47 +2224,55 @@ export default function DriverPendingInviteDetails({
 {/* 5. SUMMARY & ACTIVATION */}
               {currentStep === 4 && (
                 <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
-                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm mb-6">
-                    <div className="text-center py-4 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
-                    <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
-                      <ShieldCheck className="h-7 w-7" />
+                  <div>
+                    <div className="text-center py-4 mb-5 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
+                      <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
+                        <ShieldCheck className="h-7 w-7" />
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Review & Activate
+                      </h2>
+                      <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
+                        Verify all driver details before final activation and deployment.
+                      </span>
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900">
-                      Review & Activate
-                    </h2>
-                    <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
-                      Finalize the driver's profile for deployment.
-                    </span>
-                  </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {/* CARD 1: PERSONAL DETAILS */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* CARD 1: DRIVER PROFILE (Step 1 — Personal Details + Role Information) */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors group">
                       <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div className="flex items-center gap-3">
                           <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
                             <User className="h-4 w-4" />
                           </div>
                           <span className="font-bold text-sm text-gray-900">
-                            Personal Details
+                            Driver Profile
                           </span>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
-                        >
-                          Step 1
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { window.scrollTo(0, 0); setCurrentStep(0); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                          >
+                            Step 1
+                          </Badge>
+                        </div>
                       </div>
                       <div className="space-y-3 text-[13px]">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Full Name</span>{" "}
+                          <span className="text-gray-500">Full Name</span>
                           <span className="font-semibold text-gray-900 text-right">
                             {formData.name || "-"}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Display Name</span>{" "}
+                          <span className="text-gray-500">Display Name</span>
                           <span className="font-semibold text-gray-900 text-right">
                             {formData.nickname || "N/A"}
                           </span>
@@ -2272,129 +2285,102 @@ export default function DriverPendingInviteDetails({
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-gray-500">Email</span>
-                          <span className="font-semibold text-gray-900 text-right">
+                          <span className="font-semibold text-gray-900 text-right truncate max-w-[180px]" title={formData.email || ""}>
                             {formData.email || "-"}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    {/* CARD 2: ROLE & COMPENSATION */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-purple-200 transition-colors">
-                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center shrink-0">
-                            <Briefcase className="h-4 w-4" />
-                          </div>
-                          <span className="font-bold text-sm text-gray-900">
-                            Role & Compensation
-                          </span>
-                        </div>
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
-                        >
-                          Step 1
-                        </Badge>
-                      </div>
-                      <div className="space-y-3 text-[13px]">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Position</span>{" "}
-                          <span className="font-semibold text-gray-900 text-right">
-                            {formData.role || "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Department</span>{" "}
-                          <span className="font-semibold text-gray-900 text-right">
-                            {formData.department || "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Type</span>{" "}
-                          <span className="font-semibold text-gray-900 text-right">
-                            {formData.employmentType || "-"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Start Date</span>{" "}
-                          <span className="font-semibold text-gray-900 text-right">
-                            {formData.startDate || "-"}
                           </span>
                         </div>
 
                         <div className="pt-3 border-t border-gray-100 space-y-2.5">
                           <div className="flex justify-between items-center">
-                            <span className="text-gray-500">Scheme</span>
-                            <span className="font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-md border border-green-200 text-[11px]">
-                              {formData.salaryType || "-"}
+                            <span className="text-gray-500">Department</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.department || "-"}
                             </span>
                           </div>
-                          {(formData.salaryType === "Fixed Monthly" ||
-                            formData.salaryType === "Fixed + Commission") && (
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Base Salary</span>
-                              <span className="font-semibold text-gray-900">
-                                QAR {formData.salaryAmount || "0"}
-                              </span>
-                            </div>
-                          )}
-                          {(formData.salaryType === "Commission-Based" ||
-                            formData.salaryType === "Fixed + Commission") && (
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Commission</span>
-                              <span className="font-semibold text-gray-900">
-                                {formData.commissionRate || "0"}%
-                              </span>
-                            </div>
-                          )}
-                          {formData.salaryType === "Hourly-Rate" && (
-                            <div className="flex justify-between items-center">
-                              <span className="text-gray-500">Hourly Rate</span>
-                              <span className="font-semibold text-gray-900">
-                                QAR {formData.hourlyRate || "0"}/hr
-                              </span>
-                            </div>
-                          )}
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Position</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.role || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Employment Type</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.employmentType || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Start Date</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.startDate || "-"}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* CARD 3: OPERATIONS SETUP */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-orange-200 transition-colors">
+                    {/* CARD 2: WORK SETUP (Step 2 — Compensation + Schedule) */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-green-200 transition-colors group">
                       <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0">
-                            <Globe className="h-4 w-4" />
+                          <div className="h-8 w-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center shrink-0">
+                            <Banknote className="h-4 w-4" />
                           </div>
                           <span className="font-bold text-sm text-gray-900">
-                            Operations Setup
+                            Work Setup
                           </span>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
-                        >
-                          Step 2
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { window.scrollTo(0, 0); setCurrentStep(1); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                          >
+                            Step 2
+                          </Badge>
+                        </div>
                       </div>
                       <div className="space-y-3 text-[13px]">
+                        {/* Compensation */}
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-500">Scope</span>
-                          <span className="font-semibold text-gray-900 text-right">
-                            {formData.serviceScope === "all"
-                              ? "All Regions"
-                              : "Specific Regions"}
+                          <span className="text-gray-500">Salary Scheme</span>
+                          <span className="font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-md border border-green-200 text-[11px]">
+                            {formData.salaryType || "-"}
                           </span>
                         </div>
-                        <div className="flex justify-between items-start pt-1 border-gray-100">
-                          <span className="text-gray-500 shrink-0 mt-0.5">
-                            Vehicle Addt.
-                          </span>
-                          <span className="font-semibold text-gray-900 text-right max-w-[160px] truncate" title={formData.transportationType === "Company Vehicle" ? formData.assignedVehicle : formData.transportationType}>
-                            {formData.transportationType === "Company Vehicle" ? (formData.assignedVehicle || "Pending Assignment") : (formData.transportationType || "-")}
-                          </span>
-                        </div>
+                        {(formData.salaryType === "Fixed Monthly" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Base Salary</span>
+                            <span className="font-semibold text-gray-900">
+                              QAR {formData.salaryAmount || "0"}
+                            </span>
+                          </div>
+                        )}
+                        {(formData.salaryType === "Commission-Based" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Commission</span>
+                            <span className="font-semibold text-gray-900">
+                              {formData.commissionRate || "0"}%
+                            </span>
+                          </div>
+                        )}
+                        {formData.salaryType === "Hourly-Rate" && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Hourly Rate</span>
+                            <span className="font-semibold text-gray-900">
+                              QAR {formData.hourlyRate || "0"}/hr
+                            </span>
+                          </div>
+                        )}
 
+                        {/* Schedule */}
                         <div className="pt-3 border-t border-gray-100 space-y-2.5">
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500">Shift System</span>
@@ -2407,15 +2393,16 @@ export default function DriverPendingInviteDetails({
                             <span className="font-semibold text-gray-900">
                               {formData.shiftSystem === "Rotational"
                                 ? "Varied (Rotational)"
-                                : (formData.workingDays?.length || 0) +
-                                  " Days/Week"}
+                                : formData.shiftSystem === "Flexible"
+                                ? `${formData.workingDays?.length || 0} Days (Flexible)`
+                                : `${formData.workingDays?.length || 0} Days/Week`}
                             </span>
                           </div>
                           {formData.shiftSystem === "Fixed" && (
                             <div className="flex justify-between items-center">
                               <span className="text-gray-500">Daily Hours</span>
                               <span className="font-semibold text-gray-900">
-                                {formData.workHoursStart || "-"} -{" "}
+                                {formData.workHoursStart || "-"} –{" "}
                                 {formData.workHoursEnd || "-"}
                               </span>
                             </div>
@@ -2424,23 +2411,108 @@ export default function DriverPendingInviteDetails({
                       </div>
                     </div>
 
-                    {/* CARD 4: ACCESS & SECURITY */}
-                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-gray-300 transition-colors">
+                    {/* CARD 3: OPERATIONS SETUP (Step 3 — Scope + Vehicle) */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-orange-200 transition-colors group">
                       <div className="flex items-center justify-between border-b border-gray-100 pb-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 bg-gray-100 text-gray-700 rounded-full flex items-center justify-center shrink-0">
+                          <div className="h-8 w-8 bg-orange-50 text-orange-600 rounded-full flex items-center justify-center shrink-0">
+                            <Truck className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Operations Setup
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { window.scrollTo(0, 0); setCurrentStep(2); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                          >
+                            Step 3
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Service Scope</span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.serviceScope === "all"
+                              ? "All Regions"
+                              : formData.serviceScope === "specific"
+                              ? "Specific Regions"
+                              : "-"}
+                          </span>
+                        </div>
+                        {formData.serviceScope === "specific" && formData.serviceAreas && formData.serviceAreas.length > 0 && (
+                          <div className="flex justify-between items-start">
+                            <span className="text-gray-500 shrink-0 mt-0.5">Assigned Zones</span>
+                            <div className="flex flex-wrap gap-1 justify-end max-w-[180px]">
+                              {formData.serviceAreas.map(area => (
+                                <Badge key={area} variant="secondary" className="bg-orange-50 text-orange-700 border-orange-100 text-[10px] px-1.5 py-0">
+                                  {area}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Vehicle Model</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.transportationType || "-"}
+                            </span>
+                          </div>
+                          {formData.transportationType === "Company Vehicle" && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Assigned Vehicle</span>
+                              <span className="font-semibold text-gray-900 text-right max-w-[160px] truncate" title={formData.assignedVehicle || ""}>
+                                {formData.assignedVehicle || "Pending Assignment"}
+                              </span>
+                            </div>
+                          )}
+                          {formData.transportationType === "Personal Vehicle" && formData.seatCapacity && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Seat Capacity</span>
+                              <span className="font-semibold text-gray-900">
+                                {formData.seatCapacity} Pax
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 4: ACCESS CONTROL (Step 4 — Access & Permissions) */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-indigo-200 transition-colors group">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center shrink-0">
                             <ShieldCheck className="h-4 w-4" />
                           </div>
                           <span className="font-bold text-sm text-gray-900">
-                            Access & Security
+                            Access Control
                           </span>
                         </div>
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
-                        >
-                          Step 3
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { window.scrollTo(0, 0); setCurrentStep(3); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                          >
+                            Step 4
+                          </Badge>
+                        </div>
                       </div>
                       <div className="space-y-3 text-[13px]">
                         <div className="flex justify-between items-center">
@@ -2455,15 +2527,15 @@ export default function DriverPendingInviteDetails({
                         <div className="pt-3 border-t border-gray-100 space-y-2.5">
                           <div className="flex justify-between items-center">
                             <span className="text-gray-500">
-                              Management Access
+                              Dashboard Access
                             </span>
                             {formData.dashboardAccess ? (
                               <Badge className="bg-blue-50 text-blue-700 border-blue-100 rounded hover:bg-blue-100">
                                 Granted
                               </Badge>
                             ) : (
-                              <span className="font-semibold text-gray-500">
-                                No Access
+                              <span className="font-semibold text-gray-400 text-[12px]">
+                                Not Enabled
                               </span>
                             )}
                           </div>
@@ -2477,21 +2549,9 @@ export default function DriverPendingInviteDetails({
                             </div>
                           )}
                         </div>
-
-                        <div className="mt-4 bg-orange-50/50 rounded-lg p-3 border border-orange-100 flex items-start gap-2">
-                          <AlertCircle className="w-4 h-4 text-orange-600 shrink-0 mt-0.5" />
-                          <span className="block text-[11px] text-orange-800 leading-relaxed">
-                            This profile is ready for final activation.
-                            Activating will officially register this driver
-                            and send any automated welcome communications
-                            if configured.
-                          </span>
-                        </div>
                       </div>
                     </div>
                   </div>
-
-                  
                   </div>
                   <div className="pt-6 flex items-center gap-4">
                     <Button
@@ -2502,9 +2562,9 @@ export default function DriverPendingInviteDetails({
                       Back to Access Control
                     </Button>
                     <Button
-                      className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-xl px-6 font-bold text-white transition-all h-12 flex items-center justify-center text-sm"
-                      onClick={handleActivate}
-                      
+                      className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-xl px-6 font-bold text-white transition-all h-12 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                      onClick={() => setIsActivationConfirmOpen(true)}
+                      disabled={!reqs.profile || !reqs.workSetup || !reqs.ops || !reqs.access}
                     >
                       Complete Activation
                       <CheckCircle className="ml-2 w-5 h-5" />
@@ -2816,6 +2876,68 @@ export default function DriverPendingInviteDetails({
           </div>
         </div>
       )}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isActivationConfirmOpen} onOpenChange={setIsActivationConfirmOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-900">Complete Activation?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-[15px] text-gray-600 leading-relaxed">
+              This will formally activate <span className="font-bold text-gray-900">{data?.name}</span> within the system.
+            </p>
+            <p className="text-[15px] text-gray-600 leading-relaxed">
+              Their profile will become available for scheduling and dispatch, and they will receive an automated welcome communication.
+            </p>
+            
+            <div className="space-y-3 pt-4">
+              <Label className="text-sm font-bold text-gray-900">
+                Final System Status <span className="text-red-500">*</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setFinalSystemStatus("Active")}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-full border-2 transition-all font-medium text-[15px]
+                    ${finalSystemStatus === "Active" 
+                      ? "border-green-500 text-green-700 bg-white" 
+                      : "border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                >
+                  <CheckCircle className={`w-[18px] h-[18px] ${finalSystemStatus === "Active" ? "text-green-600" : "text-gray-400"}`} />
+                  Active
+                </button>
+                <button
+                  onClick={() => setFinalSystemStatus("Inactive")}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-full border-2 transition-all font-medium text-[15px]
+                    ${finalSystemStatus === "Inactive" 
+                      ? "border-gray-300 text-gray-700 bg-gray-50" 
+                      : "border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                >
+                  <AlertCircle className={`w-[18px] h-[18px] ${finalSystemStatus === "Inactive" ? "text-gray-500" : "text-gray-400"}`} />
+                  Inactive
+                </button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0 pt-4 pb-2">
+            <Button
+              variant="ghost"
+              onClick={() => setIsActivationConfirmOpen(false)}
+              className="font-semibold text-gray-600 hover:text-gray-900 hover:bg-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleActivate}
+              className="bg-blue-600 hover:bg-blue-700 font-semibold px-6 rounded-full"
+            >
+              Activate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isBasicInfoOpen} onOpenChange={setIsBasicInfoOpen}>
         <DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">

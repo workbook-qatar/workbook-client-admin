@@ -102,27 +102,6 @@ export default function PendingInvites() {
         )
       );
 
-      // Add Dummy Accepted if not present (for UI review)
-      if (!pending.find(p => p.membershipStatus === "accepted")) {
-        pending.push({
-          id: "dummy-accepted-1",
-          staffId: "WB-ACC",
-          name: "Reviewer Validated",
-          role: "Supervisor",
-          roleType: "Internal Staff",
-          email: "reviewer@workbook.com",
-          phone: "+974 5000 1000",
-          location: "Qatar",
-          status: "offline",
-          employmentStatus: "Active",
-          membershipStatus: "accepted",
-          inviteSentAt: new Date().toISOString(),
-          avatar: "RV",
-          avatarColor: "bg-green-600",
-          emailVerified: true,
-          phoneVerified: true,
-        });
-      }
 
       setInvites(pending);
     }

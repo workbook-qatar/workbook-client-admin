@@ -15,13 +15,31 @@ import {
   Phone,
   Calendar,
   MapPin,
+  Wrench,
+  FileText,
   User,
+  Hash,
   Flag,
-  Edit2,
-  ArrowRight,
+  Globe,
+  Upload,
+  Trash2,
+  X,
+  Plus,
+  AlertCircle,
   Briefcase,
-  Lock,
-  Download,
+  Banknote,
+  ArrowRight,
+  Award,
+  Edit2,
+  Save,
+  Clock,
+  Truck,
+  Car,
+  Bus,
+  Layers,
+  Check,
+  ChevronDown,
+    Info,
 } from "lucide-react";
 import {
   Select,
@@ -30,51 +48,443 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import { StaffMember } from "./Workforce";
+// import DriverPendingInviteDetails from "./DriverPendingInviteDetails"; // Removed circular dependency
 
-// Extended interface (Subset of what's in StaffPendingInviteDetails, tailored for Internal)
-interface InternalStaffMember extends StaffMember {
+// Helper Functions for Time Grid
+const formatTimeLabel = (time: string) => {
+  const [h] = time.split(":");
+  const hour = parseInt(h);
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour} ${suffix}`;
+};
+
+const isHourActive = (current: string, start: string, end: string) => {
+  return current >= start && current < end;
+};
+
+const incrementHour = (time: string) => {
+  const [h] = time.split(":");
+  let hour = parseInt(h) + 1;
+  return `${hour.toString().padStart(2, "0")}:00`;
+};
+
+const decrementHour = (time: string) => {
+  const [h] = time.split(":");
+  let hour = parseInt(h) - 1;
+  return `${hour.toString().padStart(2, "0")}:00`;
+};
+
+// Extended interface for local usage
+interface ExtendedStaffMember extends StaffMember {
   nickname?: string;
   qid?: string;
   dob?: string;
   nationality?: string;
   gender?: "Male" | "Female";
   department?: string;
-  position?: string;
-  employmentType?: "Full Time" | "Part Time" | "Contract";
+  employmentType?: "Full Time" | "Part Time" | "Contract" | "Temporary";
   startDate?: string;
-  salaryType?: string;
-  // Internal Specific
-  systemAccess?: boolean;
+  salaryType?:
+    | "Fixed Monthly"
+    | "Commission-Based"
+    | "Hourly-Rate"
+    | "Fixed + Commission";
+  salaryAmount?: string;
+  commissionRate?: string;
+  hourlyRate?: string;
+  languages?: string[];
+  religion?: string;
+  maritalStatus?: string;
+  skills?: string[];
+  serviceArea?: string;
+  emergencyContact?: string;
+  emergencyPhone?: string;
+  documents?: {
+    name: string;
+    type: string;
+    status: "valid" | "pending";
+    expiryDate?: string;
+  }[];
+  // Shift Setup
+  shiftSystem?: "Fixed" | "Rotational" | "Flexible";
+  workingDays?: string[];
+  workHoursStart?: string;
+  workHoursEnd?: string;
+  rotationalSchedule?: Record<string, { start: string; end: string }[]>;
+  // Transport
+  transportationType?: string;
+  primaryTransport?: string; // For Hybrid
+  transportVaries?: boolean; // For Hybrid
+  // Driver specific / Transport Logic
+  assignedVehicle?: string;
+  vehicleType?: string; // For Self
+  plateNumber?: string; // For Self
+  licenseCategory?: string;
+  licenseNumber?: string;
+  licenseExpiry?: string;
+  // Operations
+  serviceScope?: "all" | "specific";
+  serviceAreas?: string[];
+  seatCapacity?: string; // New field for Personal Vehicle
+  // Access & Security
+  dashboardAccess?: boolean;
   systemRole?: string;
-  permissions?: string[];
+  permissionScope?: string;
 }
+
+const MOCK_SERVICE_AREAS = [
+  { id: "sa-1", name: "Doha Central" },
+  { id: "sa-2", name: "West Bay" },
+  { id: "sa-3", name: "The Pearl" },
+  { id: "sa-4", name: "Al Rayyan" },
+  { id: "sa-5", name: "Al Wakrah" },
+  { id: "sa-6", name: "Lusail" },
+];
+
+
+const SectionHeader = ({
+  title,
+  desc,
+  icon: Icon,
+}: {
+  title: string;
+  desc: string;
+  icon: React.ElementType;
+}) => (
+  <div className="flex items-start gap-4 mb-6 relative group">
+    <div className="h-10 w-10 text-blue-600 bg-blue-50 rounded-xl flex items-center justify-center shrink-0 border border-blue-100/50 shadow-[inset_0_2px_4px_rgb(255,255,255,0.5)] group-hover:scale-105 transition-transform duration-300">
+      <Icon className="h-5 w-5" />
+    </div>
+    <div className="flex-1 mt-0.5">
+      <h3 className="text-base font-bold text-gray-900 tracking-tight">
+        {title}
+      </h3>
+      <span className="text-[13px] text-gray-400 mt-1 block leading-relaxed">
+        {desc}
+      </span>
+    </div>
+  </div>
+);
 
 export default function InternalPendingInviteDetails({
   initialData,
 }: {
-  initialData?: any;
+  initialData?: ExtendedStaffMember;
 }) {
-  // Accept props if passed by router
   const [, params] = useRoute("/workforce/pending/:id");
-  const [data, setData] = useState<InternalStaffMember | null>(
-    initialData || null
-  );
-  const [formData, setFormData] = useState<InternalStaffMember | null>(
-    initialData || null
-  );
+  const [isSuccessOpen, setIsSuccessOpen] = useState(false);
+  const [isActivationConfirmOpen, setIsActivationConfirmOpen] = useState(false);
+  const [finalSystemStatus, setFinalSystemStatus] = useState<"Active" | "Inactive">("Active");
   const [, setLocation] = useLocation();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isEditing, setIsEditing] = useState(true); // Default to edit mode for setup
+  const [currentStep, setCurrentStep] = useState(0); // 0=Employment, 1=Ops&Skills, 2=Summary
+  const [isEditing, setIsEditing] = useState(false);
 
+  // Cert Form State (To be removed/ignored in new flow, but keeping for safety for now)
+  const [isAddingCert, setIsAddingCert] = useState(false);
+  const [tempCert, setTempCert] = useState({ name: "", expiry: "" });
+
+  // "Committed" Data (Display)
+  const [data, setData] = useState<ExtendedStaffMember | null>(null);
+
+  // "Draft" Data (Form)
+  const [formData, setFormData] = useState<ExtendedStaffMember | null>(null);
+
+  // Basic Info Edit Components
+  const [isBasicInfoOpen, setIsBasicInfoOpen] = useState(false);
+  const [basicInfoForm, setBasicInfoForm] = useState<{
+    nickname: string;
+    mobile: string;
+    email: string;
+    gender: "Male" | "Female";
+    avatar?: string;
+  } | null>(null);
+
+  const [companyVehicles, setCompanyVehicles] = useState<
+    { id: string; name: string }[]
+  >([]);
+
+  // Initialize basic info form when opening modal
   useEffect(() => {
-    if (initialData) {
-      setData(initialData);
-      setFormData(initialData);
+    if (isBasicInfoOpen && data) {
+      setBasicInfoForm({
+        nickname: data.nickname || "",
+        mobile: data.phone || "",
+        email: data.email || "",
+        gender: data.gender || "Male",
+        avatar: data.avatar,
+      });
+    }
+  }, [isBasicInfoOpen, data]);
+
+  const [activeDayModal, setActiveDayModal] = useState<string | null>(null);
+
+  // Settings Data
+  const [availableSkills, setAvailableSkills] = useState<any[]>([]);
+  const [departmentOptions, setDepartmentOptions] = useState<string[]>([]);
+  const [positionOptions, setPositionOptions] = useState<string[]>([]);
+  const [employmentTypeOptions, setEmploymentTypeOptions] = useState<string[]>(
+    []
+  );
+  const [transportationConfigs, setTransportationConfigs] = useState<any[]>([]); // Store full config objects
+  const [serviceAreaConfigs, setServiceAreaConfigs] =
+    useState<any[]>(MOCK_SERVICE_AREAS); // Default to mocks
+  const [enabledShiftSystems, setEnabledShiftSystems] = useState<string[]>([]);
+  const [shiftTemplateOptions, setShiftTemplateOptions] = useState<any[]>([]);
+
+  // Dialog State for "Add Shift Block" -> "Create Template"
+  const [isCreateTemplateOpen, setIsCreateTemplateOpen] = useState(false);
+  const [newTemplateData, setNewTemplateData] = useState({
+    name: "",
+    startTime: "",
+    endTime: "",
+  });
+
+  const handleSaveNewTemplate = () => {
+    if (!formData) return;
+    if (
+      !newTemplateData.name ||
+      !newTemplateData.startTime ||
+      !newTemplateData.endTime
+    ) {
+      toast.error("Please fill all fields");
       return;
     }
+    const newTemplate = {
+      id: `custom-${Date.now()}`,
+      name: newTemplateData.name,
+      startTime: newTemplateData.startTime,
+      endTime: newTemplateData.endTime,
+    };
 
-    // Fallback load if no props (e.g. direct link logic if we supported it, but our Router will handle it)
+    // 1. Update List
+    const updated = [...shiftTemplateOptions, newTemplate];
+    setShiftTemplateOptions(updated);
+    localStorage.setItem("vendor_shift_templates", JSON.stringify(updated));
+
+    // 2. Add to Current Day (since user clicked "Add Shift Block")
+    if (activeDayModal) {
+      const currentSlots = [
+        ...(formData.rotationalSchedule?.[activeDayModal] || []),
+      ];
+      currentSlots.push({
+        start: newTemplate.startTime,
+        end: newTemplate.endTime,
+      });
+      setFormData({
+        ...formData,
+        rotationalSchedule: {
+          ...formData.rotationalSchedule,
+          [activeDayModal]: currentSlots,
+        },
+      });
+      toast.success("Template created and shift added");
+    } else {
+      toast.success("Shift template created");
+    }
+
+    setIsCreateTemplateOpen(false);
+    setNewTemplateData({ name: "", startTime: "", endTime: "" });
+  };
+
+  // Load Data
+  useEffect(() => {
+    // 1. Load Skills
+    const storedSkills = localStorage.getItem("vendor_skills");
+    if (storedSkills) {
+      setAvailableSkills(JSON.parse(storedSkills));
+    } else {
+      setAvailableSkills([
+        {
+          name: "HVAC Repair",
+          requiresCert: true,
+          certName: "HVAC Technician Certificate",
+        },
+        {
+          name: "Electrical",
+          requiresCert: true,
+          certName: "Electrician Certification",
+        },
+        { name: "Plumbing", requiresCert: true, certName: "Plumbing License" },
+        { name: "Deep Cleaning", requiresCert: false },
+        { name: "Carpentry", requiresCert: false },
+        {
+          name: "Beautician",
+          requiresCert: true,
+          certName: "Cosmetology License",
+        },
+      ]);
+    }
+
+    // 2. Load Organization & Employment Settings
+    // 2. Load Organization & Employment Settings
+    const storedDepts = localStorage.getItem("vendor_departments");
+    if (storedDepts) {
+      const allDepts = JSON.parse(storedDepts);
+      // Filter for "driver" or if applicableTo is missing (legacy)
+      const validDepts = allDepts.filter(
+        (d: any) => !d.applicableTo || d.applicableTo.includes("driver")
+      );
+      let depts = validDepts.map((d: any) => d.name);
+
+      if (!depts.includes("Logistics")) depts.push("Logistics"); // Always include Logistics for Driver
+      setDepartmentOptions(depts);
+    } else {
+      setDepartmentOptions(["Operations", "Logistics"]);
+    }
+
+    const storedJobs = localStorage.getItem("vendor_job_titles");
+    if (storedJobs) {
+      const allJobs = JSON.parse(storedJobs);
+      const validJobs = allJobs.filter(
+        (j: any) => !j.applicableTo || j.applicableTo.includes("driver")
+      );
+      setPositionOptions(validJobs.map((j: any) => j.name || j.title));
+    } else {
+      setPositionOptions(["Driver"]);
+    }
+
+    const storedEmpTypes = localStorage.getItem("vendor_employment_types");
+    if (storedEmpTypes) {
+      const allTypes = JSON.parse(storedEmpTypes);
+      const validTypes = allTypes.filter(
+        (e: any) =>
+          e.isActive !== false &&
+          (!e.applicableTo || e.applicableTo.includes("driver"))
+      );
+      setEmploymentTypeOptions(validTypes.map((e: any) => e.name));
+    } else {
+      setEmploymentTypeOptions(["Full Time", "Contract"]);
+    }
+
+    const storedTransport = localStorage.getItem("vendor_transportation_types");
+    const NEW_TRANSPORT_DEFAULTS = [
+      {
+        id: "tt1",
+        name: "Company Provides Transportation (With Driver)",
+        description: "Staff will be transported by company driver/route",
+        status: "active",
+        category: "company_driver",
+      },
+      {
+        id: "tt2",
+        name: "Company Provides Vehicle (Staff Drives)",
+        description: "Company assigned vehicle (Car/Van)",
+        status: "active",
+        category: "company_vehicle",
+      },
+      {
+        id: "tt3",
+        name: "Self – Own Vehicle",
+        description: "Employee uses personal vehicle",
+        status: "active",
+        category: "self_vehicle",
+      },
+      {
+        id: "tt4",
+        name: "Public / Ride Transport",
+        description: "Staff uses taxi/uber/public transport",
+        status: "active",
+        category: "public",
+      },
+      {
+        id: "tt5",
+        name: "Hybrid / Flexible",
+        description: "Varies by shift/day",
+        status: "active",
+        category: "hybrid",
+      },
+    ];
+
+    if (storedTransport) {
+      let loaded = JSON.parse(storedTransport);
+      // FORCE MIGRATION: Check if using old names
+      if (
+        loaded.some(
+          (t: any) =>
+            t.name === "Company-Provided Transportation" ||
+            t.name === "Company Vehicle (Self Drive)"
+        )
+      ) {
+        loaded = NEW_TRANSPORT_DEFAULTS;
+        localStorage.setItem(
+          "vendor_transportation_types",
+          JSON.stringify(loaded)
+        );
+      }
+      setTransportationConfigs(
+        loaded.filter((t: any) => t.status === "active")
+      );
+    } else {
+      setTransportationConfigs(NEW_TRANSPORT_DEFAULTS);
+      localStorage.setItem(
+        "vendor_transportation_types",
+        JSON.stringify(NEW_TRANSPORT_DEFAULTS)
+      );
+    }
+
+    // 3. Load Fleet Data
+    const storedVehicles = localStorage.getItem("vendor_vehicles");
+    if (storedVehicles) {
+      setCompanyVehicles(
+        JSON.parse(storedVehicles).map((v: any) => ({
+          id: v.id,
+          name: `${v.name} - ${v.plateNumber}`, // Format for display
+        }))
+      );
+    } else {
+      // Fallback or empty if module just initialized
+      setCompanyVehicles([]);
+    }
+
+    const storedShiftConfig = localStorage.getItem(
+      "vendor_shift_types_enabled"
+    );
+    if (storedShiftConfig) {
+      const config = JSON.parse(storedShiftConfig);
+      const enabled = [];
+      if (config.fixed) enabled.push("Fixed");
+      if (config.rotational) enabled.push("Rotational");
+      if (config.flexible) enabled.push("Flexible");
+      setEnabledShiftSystems(enabled);
+    } else {
+      setEnabledShiftSystems(["Fixed", "Rotational", "Flexible"]);
+    }
+
+    const storedTemplates = localStorage.getItem("vendor_shift_templates");
+    if (storedTemplates) {
+      setShiftTemplateOptions(JSON.parse(storedTemplates));
+    }
+
+    const storedAreas = localStorage.getItem("vendor_service_areas");
+    if (storedAreas) {
+      const areas = JSON.parse(storedAreas);
+      if (areas.length > 0) setServiceAreaConfigs(areas);
+    }
+
     const stored = localStorage.getItem("vendor_staff");
     if (stored && params?.id) {
       const list = JSON.parse(stored);
@@ -82,55 +492,274 @@ export default function InternalPendingInviteDetails({
         (s: any) => s.id === params.id || s.id === parseInt(params.id)
       );
       if (found) {
-        setData(found);
-        setFormData(found);
+        // Mock Data Enrichment if missing
+        const initialized: ExtendedStaffMember = {
+          ...found,
+          nickname: found.nickname || "N/A",
+          role: "", // Ensure role starts empty for manual selection
+          qid: found.qid || "28535638494",
+          dob: found.dob || "1995-04-12",
+          nationality: found.nationality || "Qatar",
+          gender: found.gender || "Male",
+          department: found.department || "",
+          employmentType: found.employmentType || "",
+          startDate: found.startDate || "",
+          salaryType: found.salaryType || "",
+          salaryAmount: found.salaryAmount || "",
+          commissionRate: found.commissionRate || "",
+          hourlyRate: found.hourlyRate || "",
+          languages: [],
+          religion: "",
+          maritalStatus: "",
+          emergencyPhone: "",
+          skills: [],
+          documents: found.documents || [],
+          shiftSystem: "" as any,
+          workingDays: [],
+          workHoursStart: "",
+          workHoursEnd: "",
+          rotationalSchedule: {},
+          transportationType: found.transportationType || "",
+          assignedVehicle: found.assignedVehicle || "",
+          vehicleType: found.vehicleType || "",
+          plateNumber: found.plateNumber || "",
+          primaryTransport: found.primaryTransport || "",
+          transportVaries: found.transportVaries || false,
+          licenseCategory: found.licenseCategory || "",
+          licenseNumber: found.licenseNumber || "",
+          licenseExpiry: found.licenseExpiry || "",
+          serviceScope: "" as any, // Start empty
+          serviceAreas: found.serviceAreas || [],
+          dashboardAccess: false,
+          systemRole: "",
+        };
+
+        // Check for Default Business Hours override if new/empty
+        const storedBizHours = localStorage.getItem("vendor_business_hours");
+        if (
+          storedBizHours &&
+          (!found.workHoursStart || found.workHoursStart === "08:00")
+        ) {
+          const biz = JSON.parse(storedBizHours);
+          initialized.workHoursStart = biz.start;
+          initialized.workHoursEnd = biz.end;
+        }
+        if (!initialized.seatCapacity) initialized.seatCapacity = ""; // Init new field
+
+        setData(initialized);
+        setFormData(initialized);
+        // Auto-enter edit mode for onboarding review if data is "fresh"
+        setIsEditing(true);
       }
     }
-  }, [params?.id, initialData]);
+  }, [params?.id]);
 
-  if (!formData || !data)
+  if (!data || !formData)
     return (
-      <div className="p-8 text-center">Loading Internal Staff Details...</div>
+      <DashboardLayout>
+        <div>Loading...</div>
+      </DashboardLayout>
     );
 
-  const saveChanges = (activate = false) => {
+  // if (data.role === 'Driver') {
+  //     return <DriverPendingInviteDetails initialData={data} />;
+  // }
+
+  // --- Logic Helpers ---
+  const handleEditToggle = () => {
+    if (isEditing) {
+      setFormData(data); // Revert
+      setIsEditing(false);
+      setIsAddingCert(false);
+    } else {
+      setFormData(data); // Sync
+      setIsEditing(true);
+    }
+  };
+
+  const saveChanges = (advanceStep = false) => {
+    const stored = localStorage.getItem("vendor_staff");
+    if (stored) {
+      const list = JSON.parse(stored);
+      const index = list.findIndex((s: any) => s.id === data.id);
+      if (index !== -1 && formData) {
+        list[index] = { ...list[index], ...formData };
+        localStorage.setItem("vendor_staff", JSON.stringify(list));
+        setData(formData);
+        toast.success("Changes saved successfully");
+        if (advanceStep) setCurrentStep(prev => prev + 1);
+      }
+    }
+  };
+
+  const handleSaveBasicInfo = () => {
+    if (!basicInfoForm || !data) return;
+
+    const updatedData = {
+      ...data,
+      nickname: basicInfoForm.nickname,
+      phone: basicInfoForm.mobile,
+      email: basicInfoForm.email,
+      gender: basicInfoForm.gender,
+      avatar: basicInfoForm.avatar || data.avatar,
+    };
+
     const stored = localStorage.getItem("vendor_staff");
     if (stored) {
       const list = JSON.parse(stored);
       const index = list.findIndex((s: any) => s.id === data.id);
       if (index !== -1) {
-        const updated = {
-          ...list[index],
-          ...formData,
-          ...(activate
-            ? {
-                membershipStatus: "active",
-                employmentStatus: "Active",
-                status: "offline",
-              }
-            : {}),
-        };
-        list[index] = updated;
+        list[index] = updatedData;
         localStorage.setItem("vendor_staff", JSON.stringify(list));
-        setData(updated);
-        toast.success(
-          activate ? "Staff Activated Successfully" : "Changes saved"
-        );
-        if (activate) {
-          setLocation("/workforce");
-        }
+        setData(updatedData as ExtendedStaffMember);
+        // Also update local formData to reflect changes immediately
+        setFormData(prev => (prev ? { ...prev, ...updatedData } : null));
+        setIsBasicInfoOpen(false);
+        toast.success("Basic Info updated successfully");
       }
     }
   };
 
+  const handleAddCert = () => {
+    if (!formData) return; // Basic check
+    if (!tempCert.name) {
+      toast.error("Certificate name is required");
+      return;
+    }
+    const newDoc = {
+      name: tempCert.name,
+      type: "Certificate",
+      status: "valid" as const,
+      expiryDate: tempCert.expiry,
+    };
+    setFormData({
+      ...formData,
+      documents: [...(formData.documents || []), newDoc],
+    });
+    setTempCert({ name: "", expiry: "" });
+    setIsAddingCert(false);
+    toast.success("Certificate added");
+  };
+
+  // Check Requirements matching the new 3 Steps
+  const checkRequirements = () => {
+    const d = formData || data;
+    const scheduleValid = (d.workingDays?.length || 0) > 0 || (d.shiftSystem === "Rotational");
+
+    return {
+      profile: !!(
+        d.name &&
+        d.phone &&
+        d.role &&
+        d.department &&
+        d.employmentType &&
+        d.startDate
+      ),
+      workSetup: !!d.salaryType && scheduleValid,
+      access:
+        d.dashboardAccess === false ||
+        !!(d.dashboardAccess && d.systemRole),
+      summary: true,
+    };
+  };
+
+  const reqs = checkRequirements();
   const steps = [
     {
       id: "profile",
-      label: "Profile & Role",
-      completed: !!(formData.name && formData.email && formData.position),
+      label: "Internal Profile",
+      completed: reqs.profile,
     },
-    { id: "access", label: "System Access", completed: true },
+    { id: "workSetup", label: "Work Setup", completed: reqs.workSetup },
+    { id: "access", label: "Access Control", completed: reqs.access },
+    {
+      id: "summary",
+      label: "Review & Activate",
+      completed: currentStep === 3,
+    },
   ];
+
+  const completedCount = steps.filter(s => s.completed).length;
+  const progressPercent = (completedCount / steps.length) * 100;
+  const canActivate = progressPercent === 100;
+
+  const handleActivate = () => {
+    const stored = localStorage.getItem("vendor_staff");
+    if (stored) {
+      let list = JSON.parse(stored);
+      list = list.map((s: any) =>
+        s.id === data.id
+          ? {
+              ...s,
+              membershipStatus: finalSystemStatus === "Active" ? "active" : "inactive",
+              employmentStatus: finalSystemStatus === "Active" ? "Active" : "Inactive",
+              status: finalSystemStatus === "Active" ? "available" : "unavailable",
+            }
+          : s
+      );
+      localStorage.setItem("vendor_staff", JSON.stringify(list));
+
+      // Show success
+      setIsActivationConfirmOpen(false);
+      setIsSuccessOpen(true);
+    }
+  };
+
+  // Handlers for Right Panel Logic (Skills/Docs)
+  const handleAddSkill = (skill: string) => {
+    if (!formData) return;
+    if (!formData.skills?.includes(skill)) {
+      setFormData({ ...formData, skills: [...(formData.skills || []), skill] });
+    }
+  };
+  const handleRemoveSkill = (skill: string) => {
+    if (!formData) return;
+    setFormData({
+      ...formData,
+      skills: formData.skills?.filter(s => s !== skill),
+    });
+  };
+  const handleMockUpload = () => {
+    if (!formData) return;
+    const newDoc = {
+      name: "Uploaded Document.pdf",
+      type: "General",
+      status: "valid" as const,
+    };
+    setFormData({
+      ...formData,
+      documents: [...(formData.documents || []), newDoc],
+    });
+    toast.success("Document uploaded (mock)");
+  };
+
+  const serviceAreas = [
+    "Doha Central",
+    "West Bay",
+    "The Pearl",
+    "Al Rayyan",
+    "Al Wakrah",
+  ];
+
+  const rotationHours = [
+    "04:00",
+    "05:00",
+    "06:00",
+    "07:00",
+    "08:00",
+    "09:00",
+    "10:00",
+    "11:00",
+    "12:00",
+    "13:00",
+    "14:00",
+    "15:00",
+    "16:00",
+    "17:00",
+    "18:00",
+    "19:00",
+  ];
+  const rotationDays = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; // Ordered as per design req if needed
 
   return (
     <DashboardLayout>
@@ -146,206 +775,1929 @@ export default function InternalPendingInviteDetails({
           </Button>
         </div>
 
-        <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-6 animate-in fade-in">
-          {/* LEFT SIDEBAR */}
+        {/* Split View */}
+        <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-6 animate-in fade-in slide-in-from-bottom-2">
+                    {/* LEFT SIDEBAR - PROFILE DETAILS */}
           <div className="w-full lg:w-80 shrink-0 space-y-6">
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden flex flex-col h-full">
-              <div className="p-6 flex flex-col items-center text-center border-b border-gray-100 bg-gray-50/50">
-                <Avatar className="h-24 w-24 border-4 border-white shadow-lg mb-4">
-                  <AvatarImage src={data.avatar} />
-                  <AvatarFallback>
-                    {data.name.substring(0, 2).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <h2 className="font-bold text-lg">{data.name}</h2>
-                <Badge
-                  variant="secondary"
-                  className="mt-2 bg-purple-100 text-purple-700 hover:bg-purple-100"
-                >
-                  Internal Staff
-                </Badge>
+              {/* Essential Setup Info */}
+              <div className="bg-white border-b border-gray-100 p-6 space-y-6 shrink-0">
+                {/* Profile Info */}
+                <div className="flex items-center gap-4">
+                  <Avatar className="h-12 w-12 border border-gray-100 shadow-sm">
+                    <AvatarImage src={data.avatar} className="object-cover" />
+                    <AvatarFallback className="font-bold bg-blue-50 text-blue-700">
+                      {data.name.substring(0, 2).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="overflow-hidden">
+                    <h2 className="text-lg font-bold text-gray-900 leading-tight truncate">
+                      {data.name}
+                    </h2>
+                    <div className="flex items-center gap-1.5 mt-0.5 text-[13px] text-gray-500">
+                      <Mail className="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                      <span className="truncate">
+                        {data.email || "No email provided"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Role Type */}
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Role Type
+                  </span>
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-50 text-blue-700 hover:bg-blue-100 rounded-md px-3 py-1 font-semibold shadow-sm border border-blue-100/50"
+                  >
+                    Internal Staff
+                  </Badge>
+                </div>
+
+                {/* Invitation Status */}
+                <div>
+                  <span className="block text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Invitation Status
+                  </span>
+                  <div className="bg-green-50 border border-green-100 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-green-700 font-bold text-sm mb-1">
+                      <CheckCircle className="h-4 w-4" />
+                      <span>Accepted</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-green-600/80 ml-6">
+                      <Calendar className="h-3 w-3" />
+                      <span>Oct 24, 2025 ـ 09:41 AM</span>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="p-6 space-y-4 text-sm flex-1">
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Email</span>{" "}
-                    <span className="font-medium">{data.email}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Phone</span>{" "}
-                    <span className="font-medium">{data.phone}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Role</span>{" "}
-                    <span className="font-medium">
-                      {data.position || "Staff"}
+
+              <div className="flex flex-col flex-1">
+                {/* Progress Badge */}
+                <div className="px-6 py-4 shrink-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                      Setup Progress
+                    </span>
+                    <span className="text-xs font-bold text-blue-600">
+                      {progressPercent.toFixed(0)}%
                     </span>
                   </div>
+                  <div className="h-1.5 w-full bg-gray-100 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-blue-600 transition-all duration-500"
+                      style={{ width: `${progressPercent}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Next Steps List */}
+                <div className="px-6 pb-6 space-y-2 shrink-0">
+                  {steps.map((step, idx) => (
+                    <div
+                      key={step.id}
+                      onClick={() => setCurrentStep(idx)}
+                      className={`flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                        currentStep === idx
+                          ? "bg-blue-50 border-blue-200 shadow-sm"
+                          : "bg-white border-transparent hover:bg-gray-50"
+                      }`}
+                    >
+                      <div
+                        className={`
+                                         h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0
+                                         ${
+                                           step.completed
+                                             ? "bg-green-100 text-green-600"
+                                             : currentStep === idx
+                                               ? "bg-blue-600 text-white"
+                                               : "bg-gray-100 text-gray-400"
+                                         }
+                                     `}
+                      >
+                        {step.completed ? (
+                          <CheckCircle className="h-3.5 w-3.5" />
+                        ) : (
+                          idx + 1
+                        )}
+                      </div>
+                      <span
+                        className={`text-sm font-medium ${currentStep === idx ? "text-blue-900" : "text-gray-600"}`}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Important Notes Box */}
+                <div className="px-6 pb-6 mt-auto">
+                  <div className="bg-amber-50 border border-amber-200/60 rounded-xl p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="h-5 w-5 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center shrink-0">
+                        <Info className="h-3 w-3" />
+                      </div>
+                      <span className="text-xs font-bold text-amber-900 uppercase tracking-wide">
+                        Important
+                      </span>
+                    </div>
+                    <span className="block text-[11px] text-amber-800/90 leading-relaxed">
+                      Review all details carefully before final activation.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer Action */}
+                <div className="px-6 py-4 bg-gray-50/80 border-t border-gray-100 text-center text-[11px] font-medium text-gray-400 shrink-0">
+                  Complete all steps to activate.
                 </div>
               </div>
             </div>
           </div>
 
-          {/* MAIN CONTENT */}
-          <div className="flex-1 bg-white rounded-xl shadow-sm border border-gray-200 p-8 overflow-y-auto">
-            <div className="max-w-3xl mx-auto space-y-8">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 border-b pb-4">
-                  <div className="h-10 w-10 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
-                    <Briefcase className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">Internal Staff Setup</h3>
-                    <p className="text-sm text-gray-500">
-                      Configure employment and system access details.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-500 uppercase">
-                      Department
-                    </Label>
-                    <Select
-                      value={formData.department}
-                      onValueChange={v =>
-                        setFormData({ ...formData!, department: v })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {[
-                          "Operations",
-                          "HR",
-                          "Finance",
-                          "Management",
-                          "IT",
-                        ].map(d => (
-                          <SelectItem key={d} value={d}>
-                            {d}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-500 uppercase">
-                      Employment Type
-                    </Label>
-                    <Select
-                      value={formData.employmentType}
-                      onValueChange={v =>
-                        setFormData({ ...formData!, employmentType: v as any })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Full Time">Full Time</SelectItem>
-                        <SelectItem value="Part Time">Part Time</SelectItem>
-                        <SelectItem value="Contract">Contract</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs font-semibold text-gray-500 uppercase">
-                      Start Date
-                    </Label>
-                    <Input
-                      type="date"
-                      value={formData.startDate}
-                      onChange={e =>
-                        setFormData({ ...formData!, startDate: e.target.value })
-                      }
+          {/* RIGHT PANEL - WIZARD CONTENT */}
+          <div className="flex-1 flex flex-col bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden h-full">
+            {/* Content Area */}
+            <div className="flex-1 overflow-y-auto p-8 bg-white">
+              {/* 1. INTERNAL PROFILE */}
+              {currentStep === 0 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* Section: Personal Details */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Personal Details"
+                      desc="Internal identity and contact details."
+                      icon={User}
                     />
-                  </div>
-                </div>
-              </div>
 
-              <div className="space-y-6 pt-6 border-t">
-                <div className="flex items-center gap-3 border-b pb-4">
-                  <div className="h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-                    <Lock className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg font-bold">System Access</h3>
-                    <p className="text-sm text-gray-500">
-                      Manage dashboard permissions.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 p-6 rounded-xl border border-gray-100 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-semibold text-gray-900">
-                        Grant Dashboard Access
-                      </h4>
-                      <p className="text-xs text-gray-500">
-                        Allow user to log in to the admin panel.
-                      </p>
-                    </div>
-                    <div className="flex bg-white rounded-lg border p-1">
-                      <button
-                        onClick={() =>
-                          setFormData({ ...formData!, systemAccess: true })
-                        }
-                        className={`px-4 py-1.5 text-xs font-bold rounded ${formData!.systemAccess ? "bg-blue-100 text-blue-700" : "text-gray-400"}`}
-                      >
-                        Yes
-                      </button>
-                      <button
-                        onClick={() =>
-                          setFormData({ ...formData!, systemAccess: false })
-                        }
-                        className={`px-4 py-1.5 text-xs font-bold rounded ${!formData!.systemAccess ? "bg-gray-200 text-gray-700" : "text-gray-400"}`}
-                      >
-                        No
-                      </button>
-                    </div>
-                  </div>
-
-                  {formData?.systemAccess && (
-                    <div className="pt-4 border-t border-gray-200 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in">
-                      <div className="space-y-1.5">
-                        <Label className="text-xs font-semibold text-gray-500">
-                          System Role
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-1.5 md:col-span-2">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Profile Photo
                         </Label>
-                        <Select defaultValue="manager">
-                          <SelectTrigger className="bg-white">
-                            <SelectValue placeholder="Select Role" />
+                        <div className="flex items-center gap-4 mt-2">
+                          <Avatar className="h-20 w-20 border border-gray-100 shadow-sm">
+                            <AvatarImage src={formData.avatar} className="object-cover" />
+                            <AvatarFallback className="font-bold bg-blue-50 text-blue-700 text-xl">
+                              {formData.name ? formData.name.substring(0, 2).toUpperCase() : "IN"}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="space-y-2">
+                            <Button variant="outline" size="sm" className="h-8">
+                              Upload New Photo
+                            </Button>
+                            <p className="text-[11px] text-gray-500">
+                              JPG, PNG or GIF. Max size of 2MB.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Full Name <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          disabled={!isEditing}
+                          value={formData.name || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, name: e.target.value })
+                          }
+                          placeholder="Legal full name"
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Display Name
+                        </Label>
+                        <Input
+                          disabled={!isEditing}
+                          value={formData.nickname || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, nickname: e.target.value })
+                          }
+                          placeholder="Preferred name"
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Mobile Number <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          disabled={!isEditing}
+                          value={formData.phone || ""}
+                          onChange={(e) =>
+                            setFormData({ ...formData, phone: e.target.value })
+                          }
+                          placeholder="+974"
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                        />
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Email Address
+                        </Label>
+                        <Input
+                          disabled={true}
+                          value={formData.email || ""}
+                          className="h-11 w-full bg-gray-50 cursor-not-allowed border-gray-200 text-gray-500 text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  
+
+                  
+                  {/* Section: Role Information */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Role Information"
+                      desc="Define the position and departmental placement."
+                      icon={Briefcase}
+                    />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Department <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.department}
+                          onValueChange={v =>
+                            setFormData({ ...formData, department: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Department" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="admin">Administrator</SelectItem>
-                            <SelectItem value="manager">Manager</SelectItem>
-                            <SelectItem value="viewer">Viewer</SelectItem>
+                            {departmentOptions.map(d => (
+                              <SelectItem key={d} value={d}>
+                                {d}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Position <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.role}
+                          onValueChange={v =>
+                            setFormData({ ...formData, role: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Position" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {positionOptions.map(p => (
+                              <SelectItem key={p} value={p}>
+                                {p}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Employment Type{" "}
+                          <span className="text-red-500">*</span>
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.employmentType}
+                          onValueChange={v =>
+                            setFormData({
+                              ...formData,
+                              employmentType: v as any,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select Type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {employmentTypeOptions.map(t => (
+                              <SelectItem key={t} value={t}>
+                                {t}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Start Date <span className="text-red-500">*</span>
+                        </Label>
+                        <Input
+                          type="date"
+                          disabled={!isEditing}
+                          value={formData.startDate}
+                          className="h-11 w-full border-gray-200 hover:border-blue-300 transition-all text-sm"
+                          onChange={e =>
+                            setFormData({
+                              ...formData,
+                              startDate: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
                     </div>
-                  )}
-                </div>
-              </div>
+                  </div>
 
-              <div className="pt-8 flex justify-end gap-4">
-                <Button variant="outline" onClick={() => saveChanges(false)}>
-                  Save Draft
-                </Button>
-                <Button
-                  onClick={() => saveChanges(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white min-w-[150px]"
-                >
-                  Activate Staff
-                </Button>
-              </div>
+                  
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => setLocation("/workforce/pending")}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(1); }}
+                      disabled={!reqs.profile}
+                    >
+                      Next: Work Setup <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+{/* 2. WORK SETUP */}
+              {currentStep === 1 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  {/* MOVED SCHEDULE SECTION HERE */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Schedule & Availability"
+                      desc="Define working days and hours."
+                      icon={Calendar}
+                    />
+
+                    <div className="space-y-6">
+                      <div className="max-w-xs space-y-1.5">
+                        <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                          Shift System
+                        </Label>
+                        <Select
+                          disabled={!isEditing}
+                          value={formData.shiftSystem}
+                          onValueChange={v =>
+                            setFormData({ ...formData, shiftSystem: v as any })
+                          }
+                        >
+                          <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm">
+                            <SelectValue placeholder="Select System" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {enabledShiftSystems.map(s => (
+                              <SelectItem key={s} value={s}>
+                                {s}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* FIXED SHIFT UI */}
+                      {formData.shiftSystem === "Fixed" && (
+                        <div className="space-y-5 animate-in fade-in">
+                          <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 flex flex-col md:flex-row items-start md:items-center gap-4">
+                            <div className="space-y-1.5 flex-1">
+                              <Label className="text-xs font-semibold uppercase text-blue-800">
+                                Standard Daily Hours
+                              </Label>
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  type="time"
+                                  disabled={!isEditing}
+                                  value={formData.workHoursStart}
+                                  onChange={e =>
+                                    setFormData({
+                                      ...formData,
+                                      workHoursStart: e.target.value,
+                                    })
+                                  }
+                                  className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+                                />
+                                <span className="text-blue-400 font-medium">
+                                  to
+                                </span>
+                                <Input
+                                  type="time"
+                                  disabled={!isEditing}
+                                  value={formData.workHoursEnd}
+                                  onChange={e =>
+                                    setFormData({
+                                      ...formData,
+                                      workHoursEnd: e.target.value,
+                                    })
+                                  }
+                                  className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32"
+                                />
+                              </div>
+                            </div>
+                            <div className="hidden md:block w-px h-10 bg-blue-200"></div>
+                            <div className="text-xs text-blue-700 max-w-sm">
+                              These hours will apply to all selected days below.
+                              Uncheck days to mark them as "Off".
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Working Days
+                            </Label>
+                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+                              {[
+                                "Mon",
+                                "Tue",
+                                "Wed",
+                                "Thu",
+                                "Fri",
+                                "Sat",
+                                "Sun",
+                              ].map(day => {
+                                const isActive =
+                                  formData.workingDays?.includes(day);
+                                return (
+                                  <div
+                                    key={day}
+                                    onClick={() => {
+                                      if (!isEditing) return;
+                                      const current =
+                                        formData.workingDays || [];
+                                      if (current.includes(day)) {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: current.filter(
+                                            d => d !== day
+                                          ),
+                                        });
+                                      } else {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: [...current, day],
+                                        });
+                                      }
+                                    }}
+                                    className={`
+                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-24
+                                                                    ${
+                                                                      isActive
+                                                                        ? "bg-green-50 border-green-200 text-green-700 shadow-sm ring-1 ring-green-100"
+                                                                        : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:border-gray-300"
+                                                                    }
+                                                                `}
+                                  >
+                                    <span className="font-bold text-sm mb-1">
+                                      {day}
+                                    </span>
+                                    {isActive ? (
+                                      <div className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-medium">
+                                        {formData.workHoursStart || "09:00"} -{" "}
+                                        {formData.workHoursEnd || "17:00"}
+                                      </div>
+                                    ) : (
+                                      <span className="text-[10px] italic">
+                                        Off Day
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* FLEXIBLE SHIFT UI */}
+                      {formData.shiftSystem === "Flexible" && (
+                        <div className="space-y-5 animate-in fade-in">
+                          <div className="bg-purple-50 p-4 rounded-lg border border-purple-100 text-purple-700 text-sm">
+                            Flexible staff do not have fixed start/end times.
+                            Select the days they are generally available to
+                            accept jobs.
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Availability Days
+                            </Label>
+                            <div className="grid grid-cols-7 gap-2">
+                              {[
+                                "Mon",
+                                "Tue",
+                                "Wed",
+                                "Thu",
+                                "Fri",
+                                "Sat",
+                                "Sun",
+                              ].map(day => {
+                                const isActive =
+                                  formData.workingDays?.includes(day);
+                                return (
+                                  <div
+                                    key={day}
+                                    onClick={() => {
+                                      if (!isEditing) return;
+                                      const current =
+                                        formData.workingDays || [];
+                                      if (current.includes(day)) {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: current.filter(
+                                            d => d !== day
+                                          ),
+                                        });
+                                      } else {
+                                        setFormData({
+                                          ...formData,
+                                          workingDays: [...current, day],
+                                        });
+                                      }
+                                    }}
+                                    className={`
+                                                                    flex flex-col items-center justify-center p-3 rounded-lg border cursor-pointer transition-all h-20
+                                                                    ${
+                                                                      isActive
+                                                                        ? "bg-purple-50 border-purple-200 text-purple-700 shadow-sm"
+                                                                        : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50"
+                                                                    }
+                                                                `}
+                                  >
+                                    <span className="font-bold text-sm">
+                                      {day}
+                                    </span>
+                                    <span className="text-[10px] mt-1">
+                                      {isActive ? "Available" : "-"}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* ROTATIONAL SHIFT UI - Summary View */}
+                      {formData.shiftSystem === "Rotational" && (
+                        <div className="space-y-6 animate-in fade-in">
+                          {/* Summary Header */}
+                          <div className="flex items-center justify-between bg-green-50 p-4 rounded-lg border border-green-100">
+                            <div className="flex items-center gap-2 text-green-800 text-sm font-medium">
+                              <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                              Weekly Coverage Preview
+                            </div>
+                            <div className="text-xs text-green-600 italic">
+                              Click on any day to configure multiple shifts.
+                            </div>
+                          </div>
+
+                          {/* Weekly Visual Columns */}
+                          <div className="grid grid-cols-7 gap-2">
+                            {[
+                              "Sun",
+                              "Mon",
+                              "Tue",
+                              "Wed",
+                              "Thu",
+                              "Fri",
+                              "Sat",
+                            ].map(day => {
+                              const slots =
+                                formData.rotationalSchedule?.[day] || [];
+                              const hasShift = slots.length > 0;
+
+                              // Calculate total hours for the day for display
+                              const totalHours = slots.reduce((acc, slot) => {
+                                const start = parseInt(
+                                  slot.start.split(":")[0]
+                                );
+                                const end = parseInt(slot.end.split(":")[0]);
+                                return acc + (end - start);
+                              }, 0);
+
+                              return (
+                                <div key={day} className="flex flex-col gap-2">
+                                  <div className="text-center">
+                                    <div className="text-xs font-bold text-gray-700 uppercase">
+                                      {day}
+                                    </div>
+                                    <div className="text-[10px] text-gray-400">
+                                      {hasShift ? `(${totalHours}h)` : "(0h)"}
+                                    </div>
+                                  </div>
+
+                                  <div
+                                    onClick={() => setActiveDayModal(day)}
+                                    className={`
+                                                                    h-40 rounded-lg border flex flex-col items-center justify-start p-1.5 gap-1.5 cursor-pointer transition-all hover:ring-2 hover:ring-green-200 hover:border-green-300
+                                                                    ${hasShift ? "bg-white border-gray-200" : "bg-gray-50/50 border-gray-100 opacity-70"}
+                                                                `}
+                                  >
+                                    {hasShift ? (
+                                      slots.map((slot, idx) => (
+                                        <div
+                                          key={idx}
+                                          className="w-full bg-green-100 text-green-800 text-[10px] py-1 px-1 rounded font-medium border border-green-200 flex flex-col items-center justify-center flex-shrink-0 min-h-[28px]"
+                                        >
+                                          <span>{slot.start}</span>
+                                          <span className="w-full h-px bg-green-200 my-0.5"></span>
+                                          <span>{slot.end}</span>
+                                        </div>
+                                      ))
+                                    ) : (
+                                      <div className="h-full w-full flex items-center justify-center text-[10px] text-gray-300 italic">
+                                        Off
+                                      </div>
+                                    )}
+
+                                    {/* Hover Hint */}
+                                    <div className="mt-auto pt-1 text-[9px] text-blue-500 font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                      Edit
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  
+                  {/* Section: Compensation */}
+                  <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-6 mb-6">
+                    <SectionHeader
+                      title="Compensation Package"
+                      desc="Configure salary structure and payment terms."
+                      icon={Banknote}
+                    />
+
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-1.5 md:col-span-2">
+                          <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                            Salary Scheme{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
+                          <Select
+                            disabled={!isEditing}
+                            value={formData.salaryType}
+                            onValueChange={v =>
+                              setFormData({ ...formData, salaryType: v as any })
+                            }
+                          >
+                            <SelectTrigger className="bg-white w-full h-11 border-gray-200 hover:border-blue-300 transition-all text-sm shadow-sm">
+                              <SelectValue placeholder="Select Salary Type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Fixed Monthly">
+                                Fixed Monthly
+                              </SelectItem>
+                              <SelectItem value="Hourly-Rate">
+                                Hourly-Rate
+                              </SelectItem>
+                              <SelectItem value="Commission-Based">
+                                Commission
+                              </SelectItem>
+                              <SelectItem value="Fixed + Commission">
+                                Fixed + Commission
+                              </SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <p className="text-[11px] text-gray-500 pt-1">
+                            {formData.salaryType === "Fixed Monthly" &&
+                              "Driver receives a consistent monthly salary regardless of trips."}
+                            {formData.salaryType === "Commission-Based" &&
+                              "Earnings are based on completed deliveries or trips."}
+                            {formData.salaryType === "Hourly-Rate" &&
+                              "Pay is calculated based on total clocked working hours."}
+                            {formData.salaryType === "Fixed + Commission" &&
+                              "Driver receives a basic salary plus an incentive per trip."}
+                          </p>
+                        </div>
+
+                        {(formData.salaryType === "Fixed Monthly" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Monthly Base Salary{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.salaryAmount}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    salaryAmount: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {(formData.salaryType === "Commission-Based" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Per Trip / Delivery Incentive{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.commissionRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    commissionRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0"
+                                className="h-11 w-full pr-10 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-sm font-bold">
+                                %
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {formData.salaryType === "Hourly-Rate" && (
+                          <div className="space-y-1.5 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide">
+                              Hourly Rate{" "}
+                              <span className="text-red-500">*</span>
+                            </Label>
+                            <div className="relative group">
+                              <div className="absolute left-0 top-0 bottom-0 w-12 bg-gray-100 border-r border-gray-200 rounded-l-md flex items-center justify-center text-gray-500 text-xs font-bold group-hover:bg-gray-200 transition-colors">
+                                QAR
+                              </div>
+                              <Input
+                                disabled={!isEditing}
+                                value={formData.hourlyRate}
+                                onChange={e =>
+                                  setFormData({
+                                    ...formData,
+                                    hourlyRate: e.target.value,
+                                  })
+                                }
+                                placeholder="0.00"
+                                className="h-11 w-full pl-14 border-gray-200 bg-white hover:border-blue-300 transition-all text-sm font-medium shadow-sm"
+                              />
+                              <div className="absolute right-3 top-3.5 text-gray-400 text-xs font-medium">
+                                / hour
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(0); }}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 bg-white"
+                    >
+                      Previous Step
+                    </Button>
+                    <Button
+                      className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(2); }}
+                      disabled={!reqs.workSetup}
+                    >
+                      Next: Access Control <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+{/* 3. ACCESS CONTROL */}
+              {currentStep === 2 && (
+                <div className="space-y-8 animate-in fade-in max-w-4xl mx-auto pt-2">
+                  <div className="space-y-6 mb-6">
+<div className="space-y-6 relative overflow-hidden transition-all duration-300">
+                    <SectionHeader
+                      title="System Access & Permissions"
+                      desc="Dashboard access levels, system roles, and platform permissions."
+                      icon={ShieldCheck}
+                    />
+
+                    <div className="space-y-6">
+                      <div className="bg-gray-50/50 border border-gray-100 p-5 rounded-xl flex items-center justify-between gap-4 w-full transition-all">
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900 mb-1">
+                            Dashboard Access
+                          </h4>
+                          <span className="text-[11px] text-gray-400 mt-1 block">
+                            Allow login to admin dashboard
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 bg-white border border-gray-200 p-1 rounded-xl shadow-sm hide-radio">
+                          <button
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                dashboardAccess: true,
+                              })
+                            }
+                            className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === true ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() =>
+                              setFormData({
+                                ...formData,
+                                dashboardAccess: false,
+                              })
+                            }
+                            className={`px-4 py-1.5 text-sm font-semibold rounded-lg transition-all ${formData.dashboardAccess === false ? "bg-purple-50 text-purple-700 opacity-100" : "text-gray-500 hover:text-gray-900 opacity-70"}`}
+                          >
+                            No
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="relative overflow-hidden transition-all duration-300 pb-2">
+                        {formData.dashboardAccess === false && (
+                          <div className="absolute inset-0 bg-white/60 backdrop-blur-[3px] z-10 flex flex-col items-center justify-center rounded-xl transition-all duration-300">
+                            <div className="bg-white px-5 py-3 rounded-full shadow-[0_4px_20px_rgb(0,0,0,0.06)] border border-gray-100 font-medium text-[13px] text-gray-700 flex items-center gap-2.5 animate-in zoom-in-95">
+                              <div className="h-7 w-7 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                                <ShieldCheck className="h-4 w-4 text-indigo-600" />
+                              </div>
+                              Enable Dashboard Access to configure role
+                            </div>
+                          </div>
+                        )}
+
+                        <div
+                          className={`space-y-6 pt-2 transition-all duration-300 ${formData.dashboardAccess === false ? "opacity-40 pointer-events-none select-none blur-[1px]" : "animate-in fade-in slide-in-from-top-2"}`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-[13px] font-bold text-gray-900 tracking-tight">
+                                System Role{" "}
+                                <span className="text-red-500">*</span>
+                              </Label>
+                              <Button
+                                variant="ghost"
+                                className="h-auto p-0 text-[12px] font-semibold text-blue-600 hover:text-blue-700 hover:bg-transparent"
+                                onClick={() => setLocation("/settings")}
+                              >
+                                <Plus className="h-3.5 w-3.5 mr-1" /> Create
+                                System Role
+                              </Button>
+                            </div>
+
+                            <Select
+                              value={formData.systemRole}
+                              onValueChange={(v) =>
+                                setFormData({ ...formData, systemRole: v })
+                              }
+                            >
+                              <SelectTrigger className="bg-white w-full h-10 border-gray-200 transition-all text-[13px] rounded-lg focus:ring-2 focus:ring-purple-100 text-gray-700">
+                                <SelectValue placeholder="Select system role" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="Manager">Manager</SelectItem>
+                                <SelectItem value="Supervisor">
+                                  Supervisor
+                                </SelectItem>
+                                <SelectItem value="Dispatcher">
+                                  Dispatcher
+                                </SelectItem>
+                                <SelectItem value="Admin">Admin</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {formData.systemRole && (
+                            <div className="bg-gray-50/50 border border-gray-100 rounded-xl p-5 space-y-4 shadow-sm">
+                              <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="h-6 w-6 rounded bg-purple-100 text-purple-700 flex items-center justify-center shrink-0">
+                                    <Briefcase className="h-3.5 w-3.5" />
+                                  </div>
+                                  <span className="text-sm font-bold text-gray-900">
+                                    {formData.systemRole} Access Preview
+                                  </span>
+                                </div>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-purple-50 text-purple-700 hover:bg-purple-100 rounded-md px-2 py-0.5 text-[10px] font-bold border border-purple-100/50 uppercase tracking-widest shadow-sm"
+                                >
+                                  Read-Only
+                                </Badge>
+                              </div>
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-6">
+                                {(() => {
+                                  const rolePermissions: Record<
+                                    string,
+                                    { module: string; access: string }[]
+                                  > = {
+                                    Manager: [
+                                      {
+                                        module: "Workforce",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Bookings",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Customers",
+                                        access: "Full Access",
+                                      },
+                                      { module: "Services", access: "Manage" },
+                                      {
+                                        module: "Finance",
+                                        access: "View Only",
+                                      },
+                                      {
+                                        module: "Settings",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Supervisor: [
+                                      {
+                                        module: "Workforce",
+                                        access: "View Only",
+                                      },
+                                      { module: "Bookings", access: "Manage" },
+                                      {
+                                        module: "Dispatch",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Customers",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Dispatcher: [
+                                      {
+                                        module: "Dispatch",
+                                        access: "Full Access",
+                                      },
+                                      { module: "Bookings", access: "Manage" },
+                                      {
+                                        module: "Workforce",
+                                        access: "View Only",
+                                      },
+                                    ],
+                                    Admin: [
+                                      {
+                                        module: "All Modules",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "System Settings",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "User Management",
+                                        access: "Full Access",
+                                      },
+                                      {
+                                        module: "Billing",
+                                        access: "Full Access",
+                                      },
+                                    ],
+                                  };
+
+                                  const perms =
+                                    rolePermissions[formData.systemRole] || [];
+
+                                  return perms.map((p, i) => (
+                                    <div key={i} className="space-y-1">
+                                      <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                                        {p.module}
+                                      </div>
+                                      <div className="text-[13px] font-medium text-gray-900 flex items-center gap-1.5">
+                                        <Check className="h-3.5 w-3.5 text-green-500" />
+                                        {p.access}
+                                      </div>
+                                    </div>
+                                  ));
+                                })()}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  
+</div>
+
+                  <div className="pt-8 border-t border-gray-100 flex items-center justify-between">
+                    <Button
+                      variant="outline"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(1); }}
+                      className="h-11 px-6 border-gray-200 text-gray-700 hover:bg-gray-50 bg-white"
+                    >
+                      Previous Step
+                    </Button>
+                    <Button
+                      className="h-11 px-8 bg-blue-600 hover:bg-blue-700 shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(3); }}
+                      disabled={!reqs.access}
+                    >
+                      Next: Final Review <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+{/* 4. SUMMARY & ACTIVATION */}
+              {currentStep === 3 && (
+                <div className="max-w-4xl mx-auto animate-in fade-in space-y-6 pt-2">
+                  <div>
+                    <div className="text-center py-4 mb-5 bg-gradient-to-b from-green-50 to-transparent rounded-xl border border-green-100">
+                      <div className="h-14 w-14 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm border-2 border-white">
+                        <ShieldCheck className="h-7 w-7" />
+                      </div>
+                      <h2 className="text-xl font-bold text-gray-900">
+                        Review & Activate
+                      </h2>
+                      <span className="block text-[12px] text-gray-500 max-w-md mx-auto mt-1">
+                        Verify all driver details before final activation and deployment.
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* CARD 1: DRIVER PROFILE (Step 1 — Personal Details + Role Information) */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-blue-200 transition-colors group">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                            <User className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Driver Profile
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { window.scrollTo(0, 0); setCurrentStep(0); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                          >
+                            Step 1
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Full Name</span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.name || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Display Name</span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.nickname || "N/A"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Mobile</span>
+                          <span className="font-semibold text-gray-900 text-right">
+                            {formData.phone || "-"}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Email</span>
+                          <span className="font-semibold text-gray-900 text-right truncate max-w-[180px]" title={formData.email || ""}>
+                            {formData.email || "-"}
+                          </span>
+                        </div>
+
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Department</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.department || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Position</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.role || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Employment Type</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.employmentType || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Start Date</span>
+                            <span className="font-semibold text-gray-900 text-right">
+                              {formData.startDate || "-"}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 2: WORK SETUP (Step 2 — Compensation + Schedule) */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-green-200 transition-colors group">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-green-50 text-green-600 rounded-full flex items-center justify-center shrink-0">
+                            <Banknote className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Work Setup
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { window.scrollTo(0, 0); setCurrentStep(1); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                          >
+                            Step 2
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        {/* Compensation */}
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">Salary Scheme</span>
+                          <span className="font-semibold text-green-700 bg-green-50 px-2.5 py-0.5 rounded-md border border-green-200 text-[11px]">
+                            {formData.salaryType || "-"}
+                          </span>
+                        </div>
+                        {(formData.salaryType === "Fixed Monthly" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Base Salary</span>
+                            <span className="font-semibold text-gray-900">
+                              QAR {formData.salaryAmount || "0"}
+                            </span>
+                          </div>
+                        )}
+                        {(formData.salaryType === "Commission-Based" ||
+                          formData.salaryType === "Fixed + Commission") && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Commission</span>
+                            <span className="font-semibold text-gray-900">
+                              {formData.commissionRate || "0"}%
+                            </span>
+                          </div>
+                        )}
+                        {formData.salaryType === "Hourly-Rate" && (
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Hourly Rate</span>
+                            <span className="font-semibold text-gray-900">
+                              QAR {formData.hourlyRate || "0"}/hr
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Schedule */}
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Shift System</span>
+                            <span className="font-semibold text-gray-900">
+                              {formData.shiftSystem || "-"}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">Working Days</span>
+                            <span className="font-semibold text-gray-900">
+                              {formData.shiftSystem === "Rotational"
+                                ? "Varied (Rotational)"
+                                : formData.shiftSystem === "Flexible"
+                                ? `${formData.workingDays?.length || 0} Days (Flexible)`
+                                : `${formData.workingDays?.length || 0} Days/Week`}
+                            </span>
+                          </div>
+                          {formData.shiftSystem === "Fixed" && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">Daily Hours</span>
+                              <span className="font-semibold text-gray-900">
+                                {formData.workHoursStart || "-"} –{" "}
+                                {formData.workHoursEnd || "-"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* CARD 3: ACCESS CONTROL (Step 3 — Access & Permissions) */}
+                    <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm space-y-4 hover:border-indigo-200 transition-colors group">
+                      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center shrink-0">
+                            <ShieldCheck className="h-4 w-4" />
+                          </div>
+                          <span className="font-bold text-sm text-gray-900">
+                            Access Control
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => { window.scrollTo(0, 0); setCurrentStep(2); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <Edit2 className="w-3 h-3" /> Edit
+                          </button>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] text-gray-500 bg-gray-50 border-gray-200"
+                          >
+                            Step 3
+                          </Badge>
+                        </div>
+                      </div>
+                      <div className="space-y-3 text-[13px]">
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-500">
+                            Driver App Access
+                          </span>
+                          <Badge className="bg-green-50 text-green-700 border-green-100 rounded hover:bg-green-100">
+                            Enabled
+                          </Badge>
+                        </div>
+
+                        <div className="pt-3 border-t border-gray-100 space-y-2.5">
+                          <div className="flex justify-between items-center">
+                            <span className="text-gray-500">
+                              Dashboard Access
+                            </span>
+                            {formData.dashboardAccess ? (
+                              <Badge className="bg-blue-50 text-blue-700 border-blue-100 rounded hover:bg-blue-100">
+                                Granted
+                              </Badge>
+                            ) : (
+                              <span className="font-semibold text-gray-400 text-[12px]">
+                                Not Enabled
+                              </span>
+                            )}
+                          </div>
+
+                          {formData.dashboardAccess && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-500">System Role</span>
+                              <span className="font-semibold text-gray-900 text-right">
+                                {formData.systemRole || "-"}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  </div>
+                  <div className="pt-6 flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      onClick={() => { window.scrollTo(0, 0); setCurrentStep(2); }}
+                      className="flex-1 h-12 border-gray-200 text-gray-700 hover:bg-gray-50 bg-white"
+                    >
+                      Back to Access Control
+                    </Button>
+                    <Button
+                      className="flex-[2] bg-green-600 hover:bg-green-700 shadow-lg shadow-green-600/20 gap-2 rounded-xl px-6 font-bold text-white transition-all h-12 flex items-center justify-center text-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                      onClick={() => setIsActivationConfirmOpen(true)}
+                      disabled={!reqs.profile || !reqs.workSetup || !reqs.access}
+                    >
+                      Complete Activation
+                      <CheckCircle className="ml-2 w-5 h-5" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
         </div>
       </div>
+{/* Single Day Shift Management Modal */}
+      {activeDayModal && formData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
+              <div>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-wide">
+                  Manage Shifts
+                </div>
+                <h2 className="text-xl font-bold text-gray-900">
+                  {activeDayModal}
+                </h2>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setActiveDayModal(null)}
+                className="rounded-full hover:bg-gray-200"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </Button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="p-6 space-y-6">
+              {/* Quick Apply Template (Day Specific) */}
+              {/* Quick Apply Templates (Day Specific) */}
+              {shiftTemplateOptions.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold uppercase text-gray-500 tracking-wide block">
+                    Quick Apply Templates
+                  </Label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {shiftTemplateOptions.map((template: any) => {
+                      // Check if this template is already applied
+                      const currentShifts =
+                        formData.rotationalSchedule?.[activeDayModal] || [];
+                      const isApplied = currentShifts.some(
+                        (s: any) =>
+                          s.start === template.startTime &&
+                          s.end === template.endTime
+                      );
+
+                      // Helper for formatting
+                      const formatToAmPm = (time: string) => {
+                        if (!time) return "";
+                        const [h, m] = time.split(":");
+                        const hour = parseInt(h);
+                        const ampm = hour >= 12 ? "PM" : "AM";
+                        const hour12 = hour % 12 || 12;
+                        return `${hour12}:${m} ${ampm}`;
+                      };
+
+                      return (
+                        <div
+                          key={template.id}
+                          onClick={() => {
+                            const currentFuncShifts = [
+                              ...(formData.rotationalSchedule?.[
+                                activeDayModal
+                              ] || []),
+                            ];
+
+                            if (isApplied) {
+                              // Remove
+                              const filtered = currentFuncShifts.filter(
+                                (s: any) =>
+                                  !(
+                                    s.start === template.startTime &&
+                                    s.end === template.endTime
+                                  )
+                              );
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: filtered,
+                                },
+                              });
+                            } else {
+                              // Check Overlap
+                              const hasOverlap = currentFuncShifts.some(
+                                (s: any) => {
+                                  const startA = s.start;
+                                  const endA = s.end;
+                                  const startB = template.startTime;
+                                  const endB = template.endTime;
+                                  return startA < endB && startB < endA;
+                                }
+                              );
+
+                              if (hasOverlap) {
+                                toast.error(
+                                  "Cannot apply template: Overlaps with existing shift"
+                                );
+                                return;
+                              }
+
+                              // Add
+                              currentFuncShifts.push({
+                                start: template.startTime,
+                                end: template.endTime,
+                              });
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: currentFuncShifts,
+                                },
+                              });
+                              toast.success(`Applied ${template.name}`);
+                            }
+                          }}
+                          className={`
+                                                flex items-center justify-between p-3 rounded-md border cursor-pointer transition-all hover:bg-gray-50
+                                                ${
+                                                  isApplied
+                                                    ? "bg-blue-50 border-blue-200 shadow-sm ring-1 ring-blue-100"
+                                                    : "bg-white border-gray-100 hover:border-gray-300"
+                                                }
+                                            `}
+                        >
+                          <div className="flex flex-col">
+                            <span
+                              className={`text-sm font-medium ${isApplied ? "text-blue-700" : "text-gray-700"}`}
+                            >
+                              {template.name}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <span
+                              className={`text-xs font-mono font-medium px-2 py-1 rounded ${isApplied ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"}`}
+                            >
+                              {formatToAmPm(template.startTime)} -{" "}
+                              {formatToAmPm(template.endTime)}
+                            </span>
+                            <div
+                              className={`w-5 h-5 rounded-full flex items-center justify-center transition-colors ${isApplied ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-300"}`}
+                            >
+                              {isApplied ? (
+                                <CheckCircle className="w-3.5 h-3.5" />
+                              ) : (
+                                <div className="w-2 h-2 rounded-full bg-gray-300" />
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Existing Shifts List */}
+              <div className="space-y-3">
+                <Label className="text-xs font-semibold text-gray-500 uppercase">
+                  Time Slots
+                </Label>
+
+                {(formData.rotationalSchedule?.[activeDayModal] || [])
+                  .length === 0 ? (
+                  <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-lg text-gray-400 text-sm">
+                    No shifts configured for this day.
+                  </div>
+                ) : (
+                  (formData.rotationalSchedule?.[activeDayModal] || []).map(
+                    (slot, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 animate-in slide-in-from-left-2 duration-300"
+                      >
+                        <div className="flex-1 flex items-center gap-2 bg-gray-50 p-2 rounded-lg border border-gray-200">
+                          <Clock className="w-4 h-4 text-gray-400" />
+                          <Input
+                            type="time"
+                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
+                            value={slot.start}
+                            onChange={e => {
+                              const currentSlots = [
+                                ...(formData.rotationalSchedule?.[
+                                  activeDayModal
+                                ] || []),
+                              ];
+                              currentSlots[index] = {
+                                ...slot,
+                                start: e.target.value,
+                              };
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: currentSlots,
+                                },
+                              });
+                            }}
+                          />
+                          <span className="text-gray-300">|</span>
+                          <Input
+                            type="time"
+                            className="h-8 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0 w-24"
+                            value={slot.end}
+                            onChange={e => {
+                              const currentSlots = [
+                                ...(formData.rotationalSchedule?.[
+                                  activeDayModal
+                                ] || []),
+                              ];
+                              currentSlots[index] = {
+                                ...slot,
+                                end: e.target.value,
+                              };
+                              setFormData({
+                                ...formData,
+                                rotationalSchedule: {
+                                  ...formData.rotationalSchedule,
+                                  [activeDayModal]: currentSlots,
+                                },
+                              });
+                            }}
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-400 hover:text-red-600 hover:bg-red-50"
+                          onClick={() => {
+                            const currentSlots = [
+                              ...(formData.rotationalSchedule?.[
+                                activeDayModal
+                              ] || []),
+                            ];
+                            currentSlots.splice(index, 1);
+                            setFormData({
+                              ...formData,
+                              rotationalSchedule: {
+                                ...formData.rotationalSchedule,
+                                [activeDayModal]: currentSlots,
+                              },
+                            });
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )
+                  )
+                )}
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50/50 flex justify-between items-center">
+              <Button
+                variant="outline"
+                size="sm"
+                className="bg-white border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:bg-gray-50"
+                onClick={() => setIsCreateTemplateOpen(true)}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Shift Block
+              </Button>
+              <Button
+                className="bg-black text-white hover:bg-gray-800"
+                onClick={() => setActiveDayModal(null)}
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Success Dialog */}
+      {isSuccessOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm animate-in fade-in">
+          <div className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full text-center space-y-6 transform animate-in zoom-in-95 duration-200">
+            <div className="mx-auto h-20 w-20 bg-green-100 rounded-full flex items-center justify-center">
+              <CheckCircle className="h-10 w-10 text-green-600" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Activation Successful!
+              </h2>
+              <p className="text-gray-500 text-sm">
+                {data?.name || "The staff member"} has been successfully
+                activated and is now ready for deployment.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Button
+                className="w-full h-11 bg-gray-900 hover:bg-gray-800 text-white font-medium shadow-lg"
+                onClick={() => setLocation("/workforce")}
+              >
+                Return to Staff List
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Confirmation Dialog */}
+      <Dialog open={isActivationConfirmOpen} onOpenChange={setIsActivationConfirmOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-900">Complete Activation?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-[15px] text-gray-600 leading-relaxed">
+              This will formally activate <span className="font-bold text-gray-900">{data?.name}</span> within the system.
+            </p>
+            <p className="text-[15px] text-gray-600 leading-relaxed">
+              Their profile will become available for scheduling and dispatch, and they will receive an automated welcome communication.
+            </p>
+            
+            <div className="space-y-3 pt-4">
+              <Label className="text-sm font-bold text-gray-900">
+                Final System Status <span className="text-red-500">*</span>
+              </Label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  onClick={() => setFinalSystemStatus("Active")}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-full border-2 transition-all font-medium text-[15px]
+                    ${finalSystemStatus === "Active" 
+                      ? "border-green-500 text-green-700 bg-white" 
+                      : "border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                >
+                  <CheckCircle className={`w-[18px] h-[18px] ${finalSystemStatus === "Active" ? "text-green-600" : "text-gray-400"}`} />
+                  Active
+                </button>
+                <button
+                  onClick={() => setFinalSystemStatus("Inactive")}
+                  className={`flex items-center justify-center gap-2 py-3 rounded-full border-2 transition-all font-medium text-[15px]
+                    ${finalSystemStatus === "Inactive" 
+                      ? "border-gray-300 text-gray-700 bg-gray-50" 
+                      : "border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                >
+                  <AlertCircle className={`w-[18px] h-[18px] ${finalSystemStatus === "Inactive" ? "text-gray-500" : "text-gray-400"}`} />
+                  Inactive
+                </button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0 pt-4 pb-2">
+            <Button
+              variant="ghost"
+              onClick={() => setIsActivationConfirmOpen(false)}
+              className="font-semibold text-gray-600 hover:text-gray-900 hover:bg-white"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleActivate}
+              className="bg-blue-600 hover:bg-blue-700 font-semibold px-6 rounded-full"
+            >
+              Activate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isBasicInfoOpen} onOpenChange={setIsBasicInfoOpen}>
+        <DialogContent className="sm:max-w-lg p-0 overflow-hidden bg-white border-0 shadow-2xl rounded-xl">
+          <DialogHeader className="p-6 pb-2 border-b border-gray-100 bg-gray-50/50">
+            <DialogTitle className="text-lg font-bold text-gray-900">
+              Edit Basic Information
+            </DialogTitle>
+            <p className="text-xs text-gray-500 mt-1">
+              Update primary contact and display details.
+            </p>
+          </DialogHeader>
+          {basicInfoForm && (
+            <div className="p-6 space-y-8">
+              {/* Photo Upload - Premium Style */}
+              <div className="flex flex-col items-center">
+                <div className="group relative">
+                  <div className="h-28 w-28 rounded-full p-1 bg-white border-2 border-dashed border-gray-200 group-hover:border-blue-400 transition-all shadow-sm">
+                    <Avatar className="h-full w-full">
+                      <AvatarImage
+                        src={basicInfoForm.avatar}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-gray-100 text-gray-500 font-bold text-xl">
+                        {basicInfoForm.nickname
+                          ?.substring(0, 2)
+                          .toUpperCase() || "NA"}
+                      </AvatarFallback>
+                    </Avatar>
+                  </div>
+                  <label className="absolute bottom-0 right-0 bg-blue-600 rounded-full p-2.5 shadow-lg cursor-pointer hover:bg-blue-700 hover:scale-105 transition-all text-white ring-4 ring-white">
+                    <Upload className="h-4 w-4" />
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/*"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () =>
+                            setBasicInfoForm({
+                              ...basicInfoForm,
+                              avatar: reader.result as string,
+                            });
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+                <span className="text-xs font-medium text-gray-400 mt-3 group-hover:text-blue-500 transition-colors">
+                  Tap camera icon to upload
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-x-5 gap-y-5">
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Nickname
+                  </Label>
+                  <Input
+                    value={basicInfoForm.nickname}
+                    onChange={e =>
+                      setBasicInfoForm({
+                        ...basicInfoForm,
+                        nickname: e.target.value,
+                      })
+                    }
+                    className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    placeholder="Preferred Name"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Gender
+                  </Label>
+                  <Select
+                    value={basicInfoForm.gender}
+                    onValueChange={v =>
+                      setBasicInfoForm({ ...basicInfoForm, gender: v as any })
+                    }
+                  >
+                    <SelectTrigger className="h-11 border-gray-200 hover:border-blue-300 transition-all">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Male">Male</SelectItem>
+                      <SelectItem value="Female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Mobile Number
+                  </Label>
+                  <Input
+                    value={basicInfoForm.mobile || "+974 "}
+                    onChange={e =>
+                      setBasicInfoForm({
+                        ...basicInfoForm,
+                        mobile: e.target.value,
+                      })
+                    }
+                    className="h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                  />
+                </div>
+
+                <div className="col-span-2 space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                    Email Address
+                  </Label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                    <Input
+                      value={basicInfoForm.email}
+                      onChange={e =>
+                        setBasicInfoForm({
+                          ...basicInfoForm,
+                          email: e.target.value,
+                        })
+                      }
+                      className="pl-9 h-11 border-gray-200 focus:border-blue-500 focus:ring-blue-500/20"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div className="p-6 pt-2 bg-gray-50/50 border-t border-gray-100 flex gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsBasicInfoOpen(false)}
+              className="flex-1 h-11 border-gray-200 text-gray-700 hover:bg-white hover:text-gray-900"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveBasicInfo}
+              className="flex-1 h-11 bg-blue-600 hover:bg-blue-700 shadow-sm text-base font-medium"
+            >
+              Save Changes
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Template Dialog (triggered from Manage Shifts) */}
+      <Dialog
+        open={isCreateTemplateOpen}
+        onOpenChange={setIsCreateTemplateOpen}
+      >
+        <DialogContent className="sm:max-w-[425px] z-[60]">
+          <DialogHeader>
+            <DialogTitle>Add Shift Template</DialogTitle>
+            <p className="text-sm text-gray-500 mt-1.5">
+              Define a standard shift block.
+            </p>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="t-name">Template Name</Label>
+              <Input
+                id="t-name"
+                placeholder="e.g. Morning Shift A"
+                value={newTemplateData.name}
+                onChange={e =>
+                  setNewTemplateData({
+                    ...newTemplateData,
+                    name: e.target.value,
+                  })
+                }
+                className="border-blue-200 focus:border-blue-500"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Start Time</Label>
+                <div className="relative">
+                  <Input
+                    type="time"
+                    value={newTemplateData.startTime}
+                    onChange={e =>
+                      setNewTemplateData({
+                        ...newTemplateData,
+                        startTime: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label>End Time</Label>
+                <div className="relative">
+                  <Input
+                    type="time"
+                    value={newTemplateData.endTime}
+                    onChange={e =>
+                      setNewTemplateData({
+                        ...newTemplateData,
+                        endTime: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsCreateTemplateOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveNewTemplate}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Save Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 }
