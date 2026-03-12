@@ -645,402 +645,256 @@ export default function FieldServiceStaffDetails() {
     updateLocalStorage(updatedStaff);
 
     toast.success(
-      `Status updated to ${pendingEmploymentStatus}. ${impactAnalysis.totalImpact} jobs unassigned.`
+      `Status updated to ${pendingEmploymentStatus}. ${impactAnalysis.totalImpact} jobs reassigned.`
     );
-
     setStatusDialogOpen(false);
-    setPendingEmploymentStatus(null);
-    setLeaveDates({ start: "", end: "" });
   };
 
-  // ─── Derived Data ────────────────────────────────────────────────────────
-  const expiringDocs = activeDocuments.filter(
-    d => d.status === "Expiring Soon"
-  );
-  const hasComplianceAlert = expiringDocs.length > 0;
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // RENDER
-  // ═══════════════════════════════════════════════════════════════════════════
-
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* ─── 1. BACK NAVIGATION ────────────────────────────────────────── */}
-        <div className="flex items-center">
-          <Link href="/workforce">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 pl-0 text-gray-500 hover:text-gray-900"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back to Workforce
-            </Button>
-          </Link>
-        </div>
+        <DashboardLayout>
+      <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 items-start">
+            
+            {/* ── 1. LEFT NAVIGATION MENU ── */}
+            <div className="w-full xl:w-56 shrink-0 xl:sticky xl:top-6">
+              <div className="mb-6 px-2">
+                <Button variant="ghost" className="text-gray-500 hover:text-gray-900 -ml-3 h-8 text-xs font-semibold gap-1.5" onClick={() => window.history.back()}>
+                  <ChevronLeft className="h-4 w-4" />
+                  Back to Staff
+                </Button>
+              </div>
+              <TabsList className="flex flex-col bg-transparent border-0 h-auto p-0 items-stretch space-y-1 w-full text-left">
+                <TabsTrigger
+                  value="overview"
+                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
+                >
+                  <User className="h-4.5 w-4.5 mr-2.5" />
+                  Overview
+                </TabsTrigger>
+                <TabsTrigger
+                  value="schedule"
+                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
+                >
+                  <CalendarCheck className="h-4.5 w-4.5 mr-2.5" />
+                  Schedule
+                </TabsTrigger>
+                <TabsTrigger
+                  value="availability"
+                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
+                >
+                  <Clock className="h-4.5 w-4.5 mr-2.5" />
+                  Availability
+                </TabsTrigger>
+                <TabsTrigger
+                  value="compliance"
+                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
+                >
+                  <ShieldCheck className="h-4.5 w-4.5 mr-2.5" />
+                  Compliance
+                </TabsTrigger>
+                <TabsTrigger
+                  value="compensation"
+                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
+                >
+                  <Banknote className="h-4.5 w-4.5 mr-2.5" />
+                  Compensation
+                </TabsTrigger>
+                <TabsTrigger
+                  value="activity"
+                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
+                >
+                  <Activity className="h-4.5 w-4.5 mr-2.5" />
+                  Activity
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-        {/* ─── 3. OPERATIONAL CONTROL PANEL (HEADER) ─────────────── */}
-        <Card className="border-gray-200 shadow-sm bg-white overflow-hidden">
-          <CardContent className="p-8">
-            {(() => {
-              let dispatchStatus = "Available";
-              let dispatchColor = "bg-green-100 text-green-700";
-              if (staff.employmentStatus === "On Leave") {
-                dispatchStatus = "On Leave";
-                dispatchColor = "bg-amber-100 text-amber-700";
-              } else if (staff.employmentStatus !== "Active") {
-                dispatchStatus = "Off Duty";
-                dispatchColor = "bg-gray-100 text-gray-600";
-              } else if (workStatusData.status === "On Job") {
-                dispatchStatus = "On Job";
-                dispatchColor = "bg-blue-100 text-blue-700";
-              }
-              
-              return (
-                <div className="flex flex-col xl:flex-row gap-8 justify-between">
-                  {/* LEFT ZONE: Staff Identity */}
-                  <div className="flex items-center gap-6">
-                    <Avatar className="h-24 w-24 shadow-sm border-[3px] border-white ring-1 ring-gray-100 rounded-2xl shrink-0">
-                      <AvatarImage src={staff.avatar} className="object-cover" />
-                      <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary rounded-2xl">
-                        {staff.name.substring(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    
-                    <div className="space-y-3">
-                      <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2 tracking-tight">
-                        {staff.name}
-                        {staff.verified && <CheckCircle className="h-5 w-5 text-blue-500 fill-blue-50 shrink-0" />}
-                      </h1>
-                      <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                        <span className="font-bold text-gray-700 bg-gray-100 px-2.5 py-0.5 rounded tracking-widest text-[11px] uppercase">
-                          {staff.staffId || staff.id.toString().padStart(4, "0")}
-                        </span>
-                        <div className="flex items-center gap-1.5">
-                           <Phone className="h-4 w-4 text-gray-400" />
-                           <span className="font-medium">{staff.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                           <Mail className="h-4 w-4 text-gray-400" />
-                           <span className="font-medium">{staff.email}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+            {/* ── 2. MIDDLE MAIN CONTENT AREA ── */}
 
-                  {/* RIGHT ZONE: Operational Status */}
-                  <div className="flex flex-col items-start xl:items-end gap-6">
-                    {/* Quick Actions */}
-                    <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
-                        <Briefcase className="h-4 w-4 mr-1.5 text-gray-500" /> Assign Job
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Phone className="h-4 w-4 mr-1.5 text-gray-500" /> Call Staff
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        <Mail className="h-4 w-4 mr-1.5 text-gray-500" /> Message
-                      </Button>
-                    </div>
-
-                    {/* Status Grid */}
-                    <div className="flex items-start gap-8 border border-gray-100 bg-gray-50/50 rounded-xl px-6 py-4">
-                      {/* Status Badges */}
-                      <div className="flex flex-col gap-3 justify-center min-w-[130px]">
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</span>
-                          {staff.employmentStatus === "Active" ? (
-                            <Badge className="bg-gray-200 text-gray-800 hover:bg-gray-200 border-0 shadow-none px-2 py-0.5 rounded font-bold w-[76px] justify-center text-[10px]">ACTIVE</Badge>
-                          ) : (
-                            <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-0 shadow-none px-2 py-0.5 rounded font-bold w-[76px] justify-center text-[10px] uppercase">{staff.employmentStatus}</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between gap-3">
-                          <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Dispatch</span>
-                          <Badge className={`${dispatchColor} hover:${dispatchColor.split(' ')[0]} border-0 shadow-none px-2 py-0.5 rounded font-bold w-[76px] justify-center text-[10px] uppercase`}>
-                            {dispatchStatus}
-                          </Badge>
-                        </div>
-                      </div>
-                      
-                      <div className="w-px h-12 bg-gray-200 mt-1" />
-
-                      {/* Rating */}
-                      <div className="flex flex-col gap-1.5 justify-center mt-0.5">
-                        <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500">Rating</span>
-                        <div className="flex items-center gap-1.5 text-base font-bold text-gray-900">
-                          <Star className="h-4 w-4 fill-amber-500 text-amber-500" />
-                          {staff.rating}
-                        </div>
-                      </div>
-
-                      <div className="w-px h-12 bg-gray-200 mt-1" />
-
-                      {/* Current Assignment */}
-                      <div className="flex flex-col min-w-[150px]">
-                        <span className="text-[11px] uppercase tracking-wider font-bold text-gray-500 mb-1.5">Current Assignment</span>
-                        {dispatchStatus === "On Job" ? (
-                          <div className="text-sm">
-                            <span className="font-bold text-blue-600 hover:underline cursor-pointer">Booking #2845</span>
-                            <div className="text-gray-900 font-semibold text-[13px] mt-0.5">Home Cleaning</div>
-                            <div className="text-gray-500 text-xs mt-1 flex items-center gap-1 font-medium">
-                              <Clock className="h-3 w-3" /> 08:00 – 11:00
-                            </div>
-                          </div>
-                        ) : (
-                          <span className="text-sm text-gray-400 font-medium italic mt-1">No active assignment</span>
-                        )}
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
-          </CardContent>
-        </Card>
-
-        {/* ─── 5. KPI METRICS ROW ────────────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {[
-            {
-              label: "Jobs Completed",
-              value: staff.jobsCompleted.toString(),
-              icon: BarChart3,
-            },
-            {
-              label: "Today's Jobs",
-              value: mockBookings.filter(b => b.date === "2025-12-23").length.toString(),
-              icon: CalendarCheck,
-            },
-            {
-              label: "Upcoming",
-              value: mockBookings.filter(b => b.status === "Scheduled").length.toString(),
-              icon: CalendarDays,
-            },
-            {
-              label: "Completion Rate",
-              value: "98%",
-              icon: CheckCircle,
-            },
-            {
-              label: "On-Time Score",
-              value: "96%",
-              icon: Clock,
-            },
-            {
-              label: "Avg. Rating",
-              value: staff.rating.toString(),
-              icon: Star,
-            },
-          ].map((stat, i) => (
-            <Card
-              key={i}
-              className="shadow-sm border-gray-200 bg-white"
-            >
-              <CardContent className="p-4 flex items-center justify-between gap-3">
-                <div className="flex flex-col gap-1 min-w-0">
-                  <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider leading-tight truncate">
-                    {stat.label}
-                  </span>
-                  <span className="text-2xl font-extrabold text-gray-900 tracking-tight leading-none mt-0.5">
-                    {stat.value}
-                  </span>
-                </div>
-                <div className="h-10 w-10 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center shrink-0">
-                  <stat.icon className="h-4.5 w-4.5 text-gray-500" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* ─── 6. PRIMARY TABS ───────────────────────────────────────────── */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
-          <TabsList className="bg-gray-50 border border-gray-100 w-full lg:w-fit justify-start h-12 p-1 rounded-xl mb-6 shadow-sm">
-            <TabsTrigger
-              value="overview"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 h-full px-5 gap-2 text-[13px] font-bold tracking-wide rounded-lg transition-all"
-            >
-              <User className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger
-              value="schedule"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 h-full px-5 gap-2 text-[13px] font-bold tracking-wide rounded-lg transition-all"
-            >
-              <CalendarCheck className="h-4 w-4" />
-              Schedule
-            </TabsTrigger>
-            <TabsTrigger
-              value="availability"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 h-full px-5 gap-2 text-[13px] font-bold tracking-wide rounded-lg transition-all"
-            >
-              <Clock className="h-4 w-4" />
-              Availability
-            </TabsTrigger>
-            <TabsTrigger
-              value="compliance"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 h-full px-5 gap-2 text-[13px] font-bold tracking-wide rounded-lg transition-all"
-            >
-              <ShieldCheck className="h-4 w-4" />
-              Compliance
-            </TabsTrigger>
-            <TabsTrigger
-              value="compensation"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 h-full px-5 gap-2 text-[13px] font-bold tracking-wide rounded-lg transition-all"
-            >
-              <Banknote className="h-4 w-4" />
-              Compensation
-            </TabsTrigger>
-            <TabsTrigger
-              value="activity"
-              className="data-[state=active]:bg-blue-50 data-[state=active]:text-blue-700 data-[state=active]:shadow-sm text-gray-500 hover:text-gray-900 h-full px-5 gap-2 text-[13px] font-bold tracking-wide rounded-lg transition-all"
-            >
-              <Activity className="h-4 w-4" />
-              Activity
-            </TabsTrigger>
-          </TabsList>
-
-          {/* ─── 7. TAB CONTENT AREA ───────────────────────────────────────── */}
+            <div className="flex-1 min-w-0 w-full">
 
           {/* ══════════════════════════════════════════════════════════════════
               OVERVIEW TAB
           ══════════════════════════════════════════════════════════════════ */}
-          <TabsContent value="overview" className="mt-0 space-y-6">
-            {/* Row 1: Personal Information + Employment Information */}
-            <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-              {/* ── 1. Personal Information (3 cols) ───────────────────────── */}
-              <Card className="lg:col-span-3 shadow-sm border-gray-200">
-                <CardHeader className="p-6 pb-4">
-                  <SectionHeader icon={User} title="Personal Information" />
+          <TabsContent value="overview" className="mt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+              {/* ── Card 1: Basic Information ─────────────────────── */}
+              <Card className="shadow-sm border-gray-200">
+                <CardHeader className="px-6 py-5 pb-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
+                        <User className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Basic Information</CardTitle>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent className="p-6 pt-0 grid grid-cols-1 md:grid-cols-3 gap-x-6 gap-y-6">
-                  <DataField label="Full Name" value={staff.name} />
-                  <DataField
-                    label="Display Name"
-                    value={
-                      isEditing ? (
-                        <Input
-                          value={formData.nickname}
-                          onChange={e =>
-                            setFormData({ ...formData, nickname: e.target.value })
-                          }
-                          className="h-9"
-                        />
+                <CardContent className="px-6 pt-5 pb-6">
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {[
+                      { label: "Full Name", value: staff.name },
+                      { label: "Display Name", value: isEditing ? (
+                        <Input value={formData.nickname} onChange={e => setFormData({ ...formData, nickname: e.target.value })} className="h-8 text-sm w-48 ml-auto" />
+                      ) : (staff.nickname || "—") },
+                      { label: "QID Number", value: staff.qid },
+                      { label: "Nationality", value: staff.nationality },
+                      { label: "Contact", value: staff.phone },
+                      { label: "Email", value: staff.email },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                        <span className="text-[13px] text-gray-500 font-medium">{row.label}</span>
+                        <span className="text-[13px] font-semibold text-gray-900 text-right">{row.value || "—"}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ── Card 2: Employment Details ────────────────────── */}
+              <Card className="shadow-sm border-gray-200">
+                <CardHeader className="px-6 py-5 pb-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
+                        <Briefcase className="h-4 w-4 text-emerald-600" />
+                      </div>
+                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Employment Details</CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-6 pt-5 pb-6">
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    {[
+                      { label: "Position", value: staff.position },
+                      { label: "Department", value: staff.department },
+                      { label: "Type", value: `${staff.employmentType}` },
+                      { label: "Start Date", value: staff.joiningDate || "Not set" },
+                      { label: "Reporting Manager", value: staff.reportingManager || "Not assigned" },
+                    ].map((row, i) => (
+                      <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
+                        <span className="text-[13px] text-gray-500 font-medium">{row.label}</span>
+                        <span className="text-[13px] font-semibold text-gray-900 text-right">{row.value || "—"}</span>
+                      </div>
+                    ))}
+                    <div className="flex items-center justify-between py-3">
+                      <span className="text-[13px] text-gray-500 font-medium">Status</span>
+                      <Badge className={`border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px] ${getEmploymentStatusStyle(staff.employmentStatus)}`}>
+                        {staff.employmentStatus}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between py-3 last:pb-0">
+                      <span className="text-[13px] text-gray-500 font-medium">Contract</span>
+                      <span className="text-[13px] font-semibold text-gray-900">{staff.contractType || "—"}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ── Card 3: Operations & Skills ──────────────────── */}
+              <Card className="shadow-sm border-gray-200">
+                <CardHeader className="px-6 py-5 pb-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                        <TrendingUp className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Operations & Skills</CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-6 pt-5 pb-6">
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    <div className="flex items-center justify-between py-3 first:pt-0">
+                      <span className="text-[13px] text-gray-500 font-medium">Role Type</span>
+                      <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px]">
+                        {staff.roleType}
+                      </Badge>
+                    </div>
+                    <div className="flex items-start justify-between py-3">
+                      <span className="text-[13px] text-gray-500 font-medium pt-0.5">Skills</span>
+                      <div className="flex flex-wrap gap-1.5 justify-end max-w-[65%]">
+                        {staff.skills?.map((skill, i) => (
+                          <Badge key={i} className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-0 font-semibold text-[12px] px-2 py-0.5 shadow-none">
+                            {skill}
+                          </Badge>
+                        ))}
+                        {(!staff.skills || staff.skills.length === 0) && (
+                          <span className="text-[13px] text-gray-400 italic">None assigned</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-start justify-between py-3">
+                      <span className="text-[13px] text-gray-500 font-medium pt-0.5">Languages</span>
+                      <div className="flex flex-wrap gap-1.5 justify-end max-w-[65%]">
+                        {staff.languages?.map((lang, i) => (
+                          <Badge key={i} variant="outline" className="text-gray-600 border-gray-200 font-medium text-[12px] px-2 py-0.5 shadow-none bg-white">
+                            {lang}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between py-3">
+                      <span className="text-[13px] text-gray-500 font-medium">Accommodation</span>
+                      <span className="text-[13px] font-semibold text-gray-900">{staff.employmentType === "Full Time" ? "Company Provided" : "Self-Arranged"}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3">
+                      <span className="text-[13px] text-gray-500 font-medium">Base Location</span>
+                      <span className="text-[13px] font-semibold text-gray-900">{staff.workLocation || "Not assigned"}</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3 last:pb-0">
+                      <span className="text-[13px] text-gray-500 font-medium">Area</span>
+                      <span className="text-[13px] font-semibold text-gray-900">{staff.area}, {staff.city}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* ── Card 4: Access & Security ────────────────────── */}
+              <Card className="shadow-sm border-gray-200">
+                <CardHeader className="px-6 py-5 pb-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                      <div className="h-8 w-8 rounded-lg bg-violet-50 flex items-center justify-center">
+                        <ShieldCheck className="h-4 w-4 text-violet-600" />
+                      </div>
+                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Access & Security</CardTitle>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-6 pt-5 pb-6">
+                  <div className="flex flex-col divide-y divide-gray-100">
+                    <div className="flex items-center justify-between py-3 first:pt-0">
+                      <span className="text-[13px] text-gray-500 font-medium">Staff App Access</span>
+                      <Badge className="bg-green-50 text-green-700 hover:bg-green-50 border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px]">
+                        Enabled
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between py-3">
+                      <span className="text-[13px] text-gray-500 font-medium">Management Access</span>
+                      <span className="text-[13px] font-semibold text-gray-500">No Access</span>
+                    </div>
+                    <div className="flex items-center justify-between py-3">
+                      <span className="text-[13px] text-gray-500 font-medium">Verified</span>
+                      {staff.verified ? (
+                        <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px]">
+                          Verified
+                        </Badge>
                       ) : (
-                        staff.nickname || "—"
-                      )
-                    }
-                  />
-                  <DataField label="Nationality" value={staff.nationality} />
-                  <DataField label="Mobile Number" value={staff.phone} />
-                  <DataField label="Email Address" value={staff.email} />
-                  <DataField label="QID / ID Number" value={staff.qid} />
-                </CardContent>
-              </Card>
-
-              {/* ── 2. Employment Information (2 cols) ─────────────────────── */}
-              <Card className="lg:col-span-2 shadow-sm border-gray-200">
-                <CardHeader className="p-6 pb-4">
-                  <SectionHeader icon={Briefcase} title="Employment Information" />
-                </CardHeader>
-                <CardContent className="p-6 pt-0 space-y-6">
-                  <div className="grid grid-cols-2 gap-6">
-                    <DataField label="Department" value={staff.department} />
-                    <DataField label="Position" value={staff.position} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-6">
-                    <DataField
-                      label="Employment Status"
-                      value={
-                        <Badge
-                          className={`border-0 font-bold px-2 py-0.5 shadow-none ${getEmploymentStatusStyle(staff.employmentStatus)}`}
-                        >
-                          {staff.employmentStatus}
-                        </Badge>
-                      }
-                    />
-                    <DataField label="Joining Date" value={staff.joiningDate || "Not set"} />
-                  </div>
-                  <DataField label="Reporting Manager" value={staff.reportingManager || "Not assigned"} />
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Row 2: Base / Accommodation + Service / Role Summary */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* ── 3. Base & Accommodation ─────────────────────────────────── */}
-              <Card className="shadow-sm border-gray-200">
-                <CardHeader className="p-6 pb-4">
-                  <SectionHeader icon={Building2} title="Base & Accommodation" />
-                </CardHeader>
-                <CardContent className="p-6 pt-0 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6">
-                  <DataField label="Accommodation Type" value={staff.employmentType === "Full Time" ? "Company Provided" : "Self-Arranged"} />
-                  <DataField label="Base Location" value={staff.workLocation || "Not assigned"} />
-                  <DataField label="Address" value={staff.address || "—"} className="md:col-span-2" />
-                  <DataField label="Area / City" value={`${staff.area}, ${staff.city}`} className="md:col-span-2" />
-                </CardContent>
-              </Card>
-
-              {/* ── 4. Service & Role Summary ──────────────────────────────── */}
-              <Card className="shadow-sm border-gray-200">
-                <CardHeader className="p-6 pb-4">
-                  <SectionHeader icon={TrendingUp} title="Service & Role Summary" />
-                </CardHeader>
-                <CardContent className="p-6 pt-0 space-y-6">
-                  <DataField label="Role Type" value={
-                    <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-0 font-bold px-2.5 shadow-none">
-                      {staff.roleType}
-                    </Badge>
-                  } />
-                  <div className="space-y-2">
-                    <Label className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">
-                      Service Capabilities
-                    </Label>
-                    <div className="flex flex-wrap gap-2 pt-0.5">
-                      {staff.skills?.map((skill, i) => (
-                        <Badge key={i} className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-0 font-semibold text-[13px] px-2.5 shadow-none">
-                          {skill}
-                        </Badge>
-                      ))}
-                      {(!staff.skills || staff.skills.length === 0) && (
-                        <span className="text-sm text-gray-400">No skills assigned</span>
+                        <span className="text-[13px] font-semibold text-gray-500">Pending</span>
                       )}
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-[11px] text-gray-500 uppercase tracking-wider font-bold">
-                      Languages Spoken
-                    </Label>
-                    <div className="flex flex-wrap gap-2 pt-0.5">
-                      {staff.languages?.map((lang, i) => (
-                        <Badge key={i} variant="outline" className="text-gray-600 border-gray-200 font-medium text-[13px] px-2.5 shadow-none bg-white">
-                          {lang}
-                        </Badge>
-                      ))}
+                    <div className="flex items-center justify-between py-3 last:pb-0">
+                      <span className="text-[13px] text-gray-500 font-medium">Last Active</span>
+                      <span className="text-[13px] font-semibold text-gray-900">Today, 08:15 AM</span>
                     </div>
                   </div>
-                  <DataField
-                    label="Employment Type"
-                    value={`${staff.employmentType} · ${staff.contractType}`}
-                  />
                 </CardContent>
               </Card>
-            </div>
 
-            {/* Row 3: Emergency Contact */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="pb-4">
-                <SectionHeader icon={AlertCircle} title="Emergency Contact" />
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <DataField label="Contact Name" value={staff.emergencyContact} />
-                <DataField label="Phone" value={staff.emergencyPhone} />
-                <DataField label="Relationship" value={staff.emergencyRelation} />
-              </CardContent>
-            </Card>
+            </div>
           </TabsContent>
 
           {/* ══════════════════════════════════════════════════════════════════
@@ -1373,7 +1227,7 @@ export default function FieldServiceStaffDetails() {
             {/* Compliance Overview Banner */}
             {(() => {
               const expired = activeDocuments.filter(d => d.status === "Expired").length;
-              const expiring = expiringDocs.length;
+              const expiring = activeDocuments.filter(d => d.status === "Expiring Soon").length;
               const valid = activeDocuments.filter(d => d.status === "Valid").length;
               const hasRisk = expired > 0 || expiring > 0;
               return (
@@ -1861,7 +1715,136 @@ export default function FieldServiceStaffDetails() {
                 </Card>
               );
             })()}
+
           </TabsContent>
+            </div>
+
+            {/* ── 3. RIGHT PROFILE PANEL ── */}
+            <div className="w-full xl:w-80 shrink-0 xl:sticky xl:top-6 flex flex-col gap-6 mt-8 xl:mt-0">
+              {(() => {
+                let dispatchStatus = "Available";
+                let dispatchColor = "bg-green-100 text-green-700";
+                if (staff.employmentStatus === "On Leave") {
+                  dispatchStatus = "On Leave";
+                  dispatchColor = "bg-amber-100 text-amber-700";
+                } else if (staff.employmentStatus !== "Active") {
+                  dispatchStatus = "Off Duty";
+                  dispatchColor = "bg-gray-100 text-gray-600";
+                } else if (workStatusData.status === "On Job") {
+                  dispatchStatus = "On Job";
+                  dispatchColor = "bg-blue-100 text-blue-700";
+                }
+                
+                return (
+                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col overflow-hidden">
+                    <div className="p-6 flex flex-col items-center text-center border-b border-gray-100">
+                      <Avatar className="h-24 w-24 shadow-sm border-[3px] border-white ring-1 ring-gray-100 rounded-2xl mb-4">
+                        <AvatarImage src={staff.avatar} className="object-cover" />
+                        <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary rounded-2xl">
+                          {staff.name.substring(0, 2)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <h1 className="text-[20px] leading-tight font-bold text-gray-900 flex items-center gap-2 justify-center tracking-tight mb-2">
+                        {staff.name}
+                        {staff.verified && <CheckCircle className="h-5 w-5 text-blue-500 fill-blue-50 shrink-0" />}
+                      </h1>
+                      <span className="font-bold text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-[11px] tracking-wider uppercase mb-5">
+                        {staff.staffId || staff.id.toString().padStart(4, "0")}
+                      </span>
+                      
+                      <div className="flex flex-col gap-2.5 w-full px-2">
+                        <div className="flex items-center gap-3 text-[13px] text-gray-600 transition-colors">
+                          <Phone className="h-4 w-4 text-gray-400 shrink-0" />
+                          <span className="font-medium truncate">{staff.phone}</span>
+                        </div>
+                        <div className="flex items-center gap-3 text-[13px] text-gray-600 transition-colors">
+                          <Mail className="h-4 w-4 text-gray-400 shrink-0" />
+                          <span className="font-medium truncate">{staff.email}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-5 flex flex-col gap-4 bg-gray-50/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</span>
+                        {staff.employmentStatus === "Active" ? (
+                          <Badge className="bg-gray-200 text-gray-800 hover:bg-gray-200 border-0 shadow-none px-2 py-0.5 rounded font-bold justify-center text-[10px]">ACTIVE</Badge>
+                        ) : (
+                          <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-0 shadow-none px-2 py-0.5 rounded font-bold justify-center text-[10px] uppercase">{staff.employmentStatus}</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Dispatch</span>
+                        <Badge className={`${dispatchColor} border-0 shadow-none px-2 py-0.5 rounded font-bold justify-center text-[10px] uppercase hover:opacity-80`}>
+                          {dispatchStatus}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Rating</span>
+                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-gray-900">
+                          <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
+                          {staff.rating}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {dispatchStatus === "On Job" && (
+                      <div className="p-5 bg-blue-50/50 border-t border-blue-100">
+                        <span className="text-[11px] uppercase tracking-wider font-bold text-blue-700 mb-1.5 block">Current Assignment</span>
+                        <div className="text-sm">
+                          <span className="font-bold text-blue-700 hover:underline cursor-pointer">Booking #2845</span>
+                          <div className="text-gray-900 font-semibold text-[13px] mt-0.5">Home Cleaning</div>
+                          <div className="text-blue-600/80 text-xs mt-1 flex items-center gap-1 font-medium">
+                            <Clock className="h-3 w-3" /> 08:00 – 11:00
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="p-4 grid grid-cols-3 gap-2 border-t border-gray-100 bg-white">
+                      <Button variant="outline" size="sm" className="w-full flex-col h-auto py-2.5 gap-1.5 px-1 bg-gray-50 hover:bg-gray-100 border-gray-200 shadow-sm">
+                        <Briefcase className="h-4 w-4 text-gray-600" /> 
+                        <span className="text-[10px] font-bold text-gray-600">Assign</span>
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full flex-col h-auto py-2.5 gap-1.5 px-1 bg-gray-50 hover:bg-gray-100 border-gray-200 shadow-sm">
+                        <Phone className="h-4 w-4 text-gray-600" /> 
+                        <span className="text-[10px] font-bold text-gray-600">Call</span>
+                      </Button>
+                      <Button variant="outline" size="sm" className="w-full flex-col h-auto py-2.5 gap-1.5 px-1 bg-gray-50 hover:bg-gray-100 border-gray-200 shadow-sm">
+                        <Mail className="h-4 w-4 text-gray-600" /> 
+                        <span className="text-[10px] font-bold text-gray-600">Message</span>
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* KPIs Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { label: "Jobs", value: staff.jobsCompleted.toString(), icon: BarChart3 },
+                  { label: "Today", value: mockBookings.filter((b) => b.date === "2025-12-23").length.toString(), icon: CalendarCheck },
+                  { label: "Upcoming", value: mockBookings.filter((b) => b.status === "Scheduled").length.toString(), icon: CalendarDays },
+                  { label: "Complete", value: "98%", icon: CheckCircle },
+                  { label: "On-Time", value: "96%", icon: Clock },
+                  { label: "Rating", value: staff.rating.toString(), icon: Star },
+                ].map((stat, i) => (
+                  <div key={i} className="px-4 py-5 flex flex-col items-center justify-center text-center gap-2 bg-white border border-gray-200 rounded-2xl shadow-sm">
+                    <div className="h-8 w-8 rounded-full bg-gray-50 border border-gray-100 text-gray-600 flex items-center justify-center shrink-0 mb-1">
+                      <stat.icon className="h-4 w-4" />
+                    </div>
+                    <span className="text-2xl font-bold text-gray-900 leading-none tracking-tight">
+                      {stat.value}
+                    </span>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-tight">
+                      {stat.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+          </div>
         </Tabs>
       </div>
 
