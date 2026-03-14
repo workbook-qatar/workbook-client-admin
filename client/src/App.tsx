@@ -13,7 +13,7 @@ import Signup from "./pages/Signup";
 import Bookings from "./pages/Bookings";
 
 import Customers from "./pages/Customers";
-import StaffDetails from "./pages/StaffDetails";
+import FieldServiceStaffDetails from "./pages/FieldServiceStaffDetails";
 import Workforce from "./pages/Workforce";
 import AddWorkforceMember from "./pages/AddWorkforceMember";
 import AddCustomer from "./pages/AddCustomer";
@@ -62,7 +62,7 @@ function Router() {
       />
       <Route path="/workforce" component={Workforce} />
       <Route path="/workforce/add" component={AddWorkforceMember} />
-      <Route path="/staff/:id" component={StaffDetails} />
+      <Route path="/staff/:id" component={FieldServiceStaffDetails} />
       <Route path="/vehicles" component={Vehicles} />
       <Route path="/services" component={Services} />
       <Route path="/services/create" component={CreatePackage} />
