@@ -1,12 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRoute, useLocation, Link } from "wouter";
 import DashboardLayout from "@/components/DashboardLayout";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,6 +22,8 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Check,
   Plus,
   Building2,
   FileText,
@@ -157,7 +154,7 @@ const mockBookings = [
     customer: "Aldar Properties",
     service: "AC Maintenance",
     date: "2025-12-23",
-    time: "09:00 AM",
+    time: "09:00 AM - 11:00 AM",
     status: "In Progress",
     location: "West Bay, Doha",
   },
@@ -166,7 +163,7 @@ const mockBookings = [
     customer: "Fatima Al-Thani",
     service: "Deep Cleaning",
     date: "2025-12-24",
-    time: "02:00 PM",
+    time: "02:00 PM - 04:00 PM",
     status: "Scheduled",
     location: "The Pearl, Doha",
   },
@@ -175,7 +172,7 @@ const mockBookings = [
     customer: "Qatar Foundation",
     service: "Electrical Repair",
     date: "2025-12-25",
-    time: "10:00 AM",
+    time: "10:00 AM - 01:00 PM",
     status: "Scheduled",
     location: "Education City",
   },
@@ -416,27 +413,7 @@ function getEmploymentStatusStyle(status: EmploymentStatus) {
   }
 }
 
-// ─── Internal Section Components ─────────────────────────────────────────────
 
-function SectionHeader({
-  icon: Icon,
-  title,
-  action,
-}: {
-  icon: React.ElementType;
-  title: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <CardTitle className="text-base font-bold tracking-tight flex items-center gap-2.5 text-gray-900">
-        <Icon className="h-5 w-5 text-gray-400" />
-        {title}
-      </CardTitle>
-      {action}
-    </div>
-  );
-}
 
 function DataField({
   label,
@@ -448,11 +425,11 @@ function DataField({
   className?: string;
 }) {
   return (
-    <div className={`space-y-1.5 ${className || ""}`}>
-      <Label className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+    <div className={`space-y-1 ${className || ""}`}>
+      <Label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">
         {label}
       </Label>
-      <div className="text-[14px] font-medium text-gray-900 leading-snug">
+      <div className="text-sm font-medium text-gray-900 leading-snug">
         {value || <span className="text-gray-400">—</span>}
       </div>
     </div>
@@ -491,7 +468,6 @@ export default function FieldServiceStaffDetails() {
 
   // ─── State ───────────────────────────────────────────────────────────────
   const [staff, setStaff] = useState(mockStaffData);
-  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState(mockStaffData);
   const [statusDialogOpen, setStatusDialogOpen] = useState(false);
   const [pendingEmploymentStatus, setPendingEmploymentStatus] =
@@ -574,22 +550,6 @@ export default function FieldServiceStaffDetails() {
   }, [staff.employmentStatus]);
 
   // ─── Handlers ────────────────────────────────────────────────────────────
-  const handleEditToggle = () => {
-    if (isEditing) {
-      setFormData(staff);
-      setIsEditing(false);
-    } else {
-      setFormData(staff);
-      setIsEditing(true);
-    }
-  };
-
-  const handleSave = () => {
-    setStaff(formData);
-    setIsEditing(false);
-    updateLocalStorage(formData);
-    toast.success("Staff profile updated successfully");
-  };
 
   const updateLocalStorage = (data: any) => {
     const stored = localStorage.getItem("vendor_staff");
@@ -651,248 +611,499 @@ export default function FieldServiceStaffDetails() {
   };
 
   return (
-        <DashboardLayout>
-      <div className="max-w-[1600px] mx-auto p-4 sm:p-6 lg:p-8">
+    <DashboardLayout>
+      <div className="max-w-[1720px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        {/* ─── BACK NAVIGATION ──────────────────────────────────────────── */}
+        <Button variant="ghost" className="text-gray-500 hover:text-gray-900 -ml-2 h-8 text-[13px] font-medium gap-1.5" onClick={() => window.history.back()}>
+          <ChevronLeft className="h-4 w-4" />
+          Back to Staff
+        </Button>
+
+        {/* ─── IDENTITY HEADER STRIP ────────────────────────────────────── */}
+        {(() => {
+          let dispatchStatus = "Available";
+          let dispatchColor = "bg-green-50 text-green-700";
+          if (staff.employmentStatus === "On Leave") {
+            dispatchStatus = "On Leave";
+            dispatchColor = "bg-amber-50 text-amber-700";
+          } else if (staff.employmentStatus !== "Active") {
+            dispatchStatus = "Off Duty";
+            dispatchColor = "bg-gray-100 text-gray-600";
+          } else if (workStatusData.status === "On Job") {
+            dispatchStatus = "On Job";
+            dispatchColor = "bg-blue-50 text-blue-700";
+          }
+
+          return (
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+              {/* Top Row: Identity + Status + Actions */}
+              <div className="px-6 py-5 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
+                {/* Left: Avatar + Name + Meta */}
+                <div className="flex items-center gap-4 flex-1 min-w-0">
+                  <Avatar className="h-14 w-14 shadow-sm border-2 border-white ring-2 ring-gray-100 rounded-xl shrink-0">
+                    <AvatarImage src={staff.avatar} className="object-cover" />
+                    <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary rounded-xl">
+                      {staff.name.substring(0, 2)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h1 className="text-lg font-semibold text-gray-900 tracking-tight truncate">
+                        {staff.name}
+                      </h1>
+                      {staff.verified && <CheckCircle className="h-4 w-4 text-blue-500 fill-blue-50 shrink-0" />}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                      <span className="font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase">
+                        {staff.staffId || staff.id.toString().padStart(4, "0")}
+                      </span>
+                      <span className="font-medium flex items-center gap-1">
+                        <Phone className="h-3 w-3 text-gray-400" />
+                        {staff.phone}
+                      </span>
+                      <span className="font-medium flex items-center gap-1">
+                        <Mail className="h-3 w-3 text-gray-400" />
+                        {staff.email}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right: Actions & Status */}
+                <div className="flex items-center shrink-0 gap-5">
+                  <div 
+                    className="flex items-center gap-2.5 cursor-pointer group hover:bg-gray-50 px-2.5 py-1.5 -mx-1 rounded-lg transition-colors"
+                    onClick={() => setLocation(`/workforce/pending/${staff.staffId || staff.id}`)}
+                  >
+                    <div className="h-8 w-8 rounded-lg bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
+                      <Edit className="h-3.5 w-3.5 text-gray-500 group-hover:text-blue-600 transition-colors" />
+                    </div>
+                    <div className="flex flex-col justify-center">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1">Action</span>
+                      <span className="text-sm font-bold text-gray-900 leading-none tracking-tight group-hover:text-blue-700 transition-colors">Edit Profile</span>
+                    </div>
+                  </div>
+
+                  <div className="w-px h-8 bg-gray-200" />
+                  {/* Work Status part */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.6)] relative">
+                       <div className="absolute -inset-1 rounded-full bg-blue-500 animate-ping opacity-30" />
+                    </div>
+                    <div className="flex flex-col justify-center pt-0.5">
+                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5">Work Status</span>
+                      <span className="text-sm font-bold text-gray-900 leading-none tracking-tight">{dispatchStatus}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="w-px h-8 bg-gray-200" />
+                  
+                  {/* Employment part */}
+                  <div className="relative z-10">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <div className="flex items-center justify-between cursor-pointer group hover:bg-gray-50 px-2 py-1 -mx-2 rounded-lg transition-colors">
+                          <div className="flex flex-col justify-center pt-0.5">
+                            <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5 min-w-[100px]">Employment</span>
+                            <div className="flex items-center gap-1.5">
+                              <span className={`text-sm font-bold leading-none tracking-tight ${
+                                staff.employmentStatus === "Active" ? "text-green-700" :
+                                staff.employmentStatus === "On Leave" ? "text-amber-600" :
+                                staff.employmentStatus === "Suspended" ? "text-red-600" :
+                                "text-gray-600"
+                              }`}>
+                                {staff.employmentStatus}
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors ml-4 shrink-0" />
+                        </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-[140px] rounded-xl p-1 shadow-md border-gray-200">
+                        <DropdownMenuItem className="flex items-center justify-between text-[13px] font-bold text-gray-700 hover:text-green-700 hover:bg-green-50 rounded-lg cursor-pointer" onClick={() => initiateStatusChange("Active")}>
+                          Active {staff.employmentStatus === "Active" && <Check className="h-4 w-4 text-green-600 opacity-80" />}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("On Leave")}>
+                          On Leave {staff.employmentStatus === "On Leave" && <Check className="h-4 w-4 text-amber-600 opacity-80" />}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Suspended")}>
+                          Suspended {staff.employmentStatus === "Suspended" && <Check className="h-4 w-4 text-red-600 opacity-80" />}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Inactive")}>
+                          Inactive {staff.employmentStatus === "Inactive" && <Check className="h-4 w-4 text-gray-500 opacity-80" />}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+
+                </div>
+              </div>
+
+              {/* Bottom Row: KPI Strip */}
+              <div className="grid grid-cols-3 lg:grid-cols-6 border-t border-gray-100">
+                {[
+                  { label: "Jobs Completed", value: staff.jobsCompleted.toString(), icon: BarChart3, color: "text-blue-500" },
+                  { label: "Today's Jobs", value: mockBookings.filter((b) => b.date === "2025-12-23").length.toString(), icon: CalendarCheck, color: "text-emerald-500" },
+                  { label: "Upcoming", value: mockBookings.filter((b) => b.status === "Scheduled").length.toString(), icon: CalendarDays, color: "text-purple-500" },
+                  { label: "Completion", value: "98%", icon: CheckCircle, color: "text-teal-500" },
+                  { label: "On-Time", value: "96%", icon: Clock, color: "text-indigo-500" },
+                  { label: "Avg. Rating", value: staff.rating.toString(), icon: Star, color: "text-amber-500 fill-amber-500" },
+                ].map((stat, i) => (
+                  <div key={i} className="px-4 py-3 flex items-center gap-3 border-r border-gray-100 last:border-r-0 hover:bg-gray-50/50 transition-colors">
+                    <stat.icon className={`h-4 w-4 shrink-0 hidden sm:block ${stat.color}`} />
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-lg font-bold text-gray-900 leading-none tracking-tight">
+                        {stat.value}
+                      </span>
+                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 truncate">
+                        {stat.label}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+            </div>
+          );
+        })()}
+
+        {/* ─── 2-COLUMN LAYOUT: NAV + CONTENT ───────────────────────────── */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex flex-col xl:flex-row gap-6 lg:gap-8 items-start">
-            
-            {/* ── 1. LEFT NAVIGATION MENU ── */}
-            <div className="w-full xl:w-56 shrink-0 xl:sticky xl:top-6">
-              <div className="mb-6 px-2">
-                <Button variant="ghost" className="text-gray-500 hover:text-gray-900 -ml-3 h-8 text-xs font-semibold gap-1.5" onClick={() => window.history.back()}>
-                  <ChevronLeft className="h-4 w-4" />
-                  Back to Staff
-                </Button>
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+
+            {/* ── LEFT NAVIGATION PANEL ── */}
+            <div className="w-full lg:w-48 shrink-0 lg:sticky lg:top-6">
+              <div className="px-3 mb-3">
+                <h3 className="text-[11px] font-bold text-gray-400 uppercase tracking-widest">Sections</h3>
               </div>
               <TabsList className="flex flex-col bg-transparent border-0 h-auto p-0 items-stretch space-y-1 w-full text-left">
-                <TabsTrigger
-                  value="overview"
-                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
-                >
-                  <User className="h-4.5 w-4.5 mr-2.5" />
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger
-                  value="schedule"
-                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
-                >
-                  <CalendarCheck className="h-4.5 w-4.5 mr-2.5" />
-                  Schedule
-                </TabsTrigger>
-                <TabsTrigger
-                  value="availability"
-                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
-                >
-                  <Clock className="h-4.5 w-4.5 mr-2.5" />
-                  Availability
-                </TabsTrigger>
-                <TabsTrigger
-                  value="compliance"
-                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
-                >
-                  <ShieldCheck className="h-4.5 w-4.5 mr-2.5" />
-                  Compliance
-                </TabsTrigger>
-                <TabsTrigger
-                  value="compensation"
-                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
-                >
-                  <Banknote className="h-4.5 w-4.5 mr-2.5" />
-                  Compensation
-                </TabsTrigger>
-                <TabsTrigger
-                  value="activity"
-                  className="data-[state=active]:bg-blue-50/80 data-[state=active]:text-blue-700 data-[state=active]:shadow-none data-[state=active]:font-semibold text-gray-600 hover:bg-gray-50 hover:text-gray-900 justify-start w-full px-4 py-2.5 h-auto text-sm font-medium rounded-lg transition-all"
-                >
-                  <Activity className="h-4.5 w-4.5 mr-2.5" />
-                  Activity
-                </TabsTrigger>
+                    <TabsTrigger
+                      value="overview"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                    >
+                      <User className="h-4 w-4 mr-3 opacity-70" />
+                      Overview
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="schedule"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                    >
+                      <CalendarCheck className="h-4 w-4 mr-3 opacity-70" />
+                      Schedule
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="availability"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                    >
+                      <Clock className="h-4 w-4 mr-3 opacity-70" />
+                      Availability
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="compliance"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                    >
+                      <ShieldCheck className="h-4 w-4 mr-3 opacity-70" />
+                      Compliance
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="compensation"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                    >
+                      <Banknote className="h-4 w-4 mr-3 opacity-70" />
+                      Compensation
+                    </TabsTrigger>
+                    <TabsTrigger
+                      value="activity"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                    >
+                      <Activity className="h-4 w-4 mr-3 opacity-70" />
+                      Activity
+                    </TabsTrigger>
               </TabsList>
             </div>
 
-            {/* ── 2. MIDDLE MAIN CONTENT AREA ── */}
-
+            {/* ── MAIN CONTENT AREA ── */}
             <div className="flex-1 min-w-0 w-full">
 
           {/* ══════════════════════════════════════════════════════════════════
               OVERVIEW TAB
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="overview" className="mt-0">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div className="flex flex-col xl:flex-row gap-6">
 
-              {/* ── Card 1: Basic Information ─────────────────────── */}
-              <Card className="shadow-sm border-gray-200">
-                <CardHeader className="px-6 py-5 pb-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center">
-                        <User className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Basic Information</CardTitle>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-6 pt-5 pb-6">
-                  <div className="flex flex-col divide-y divide-gray-100">
-                    {[
-                      { label: "Full Name", value: staff.name },
-                      { label: "Display Name", value: isEditing ? (
-                        <Input value={formData.nickname} onChange={e => setFormData({ ...formData, nickname: e.target.value })} className="h-8 text-sm w-48 ml-auto" />
-                      ) : (staff.nickname || "—") },
-                      { label: "QID Number", value: staff.qid },
-                      { label: "Nationality", value: staff.nationality },
-                      { label: "Contact", value: staff.phone },
-                      { label: "Email", value: staff.email },
-                    ].map((row, i) => (
-                      <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                        <span className="text-[13px] text-gray-500 font-medium">{row.label}</span>
-                        <span className="text-[13px] font-semibold text-gray-900 text-right">{row.value || "—"}</span>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              {/* ── LEFT: Property Grid ──────────────────────────── */}
+              <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-xl overflow-hidden">
 
-              {/* ── Card 2: Employment Details ────────────────────── */}
-              <Card className="shadow-sm border-gray-200">
-                <CardHeader className="px-6 py-5 pb-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-lg bg-emerald-50 flex items-center justify-center">
-                        <Briefcase className="h-4 w-4 text-emerald-600" />
-                      </div>
-                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Employment Details</CardTitle>
+                {/* Section 1: Personal Details */}
+                <div className="px-6 py-5">
+                  <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Personal Details</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-4">
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Display Name</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.nickname || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">QID Number</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.qid}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Nationality</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.nationality}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Date of Birth</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.dob || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Gender</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.gender || "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Religion</dt>
+                      <dd className="text-sm font-medium text-gray-900">Islam</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Marital Status</dt>
+                      <dd className="text-sm font-medium text-gray-900">Married</dd>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="px-6 pt-5 pb-6">
-                  <div className="flex flex-col divide-y divide-gray-100">
-                    {[
-                      { label: "Position", value: staff.position },
-                      { label: "Department", value: staff.department },
-                      { label: "Type", value: `${staff.employmentType}` },
-                      { label: "Start Date", value: staff.joiningDate || "Not set" },
-                      { label: "Reporting Manager", value: staff.reportingManager || "Not assigned" },
-                    ].map((row, i) => (
-                      <div key={i} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
-                        <span className="text-[13px] text-gray-500 font-medium">{row.label}</span>
-                        <span className="text-[13px] font-semibold text-gray-900 text-right">{row.value || "—"}</span>
-                      </div>
-                    ))}
-                    <div className="flex items-center justify-between py-3">
-                      <span className="text-[13px] text-gray-500 font-medium">Status</span>
-                      <Badge className={`border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px] ${getEmploymentStatusStyle(staff.employmentStatus)}`}>
-                        {staff.employmentStatus}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between py-3 last:pb-0">
-                      <span className="text-[13px] text-gray-500 font-medium">Contract</span>
-                      <span className="text-[13px] font-semibold text-gray-900">{staff.contractType || "—"}</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* ── Card 3: Operations & Skills ──────────────────── */}
-              <Card className="shadow-sm border-gray-200">
-                <CardHeader className="px-6 py-5 pb-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                        <TrendingUp className="h-4 w-4 text-amber-600" />
-                      </div>
-                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Operations & Skills</CardTitle>
+                <div className="border-t border-gray-100" />
+
+                {/* Section 2: Employment */}
+                <div className="px-6 py-5">
+                  <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Employment</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-4">
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Position</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.position}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Department</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.department}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Employment Type</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.employmentType}</dd>
+                    </div>
+
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Start Date</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.joiningDate || "—"}</dd>
                     </div>
                   </div>
-                </CardHeader>
-                <CardContent className="px-6 pt-5 pb-6">
-                  <div className="flex flex-col divide-y divide-gray-100">
-                    <div className="flex items-center justify-between py-3 first:pt-0">
-                      <span className="text-[13px] text-gray-500 font-medium">Role Type</span>
-                      <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px]">
-                        {staff.roleType}
-                      </Badge>
+                </div>
+
+                <div className="border-t border-gray-100" />
+
+                {/* Section 3: Operations */}
+                <div className="px-6 py-5">
+                  <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Operations</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-4">
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Role Type</dt>
+                      <dd>
+                        <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-0 font-semibold px-2 py-0.5 shadow-none text-[11px]">
+                          {staff.roleType}
+                        </Badge>
+                      </dd>
                     </div>
-                    <div className="flex items-start justify-between py-3">
-                      <span className="text-[13px] text-gray-500 font-medium pt-0.5">Skills</span>
-                      <div className="flex flex-wrap gap-1.5 justify-end max-w-[65%]">
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Accommodation</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.employmentType === "Full Time" ? "Company Provided" : "Self-Arranged"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Area</dt>
+                      <dd className="text-sm font-medium text-gray-900">{staff.area}, {staff.city}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Total Experience</dt>
+                      <dd className="text-sm font-medium text-gray-900">5 Years</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Transportation Type</dt>
+                      <dd className="text-sm font-medium text-gray-900">Company Vehicle</dd>
+                    </div>
+                    <div className="lg:col-span-3">
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Skills</dt>
+                      <dd className="flex flex-wrap gap-1.5">
                         {staff.skills?.map((skill, i) => (
-                          <Badge key={i} className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-0 font-semibold text-[12px] px-2 py-0.5 shadow-none">
+                          <Badge key={i} className="bg-gray-100 text-gray-700 hover:bg-gray-100 border-0 font-medium text-[11px] px-2 py-0.5 shadow-none">
                             {skill}
                           </Badge>
                         ))}
                         {(!staff.skills || staff.skills.length === 0) && (
-                          <span className="text-[13px] text-gray-400 italic">None assigned</span>
+                          <span className="text-xs text-gray-400 italic">None assigned</span>
                         )}
-                      </div>
+                      </dd>
                     </div>
-                    <div className="flex items-start justify-between py-3">
-                      <span className="text-[13px] text-gray-500 font-medium pt-0.5">Languages</span>
-                      <div className="flex flex-wrap gap-1.5 justify-end max-w-[65%]">
+                    <div className="lg:col-span-3">
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Languages</dt>
+                      <dd className="flex flex-wrap gap-1.5">
                         {staff.languages?.map((lang, i) => (
-                          <Badge key={i} variant="outline" className="text-gray-600 border-gray-200 font-medium text-[12px] px-2 py-0.5 shadow-none bg-white">
+                          <Badge key={i} variant="outline" className="text-gray-600 border-gray-200 font-medium text-[11px] px-2 py-0.5 shadow-none bg-white">
                             {lang}
                           </Badge>
                         ))}
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between py-3">
-                      <span className="text-[13px] text-gray-500 font-medium">Accommodation</span>
-                      <span className="text-[13px] font-semibold text-gray-900">{staff.employmentType === "Full Time" ? "Company Provided" : "Self-Arranged"}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-3">
-                      <span className="text-[13px] text-gray-500 font-medium">Base Location</span>
-                      <span className="text-[13px] font-semibold text-gray-900">{staff.workLocation || "Not assigned"}</span>
-                    </div>
-                    <div className="flex items-center justify-between py-3 last:pb-0">
-                      <span className="text-[13px] text-gray-500 font-medium">Area</span>
-                      <span className="text-[13px] font-semibold text-gray-900">{staff.area}, {staff.city}</span>
+                      </dd>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
 
-              {/* ── Card 4: Access & Security ────────────────────── */}
-              <Card className="shadow-sm border-gray-200">
-                <CardHeader className="px-6 py-5 pb-0">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5">
-                      <div className="h-8 w-8 rounded-lg bg-violet-50 flex items-center justify-center">
-                        <ShieldCheck className="h-4 w-4 text-violet-600" />
-                      </div>
-                      <CardTitle className="text-[15px] font-bold text-gray-900 tracking-tight">Access & Security</CardTitle>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-6 pt-5 pb-6">
-                  <div className="flex flex-col divide-y divide-gray-100">
-                    <div className="flex items-center justify-between py-3 first:pt-0">
-                      <span className="text-[13px] text-gray-500 font-medium">Staff App Access</span>
-                      <Badge className="bg-green-50 text-green-700 hover:bg-green-50 border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px]">
-                        Enabled
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between py-3">
-                      <span className="text-[13px] text-gray-500 font-medium">Management Access</span>
-                      <span className="text-[13px] font-semibold text-gray-500">No Access</span>
-                    </div>
-                    <div className="flex items-center justify-between py-3">
-                      <span className="text-[13px] text-gray-500 font-medium">Verified</span>
-                      {staff.verified ? (
-                        <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-50 border-0 font-bold px-2.5 py-0.5 shadow-none text-[11px]">
-                          Verified
+                <div className="border-t border-gray-100" />
+
+                {/* Section 4: Access & Security */}
+                <div className="px-6 py-5">
+                  <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest mb-4">Access & Security</h3>
+                  <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-4">
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Staff App Access</dt>
+                      <dd>
+                        <Badge className="bg-green-50 text-green-700 hover:bg-green-50 border-0 font-semibold px-2 py-0.5 shadow-none text-[11px]">
+                          Enabled
                         </Badge>
-                      ) : (
-                        <span className="text-[13px] font-semibold text-gray-500">Pending</span>
-                      )}
+                      </dd>
                     </div>
-                    <div className="flex items-center justify-between py-3 last:pb-0">
-                      <span className="text-[13px] text-gray-500 font-medium">Last Active</span>
-                      <span className="text-[13px] font-semibold text-gray-900">Today, 08:15 AM</span>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Management Access</dt>
+                      <dd className="text-sm font-medium text-gray-500">No Access</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[11px] font-bold text-gray-500 uppercase tracking-wider mb-1">Last Active</dt>
+                      <dd className="text-sm font-medium text-gray-900">Today · 08:15 AM</dd>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+
+              </div>
+
+              {/* ── RIGHT: Contextual Panel ──────────────────────── */}
+              <div className="w-full xl:w-80 shrink-0 flex flex-col gap-5">
+
+                {/* Today's Schedule */}
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Today's Schedule</h3>
+                    <span className="text-[10px] font-medium text-gray-400">Dec 23</span>
+                  </div>
+                  <div className="divide-y divide-gray-50">
+                    {mockBookings.filter(b => b.date === "2025-12-23").length > 0 ? (
+                      mockBookings.filter(b => b.date === "2025-12-23").map((booking, i) => (
+                        <div key={i} className="px-5 py-3 flex items-start gap-3 hover:bg-gray-50/50 transition-colors">
+                          <div className={`w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 ${
+                            booking.status === "In Progress" ? "bg-blue-500" :
+                            booking.status === "Completed" ? "bg-green-500" :
+                            "bg-gray-300"
+                          }`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-sm font-bold text-gray-900 truncate">
+                                {booking.service}
+                              </span>
+                              <Badge className={`shrink-0 border-0 shadow-none text-[10px] font-semibold px-1.5 py-0 ${
+                                booking.status === "In Progress" ? "bg-blue-50 text-blue-700" :
+                                booking.status === "Completed" ? "bg-green-50 text-green-700" :
+                                "bg-gray-100 text-gray-600"
+                              }`}>
+                                {booking.status}
+                              </Badge>
+                            </div>
+                            
+                            <div className="flex flex-col gap-1.5 mt-1.5 pt-1.5 border-t border-gray-100/60">
+                              {/* Row 1: ID & Time */}
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-[11px] font-bold tracking-wide text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
+                                  {booking.id}
+                                </span>
+                                <span className="text-[11px] font-medium text-gray-600 flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">
+                                  <Clock className="h-3 w-3 text-gray-500" />
+                                  {booking.time}
+                                </span>
+                              </div>
+
+                              {/* Row 2: Customer & Location */}
+                              <div className="flex items-center gap-2 text-[11px] text-gray-500 mt-0.5">
+                                <div className="flex items-center gap-1.5 max-w-[45%]">
+                                  <User className="h-3 w-3 text-gray-400 shrink-0" />
+                                  <span className="font-semibold text-gray-700 truncate">{booking.customer}</span>
+                                </div>
+                                <span className="text-gray-300">|</span>
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <MapPin className="h-3 w-3 text-gray-400 shrink-0" />
+                                  <span className="truncate">{booking.location}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="px-5 py-6 text-center">
+                        <CalendarDays className="h-5 w-5 text-gray-300 mx-auto mb-1.5" />
+                        <span className="text-xs text-gray-400">No bookings today</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100">
+                    <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Recent Activity</h3>
+                  </div>
+                  <div className="px-5 py-3">
+                    <div className="relative">
+                      <div className="absolute left-[5px] top-2 bottom-2 w-px bg-gray-100" />
+                      {[
+                        { text: "Completed Booking #2844", time: "2h ago", color: "bg-green-500" },
+                        { text: "Started Booking #2845", time: "3h ago", color: "bg-blue-500" },
+                        { text: "Checked in at 08:15 AM", time: "5h ago", color: "bg-gray-400" },
+                        { text: "Completed Booking #2843", time: "Yesterday", color: "bg-green-500" },
+                        { text: "Schedule updated", time: "Yesterday", color: "bg-amber-500" },
+                      ].map((event, i) => (
+                        <div key={i} className="flex items-start gap-3 py-2 relative">
+                          <div className={`w-[11px] h-[11px] rounded-full border-2 border-white ${event.color} shrink-0 mt-0.5 z-10`} />
+                          <div className="flex-1 min-w-0">
+                            <span className="text-xs font-medium text-gray-700 block truncate">{event.text}</span>
+                            <span className="text-[10px] text-gray-400">{event.time}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Performance Snapshot */}
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="px-5 py-4 border-b border-gray-100">
+                    <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Performance This Month</h3>
+                  </div>
+                  <div className="px-5 py-4 space-y-3">
+                    {[
+                      { label: "Jobs Completed", value: 24, max: 30, color: "bg-blue-500" },
+                      { label: "Customer Satisfaction", value: 96, max: 100, color: "bg-green-500" },
+                      { label: "On-Time Rate", value: 92, max: 100, color: "bg-amber-500" },
+                    ].map((metric, i) => (
+                      <div key={i}>
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-xs text-gray-500 font-medium">{metric.label}</span>
+                          <span className="text-xs font-semibold text-gray-900">{metric.value}{metric.max === 100 ? "%" : `/${metric.max}`}</span>
+                        </div>
+                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${metric.color} transition-all`}
+                            style={{ width: `${(metric.value / metric.max) * 100}%` }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
 
             </div>
           </TabsContent>
@@ -901,53 +1112,41 @@ export default function FieldServiceStaffDetails() {
               SCHEDULE TAB
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="schedule" className="mt-0 space-y-6">
-            {/* Schedule Summary */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Card className="shadow-sm border-gray-200">
-                <CardContent className="p-4">
-                  <DataField label="In Progress" value={
-                    <span className="text-lg font-bold text-gray-900">{mockBookings.filter(b => b.status === "In Progress").length}</span>
-                  } />
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm border-gray-200">
-                <CardContent className="p-4">
-                  <DataField label="Scheduled" value={
-                    <span className="text-lg font-bold text-gray-900">{mockBookings.filter(b => b.status === "Scheduled").length}</span>
-                  } />
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm border-gray-200">
-                <CardContent className="p-4">
-                  <DataField label="Completed (Dec)" value={
-                    <span className="text-lg font-bold text-gray-900">12</span>
-                  } />
-                </CardContent>
-              </Card>
-              <Card className="shadow-sm border-gray-200">
-                <CardContent className="p-4">
-                  <DataField label="Total (All Time)" value={
-                    <span className="text-lg font-bold text-gray-900">{staff.jobsCompleted}</span>
-                  } />
-                </CardContent>
-              </Card>
+            {/* Schedule Summary Strip */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+                {[
+                  { label: "In Progress", value: mockBookings.filter(b => b.status === "In Progress").length, color: "text-amber-600" },
+                  { label: "Scheduled", value: mockBookings.filter(b => b.status === "Scheduled").length, color: "text-blue-600" },
+                  { label: "Completed (Dec)", value: 12, color: "text-green-600" },
+                  { label: "Total (All Time)", value: staff.jobsCompleted, color: "text-gray-900" },
+                ].map((stat, i) => (
+                  <div key={i} className="px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                    <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">{stat.label}</span>
+                    <span className={`text-xl font-bold leading-none tracking-tight ${stat.color}`}>{stat.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Assignments Table */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="py-4 flex flex-row items-center justify-between">
-                <SectionHeader icon={CalendarCheck} title="Assignments" />
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <CalendarCheck className="h-4 w-4 text-gray-400" />
+                  Assignments
+                </h3>
                 <div className="flex items-center gap-2">
-                  <Badge className="text-xs font-medium bg-blue-100 text-blue-700 hover:bg-blue-100 border-0">
+                  <Badge className="text-[10px] font-bold bg-blue-50 text-blue-700 hover:bg-blue-50 border-0 shadow-none px-2 py-0.5">
                     {mockBookings.length} Active
                   </Badge>
-                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5 shadow-sm h-8">
+                  <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white gap-1.5 shadow-sm h-8 rounded-lg text-xs font-bold">
                     <Plus className="h-3 w-3" />
                     Assign Booking
                   </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div>
                 {mockBookings.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -1012,8 +1211,8 @@ export default function FieldServiceStaffDetails() {
                     }
                   />
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* ══════════════════════════════════════════════════════════════════
@@ -1021,12 +1220,15 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="availability" className="mt-0 space-y-6">
             {/* ── Weekly Schedule ───────────────────────────────────────────── */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="py-4 flex flex-row items-center justify-between">
-                <SectionHeader icon={Clock} title="Weekly Schedule" />
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <Clock className="h-4 w-4 text-gray-400" />
+                  Weekly Schedule
+                </h3>
                 <div className="flex items-center gap-3">
                   <div className="text-right">
-                    <p className="text-xs text-gray-500 uppercase tracking-wider font-semibold">Total / Net Hrs</p>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Total / Net Hrs</p>
                     <p className="text-sm font-bold text-gray-900">
                       {(() => {
                         const total = mockWeeklySchedule.filter(d => d.enabled).reduce((sum, d) => {
@@ -1039,13 +1241,9 @@ export default function FieldServiceStaffDetails() {
                       })()}
                     </p>
                   </div>
-                  <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8">
-                    <Edit className="h-3 w-3" />
-                    Edit
-                  </Button>
                 </div>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="px-6 py-5">
                 <div className="grid grid-cols-7 gap-2">
                   {mockWeeklySchedule.map((day) => (
                     <div
@@ -1074,19 +1272,22 @@ export default function FieldServiceStaffDetails() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* ── Seasonal Patterns ────────────────────────────────────────── */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="py-4 flex flex-row items-center justify-between">
-                <SectionHeader icon={CalendarDays} title="Seasonal Patterns" />
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <CalendarDays className="h-4 w-4 text-gray-400" />
+                  Seasonal Patterns
+                </h3>
+                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded-lg text-xs font-bold">
                   <Plus className="h-3 w-3" />
                   Add Pattern
                 </Button>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="px-6 py-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {mockSeasonalPatterns.map(pattern => (
                     <div key={pattern.id} className="rounded-lg border border-gray-200 bg-white p-4 space-y-2">
@@ -1101,19 +1302,22 @@ export default function FieldServiceStaffDetails() {
                     </div>
                   ))}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* ── Time Off ─────────────────────────────────────────────────── */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="py-4 flex flex-row items-center justify-between">
-                <SectionHeader icon={Calendar} title="Time Off" />
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  Time Off
+                </h3>
+                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded-lg text-xs font-bold">
                   <Plus className="h-3 w-3" />
                   Request Leave
                 </Button>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div>
                 {mockTimeOff.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -1162,19 +1366,18 @@ export default function FieldServiceStaffDetails() {
                     }
                   />
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* ── Advanced Preferences ──────────────────────────────────────── */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="py-4 flex flex-row items-center justify-between">
-                <SectionHeader icon={TrendingUp} title="Advanced Preferences" />
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8">
-                  <Edit className="h-3 w-3" />
-                  Edit
-                </Button>
-              </CardHeader>
-              <CardContent>
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <TrendingUp className="h-4 w-4 text-gray-400" />
+                  Advanced Preferences
+                </h3>
+              </div>
+              <div className="px-6 py-5">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
                   <div className="flex items-center justify-between py-2 border-b border-gray-100">
                     <div>
@@ -1216,8 +1419,8 @@ export default function FieldServiceStaffDetails() {
                     <span className="text-sm font-medium text-gray-700">{mockAdvancedPreferences.breakPreference}</span>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* ══════════════════════════════════════════════════════════════════
@@ -1254,11 +1457,14 @@ export default function FieldServiceStaffDetails() {
             })()}
 
             {/* Documents & Certifications Table */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="pb-4">
-                <SectionHeader icon={FileText} title="Documents & Certifications" />
-              </CardHeader>
-              <CardContent>
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <FileText className="h-4 w-4 text-gray-400" />
+                  Documents & Certifications
+                </h3>
+              </div>
+              <div>
                 {activeDocuments.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -1325,8 +1531,8 @@ export default function FieldServiceStaffDetails() {
                     }
                   />
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* ══════════════════════════════════════════════════════════════════
@@ -1371,57 +1577,48 @@ export default function FieldServiceStaffDetails() {
               const key = `${compMonth.year}-${String(compMonth.month + 1).padStart(2, "0")}`;
               const data = mockMonthlyCompensation[key] || { base: "0", commission: "0", tips: "0", total: "0" };
               return (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <Card className="shadow-sm border-gray-200">
-                    <CardContent className="p-4">
-                      <DataField label="Base Salary" value={
-                        <span className="text-lg font-bold text-gray-900">{data.base} QAR</span>
-                      } />
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm border-gray-200">
-                    <CardContent className="p-4">
-                      <DataField label="Commission" value={
-                        <span className="text-lg font-bold text-gray-900">{data.commission} QAR</span>
-                      } />
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm border-gray-200">
-                    <CardContent className="p-4">
-                      <DataField label="Tips" value={
-                        <span className="text-lg font-bold text-gray-900">{data.tips} QAR</span>
-                      } />
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm border-gray-200">
-                    <CardContent className="p-4">
-                      <DataField label="Total Earnings" value={
-                        <span className="text-lg font-bold text-gray-900">{data.total} QAR</span>
-                      } />
-                    </CardContent>
-                  </Card>
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
+                    {[
+                      { label: "Base Salary", value: `${data.base} QAR`, color: "text-gray-900" },
+                      { label: "Commission", value: `${data.commission} QAR`, color: "text-blue-600" },
+                      { label: "Tips", value: `${data.tips} QAR`, color: "text-green-600" },
+                      { label: "Total Earnings", value: `${data.total} QAR`, color: "text-gray-900" },
+                    ].map((stat, i) => (
+                      <div key={i} className="px-5 py-4 hover:bg-gray-50/50 transition-colors">
+                        <span className="text-[11px] font-bold text-gray-400 uppercase tracking-widest block mb-1.5">{stat.label}</span>
+                        <span className={`text-xl font-bold leading-none tracking-tight ${stat.color}`}>{stat.value}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               );
             })()}
 
             {/* Employment Terms */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="pb-4">
-                <SectionHeader icon={Briefcase} title="Employment Terms" />
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <Briefcase className="h-4 w-4 text-gray-400" />
+                  Employment Terms
+                </h3>
+              </div>
+              <div className="px-6 py-5 grid grid-cols-1 md:grid-cols-3 gap-5">
                 <DataField label="Salary Type" value={staff.salaryType === "fixed-monthly" ? "Fixed Monthly" : staff.salaryType || "Not set"} />
                 <DataField label="Contract Type" value={staff.contractType || "Not set"} />
                 <DataField label="Employment Type" value={staff.employmentType || "Not set"} />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Payout History */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="pb-4">
-                <SectionHeader icon={Banknote} title="Payout History" />
-              </CardHeader>
-              <CardContent>
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <Banknote className="h-4 w-4 text-gray-400" />
+                  Payout History
+                </h3>
+              </div>
+              <div>
                 {mockPayouts.length > 0 ? (
                 <Table>
                   <TableHeader>
@@ -1464,8 +1661,8 @@ export default function FieldServiceStaffDetails() {
                     description="Payout history will appear here once payroll has been processed."
                   />
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* ══════════════════════════════════════════════════════════════════
@@ -1473,19 +1670,22 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="activity" className="mt-0 space-y-6">
             {/* ── Operational Timeline (Top 10) ────────────────────────────────────── */}
-            <Card className="shadow-sm border-gray-200">
-              <CardHeader className="py-4 flex flex-row items-center justify-between">
-                <SectionHeader icon={Activity} title="Operational Timeline" />
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                  <Activity className="h-4 w-4 text-gray-400" />
+                  Operational Timeline
+                </h3>
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="gap-1.5 text-xs h-8 text-gray-600 border-gray-200 hover:text-gray-900 bg-white shadow-sm"
+                  className="gap-1.5 text-xs h-8 text-gray-600 border-gray-200 hover:text-gray-900 bg-white shadow-sm rounded-lg font-bold"
                   onClick={() => document.getElementById("full-activity-log")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 >
                   View Full Activity Log
                 </Button>
-              </CardHeader>
-              <CardContent>
+              </div>
+              <div className="px-6 py-5">
                 <div className="relative border-l-2 border-gray-100 ml-3 pl-6 space-y-6 pb-2 pt-2">
                   {mockActivityLog.slice(0, 10).map((log) => {
                     const d = new Date(log.date);
@@ -1530,8 +1730,8 @@ export default function FieldServiceStaffDetails() {
                     );
                   })}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* ── Filter Bar ─────────────────────────────────────────────── */}
             <div id="full-activity-log" className="flex flex-wrap items-center gap-3 pt-2">
@@ -1608,14 +1808,17 @@ export default function FieldServiceStaffDetails() {
               const paged = filtered.slice((safePage - 1) * ACTIVITY_PER_PAGE, safePage * ACTIVITY_PER_PAGE);
 
               return (
-                <Card className="shadow-sm border-gray-200">
-                  <CardHeader className="py-4 flex flex-row items-center justify-between">
-                    <SectionHeader icon={Activity} title="Activity Log" />
-                    <Badge className="text-xs font-medium bg-gray-100 text-gray-600 hover:bg-gray-100 border-0">
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                    <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
+                      <Activity className="h-4 w-4 text-gray-400" />
+                      Activity Log
+                    </h3>
+                    <Badge className="text-[10px] font-bold bg-gray-100 text-gray-600 hover:bg-gray-100 border-0 shadow-none px-2 py-0.5">
                       {filtered.length} {filtered.length === 1 ? "Entry" : "Entries"}
                     </Badge>
-                  </CardHeader>
-                  <CardContent>
+                  </div>
+                  <div>
                     {filtered.length > 0 ? (
                       <>
                         <Table>
@@ -1711,137 +1914,12 @@ export default function FieldServiceStaffDetails() {
                         }
                       />
                     )}
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })()}
 
           </TabsContent>
-            </div>
-
-            {/* ── 3. RIGHT PROFILE PANEL ── */}
-            <div className="w-full xl:w-80 shrink-0 xl:sticky xl:top-6 flex flex-col gap-6 mt-8 xl:mt-0">
-              {(() => {
-                let dispatchStatus = "Available";
-                let dispatchColor = "bg-green-100 text-green-700";
-                if (staff.employmentStatus === "On Leave") {
-                  dispatchStatus = "On Leave";
-                  dispatchColor = "bg-amber-100 text-amber-700";
-                } else if (staff.employmentStatus !== "Active") {
-                  dispatchStatus = "Off Duty";
-                  dispatchColor = "bg-gray-100 text-gray-600";
-                } else if (workStatusData.status === "On Job") {
-                  dispatchStatus = "On Job";
-                  dispatchColor = "bg-blue-100 text-blue-700";
-                }
-                
-                return (
-                  <div className="bg-white border border-gray-200 rounded-2xl shadow-sm flex flex-col overflow-hidden">
-                    <div className="p-6 flex flex-col items-center text-center border-b border-gray-100">
-                      <Avatar className="h-24 w-24 shadow-sm border-[3px] border-white ring-1 ring-gray-100 rounded-2xl mb-4">
-                        <AvatarImage src={staff.avatar} className="object-cover" />
-                        <AvatarFallback className="text-2xl font-bold bg-primary/10 text-primary rounded-2xl">
-                          {staff.name.substring(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <h1 className="text-[20px] leading-tight font-bold text-gray-900 flex items-center gap-2 justify-center tracking-tight mb-2">
-                        {staff.name}
-                        {staff.verified && <CheckCircle className="h-5 w-5 text-blue-500 fill-blue-50 shrink-0" />}
-                      </h1>
-                      <span className="font-bold text-gray-600 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded text-[11px] tracking-wider uppercase mb-5">
-                        {staff.staffId || staff.id.toString().padStart(4, "0")}
-                      </span>
-                      
-                      <div className="flex flex-col gap-2.5 w-full px-2">
-                        <div className="flex items-center gap-3 text-[13px] text-gray-600 transition-colors">
-                          <Phone className="h-4 w-4 text-gray-400 shrink-0" />
-                          <span className="font-medium truncate">{staff.phone}</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-[13px] text-gray-600 transition-colors">
-                          <Mail className="h-4 w-4 text-gray-400 shrink-0" />
-                          <span className="font-medium truncate">{staff.email}</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="p-5 flex flex-col gap-4 bg-gray-50/50">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Status</span>
-                        {staff.employmentStatus === "Active" ? (
-                          <Badge className="bg-gray-200 text-gray-800 hover:bg-gray-200 border-0 shadow-none px-2 py-0.5 rounded font-bold justify-center text-[10px]">ACTIVE</Badge>
-                        ) : (
-                          <Badge className="bg-red-100 text-red-700 hover:bg-red-100 border-0 shadow-none px-2 py-0.5 rounded font-bold justify-center text-[10px] uppercase">{staff.employmentStatus}</Badge>
-                        )}
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Dispatch</span>
-                        <Badge className={`${dispatchColor} border-0 shadow-none px-2 py-0.5 rounded font-bold justify-center text-[10px] uppercase hover:opacity-80`}>
-                          {dispatchStatus}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Rating</span>
-                        <div className="flex items-center gap-1.5 text-[13px] font-bold text-gray-900">
-                          <Star className="h-3.5 w-3.5 fill-amber-500 text-amber-500" />
-                          {staff.rating}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {dispatchStatus === "On Job" && (
-                      <div className="p-5 bg-blue-50/50 border-t border-blue-100">
-                        <span className="text-[11px] uppercase tracking-wider font-bold text-blue-700 mb-1.5 block">Current Assignment</span>
-                        <div className="text-sm">
-                          <span className="font-bold text-blue-700 hover:underline cursor-pointer">Booking #2845</span>
-                          <div className="text-gray-900 font-semibold text-[13px] mt-0.5">Home Cleaning</div>
-                          <div className="text-blue-600/80 text-xs mt-1 flex items-center gap-1 font-medium">
-                            <Clock className="h-3 w-3" /> 08:00 – 11:00
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="p-4 grid grid-cols-3 gap-2 border-t border-gray-100 bg-white">
-                      <Button variant="outline" size="sm" className="w-full flex-col h-auto py-2.5 gap-1.5 px-1 bg-gray-50 hover:bg-gray-100 border-gray-200 shadow-sm">
-                        <Briefcase className="h-4 w-4 text-gray-600" /> 
-                        <span className="text-[10px] font-bold text-gray-600">Assign</span>
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full flex-col h-auto py-2.5 gap-1.5 px-1 bg-gray-50 hover:bg-gray-100 border-gray-200 shadow-sm">
-                        <Phone className="h-4 w-4 text-gray-600" /> 
-                        <span className="text-[10px] font-bold text-gray-600">Call</span>
-                      </Button>
-                      <Button variant="outline" size="sm" className="w-full flex-col h-auto py-2.5 gap-1.5 px-1 bg-gray-50 hover:bg-gray-100 border-gray-200 shadow-sm">
-                        <Mail className="h-4 w-4 text-gray-600" /> 
-                        <span className="text-[10px] font-bold text-gray-600">Message</span>
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })()}
-
-              {/* KPIs Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { label: "Jobs", value: staff.jobsCompleted.toString(), icon: BarChart3 },
-                  { label: "Today", value: mockBookings.filter((b) => b.date === "2025-12-23").length.toString(), icon: CalendarCheck },
-                  { label: "Upcoming", value: mockBookings.filter((b) => b.status === "Scheduled").length.toString(), icon: CalendarDays },
-                  { label: "Complete", value: "98%", icon: CheckCircle },
-                  { label: "On-Time", value: "96%", icon: Clock },
-                  { label: "Rating", value: staff.rating.toString(), icon: Star },
-                ].map((stat, i) => (
-                  <div key={i} className="px-4 py-5 flex flex-col items-center justify-center text-center gap-2 bg-white border border-gray-200 rounded-2xl shadow-sm">
-                    <div className="h-8 w-8 rounded-full bg-gray-50 border border-gray-100 text-gray-600 flex items-center justify-center shrink-0 mb-1">
-                      <stat.icon className="h-4 w-4" />
-                    </div>
-                    <span className="text-2xl font-bold text-gray-900 leading-none tracking-tight">
-                      {stat.value}
-                    </span>
-                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider leading-tight">
-                      {stat.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
             </div>
 
           </div>
@@ -1850,63 +1928,54 @@ export default function FieldServiceStaffDetails() {
 
       {/* ─── STATUS CHANGE CONFIRMATION DIALOG ──────────────────────────── */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-amber-600">
-              <AlertTriangle className="h-5 w-5" />
-              Change Employment Status
-            </DialogTitle>
-            <DialogDescription>
-              You are changing the staff status to{" "}
-              <strong>{pendingEmploymentStatus}</strong>. This will prevent them
-              from being assigned to new jobs.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="max-w-md p-6 gap-0 rounded-2xl border-0 shadow-2xl">
+          <div className="flex items-start gap-3 mb-3">
+            <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+            <div className="space-y-1.5">
+              <h2 className="text-lg font-bold text-gray-900 leading-none">Change Employment Status</h2>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                You are changing the staff status to <strong className="text-gray-900 font-bold">{pendingEmploymentStatus}</strong>. This will prevent them from being assigned to new jobs.
+              </p>
+            </div>
+          </div>
 
-          <div className="space-y-4 py-4">
-            {/* Impact Warning */}
-            <div className="bg-amber-50 border border-amber-200 rounded-md p-3 space-y-2">
-              <h4 className="font-semibold text-amber-800 text-sm flex items-center gap-2">
-                <Info className="h-4 w-4" /> Impact on Current Operations
+          <div className="pl-8 mb-6">
+            {/* Impact Warning Block */}
+            <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 space-y-3">
+              <h4 className="font-bold text-amber-800 text-[13px] flex items-center gap-2 tracking-wide">
+                <Info className="h-4 w-4" /> Impact on Current Operation
               </h4>
-              <div className="text-sm text-gray-700 space-y-1">
-                {impactAnalysis.inProgress.length > 0 && (
-                  <div className="flex items-center justify-between text-red-700 font-medium">
-                    <span>In-Progress Jobs:</span>
-                    <span>{impactAnalysis.inProgress.length}</span>
-                  </div>
-                )}
-                {impactAnalysis.scheduled.length > 0 && (
-                  <div className="flex items-center justify-between">
-                    <span>Scheduled Future Jobs:</span>
-                    <span>{impactAnalysis.scheduled.length}</span>
-                  </div>
-                )}
-                {impactAnalysis.totalImpact === 0 && (
-                  <div className="text-green-600">
-                    No active or scheduled jobs will be affected.
-                  </div>
-                )}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="font-bold text-red-700 tracking-wide">In-Progress Jobs:</span>
+                  <span className="font-bold text-gray-900">{impactAnalysis.inProgress.length}</span>
+                </div>
+                <div className="flex items-center justify-between text-[13px]">
+                  <span className="text-gray-700 tracking-wide">Scheduled Future Jobs:</span>
+                  <span className="font-medium text-gray-900">{impactAnalysis.scheduled.length}</span>
+                </div>
               </div>
             </div>
 
             {/* On Leave Specific Inputs */}
             {pendingEmploymentStatus === "On Leave" && (
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-xs">Start Date</Label>
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-700">Start Date</Label>
                   <Input
                     type="date"
+                    className="h-9 rounded-lg"
                     value={leaveDates.start}
                     onChange={e =>
                       setLeaveDates({ ...leaveDates, start: e.target.value })
                     }
                   />
                 </div>
-                <div className="space-y-1">
-                  <Label className="text-xs">End Date (Optional)</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-gray-700">End Date (Optional)</Label>
                   <Input
                     type="date"
+                    className="h-9 rounded-lg"
                     value={leaveDates.end}
                     onChange={e =>
                       setLeaveDates({ ...leaveDates, end: e.target.value })
@@ -1917,24 +1986,21 @@ export default function FieldServiceStaffDetails() {
             )}
           </div>
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
+          <div className="flex items-center justify-end gap-3 pt-2">
             <Button
               variant="outline"
+              className="px-5 rounded-lg border-gray-200 text-gray-700 font-semibold shadow-sm hover:bg-gray-50"
               onClick={() => setStatusDialogOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              variant={
-                impactAnalysis.inProgress.length > 0 ? "destructive" : "default"
-              }
+              className="px-5 rounded-lg font-bold shadow-sm bg-[#dc2626] hover:bg-[#b91c1c] text-white border-0"
               onClick={confirmStatusChange}
             >
-              {impactAnalysis.totalImpact > 0
-                ? `Unassign Jobs & set ${pendingEmploymentStatus}`
-                : `Confirm ${pendingEmploymentStatus}`}
+              Unassign Jobs & set {pendingEmploymentStatus}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </DashboardLayout>
