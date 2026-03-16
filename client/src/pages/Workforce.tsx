@@ -113,12 +113,12 @@ const SAMPLE_STAFF: StaffMember[] = [
   {
     id: "1",
     staffId: "WB1",
-    name: "NISAR KORAMMAN KANDY MOIDEEN",
-    role: "Cleaner",
+    name: "Naomi Khisa",
+    role: "Senior Maid",
     roleType: "Field Service",
-    email: "nisar@workbook.com",
+    email: "naomi@workbook.com",
     phone: "+97488997788",
-    location: "India",
+    location: "Kenya",
     status: "available",
     employmentStatus: "Active",
     membershipStatus: "active",
@@ -132,8 +132,8 @@ const SAMPLE_STAFF: StaffMember[] = [
     jobsCompleted: 156,
     skills: [
       "Deep Cleaning",
-      "AC Cleaning",
-      "Carpet Cleaning",
+      "Laundry & Ironing",
+      "Kitchen Sanitization",
       "Window Cleaning",
     ],
   },
@@ -268,18 +268,26 @@ export default function Workforce() {
     if (stored) {
       let parsedStaff = JSON.parse(stored);
       // Migration: Ensure membershipStatus exists
-      parsedStaff = parsedStaff.map((s: any) => ({
-        ...s,
-        membershipStatus: s.membershipStatus || "active", // Default legacy to active
-        employmentStatus: s.employmentStatus || "Active",
-        roleType:
-          s.roleType === "field"
-            ? "Field Service"
-            : s.roleType === "office"
-              ? "Internal Staff"
-              : s.roleType,
-      }));
+      parsedStaff = parsedStaff.map((s: any) => {
+        // Sync core profile fields from SAMPLE_STAFF defaults
+        const sampleMatch = SAMPLE_STAFF.find(ss => ss.id === s.id);
+        const synced = sampleMatch
+          ? { ...s, name: sampleMatch.name, role: sampleMatch.role, avatar: sampleMatch.avatar, avatarColor: sampleMatch.avatarColor, skills: sampleMatch.skills }
+          : s;
+        return {
+          ...synced,
+          membershipStatus: synced.membershipStatus || "active", // Default legacy to active
+          employmentStatus: synced.employmentStatus || "Active",
+          roleType:
+            synced.roleType === "field"
+              ? "Field Service"
+              : synced.roleType === "office"
+                ? "Internal Staff"
+                : synced.roleType,
+        };
+      });
       setStaff(parsedStaff);
+      localStorage.setItem("vendor_staff", JSON.stringify(parsedStaff));
     } else {
       setStaff(SAMPLE_STAFF);
       localStorage.setItem("vendor_staff", JSON.stringify(SAMPLE_STAFF));

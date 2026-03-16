@@ -89,7 +89,7 @@ const mockBookings = [
     duration: "1 hour",
     date: "2025-11-21",
     time: "09:00 AM",
-    staff: ["NISAR KORAMMAN", "Ahmed Ali"],
+    staff: ["Naomi Khisa", "Ahmed Ali"],
     price: 250,
     status: "completed",
     paymentStatus: "paid",
@@ -104,7 +104,7 @@ const mockBookings = [
       {
         date: "2025-11-21 11:00",
         action: "Service completed",
-        user: "NISAR KORAMMAN",
+        user: "Naomi Khisa",
       },
       { date: "2025-11-21 11:05", action: "Payment received", user: "System" },
     ],

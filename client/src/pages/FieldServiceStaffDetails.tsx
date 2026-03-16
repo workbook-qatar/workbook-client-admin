@@ -57,6 +57,13 @@ import {
   X,
   Repeat,
   GripVertical,
+  Settings2,
+  Coffee,
+  Moon,
+  Sun,
+  SlidersHorizontal,
+  CalendarOff,
+  Edit3,
 } from "lucide-react";
 import {
   Select,
@@ -119,28 +126,28 @@ type MembershipStatus =
 const mockStaffData = {
   id: 1,
   staffId: "WB-001",
-  name: "Mohammed Hassan",
-  nickname: "Nisar",
-  role: "Senior Technician",
+  name: "Naomi Khisa",
+  nickname: "Naomi",
+  role: "Senior Maid",
   employmentStatus: "Active" as EmploymentStatus,
   rating: 4.9,
-  avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Mohammed",
+  avatar: "/naomi-khisa-avatar.png",
   verified: true,
   qid: "28535638494",
   dob: "1990-05-15",
-  nationality: "India",
-  gender: "Male",
-  religion: "Islam",
+  nationality: "Kenya",
+  gender: "Female",
+  religion: "Christian",
   maritalStatus: "Single",
   phone: "+974 5555 1111",
-  email: "mohammed.hassan@workbook.com",
+  email: "naomi@workbook.com",
   address: "Building 45, Street 230, Zone 55",
   city: "Doha",
   area: "Al Sadd",
-  emergencyContact: "Fatima Hassan",
+  emergencyContact: "Grace Wanjiku",
   emergencyPhone: "+974 5555 5678",
-  emergencyRelation: "Spouse",
-  position: "Senior Technician",
+  emergencyRelation: "Sister",
+  position: "Senior Maid",
   department: "Operations",
   employmentType: "Full Time",
   contractType: "Permanent",
@@ -155,8 +162,8 @@ const mockStaffData = {
   hourlyRate: "",
   fixedMonthlySalary: "",
   commissionPercent: "",
-  languages: ["English", "Hindi", "Arabic"],
-  skills: ["Deep Cleaning", "AC Maintenance", "Electrical Repair"],
+  languages: ["English", "Swahili", "Arabic"],
+  skills: ["Deep Cleaning", "Laundry & Ironing", "Kitchen Sanitization", "Floor Polishing", "Window Cleaning"],
   jobsCompleted: 156,
   earnings: "5890 QAR",
   hours: "42.5h/week",
@@ -165,26 +172,26 @@ const mockStaffData = {
 };
 
 const mockBookings = [
-  { id: "BK-2025-001", customer: "Aldar Properties", service: "AC Maintenance", date: "2025-12-19", time: "09:00 AM - 11:00 AM", status: "Completed", location: "West Bay, Doha" },
-  { id: "BK-2025-002", customer: "Fatima Al-Thani", service: "Deep Cleaning", date: "2025-12-19", time: "02:00 PM - 04:00 PM", status: "Completed", location: "The Pearl, Doha" },
-  { id: "BK-2025-003", customer: "Qatar Foundation", service: "Electrical Repair", date: "2025-12-20", time: "08:00 AM - 10:00 AM", status: "Completed", location: "Education City" },
-  { id: "BK-2025-004", customer: "QNB Branch", service: "Plumbing", date: "2025-12-20", time: "11:00 AM - 01:00 PM", status: "Completed", location: "Lusail, Doha" },
-  { id: "BK-2025-005", customer: "Sidra Medicine", service: "Pest Control", date: "2025-12-21", time: "09:00 AM - 11:00 AM", status: "Completed", location: "Al Sadd, Doha" },
-  { id: "BK-2025-006", customer: "Doha Bank", service: "AC Maintenance", date: "2025-12-21", time: "01:00 PM - 03:00 PM", status: "Completed", location: "West Bay, Doha" },
+  { id: "BK-2025-001", customer: "Aldar Properties", service: "Deep Cleaning", date: "2025-12-19", time: "09:00 AM - 11:00 AM", status: "Completed", location: "West Bay, Doha" },
+  { id: "BK-2025-002", customer: "Fatima Al-Thani", service: "Laundry & Ironing", date: "2025-12-19", time: "02:00 PM - 04:00 PM", status: "Completed", location: "The Pearl, Doha" },
+  { id: "BK-2025-003", customer: "Qatar Foundation", service: "Floor Polishing", date: "2025-12-20", time: "08:00 AM - 10:00 AM", status: "Completed", location: "Education City" },
+  { id: "BK-2025-004", customer: "QNB Branch", service: "Kitchen Sanitization", date: "2025-12-20", time: "11:00 AM - 01:00 PM", status: "Completed", location: "Lusail, Doha" },
+  { id: "BK-2025-005", customer: "Sidra Medicine", service: "Window Cleaning", date: "2025-12-21", time: "09:00 AM - 11:00 AM", status: "Completed", location: "Al Sadd, Doha" },
+  { id: "BK-2025-006", customer: "Doha Bank", service: "Deep Cleaning", date: "2025-12-21", time: "01:00 PM - 03:00 PM", status: "Completed", location: "West Bay, Doha" },
   { id: "BK-2025-007", customer: "Lusail Stadium", service: "Deep Cleaning", date: "2025-12-22", time: "10:00 AM - 02:00 PM", status: "Completed", location: "Lusail, Doha" },
-  { id: "BK-2025-008", customer: "Aldar Properties", service: "AC Maintenance", date: "2025-12-23", time: "09:00 AM - 11:00 AM", status: "Completed", location: "West Bay, Doha" },
-  { id: "BK-2025-009", customer: "Katara Hospitality", service: "Electrical Repair", date: "2025-12-23", time: "01:00 PM - 03:00 PM", status: "In Progress", location: "Katara, Doha" },
-  { id: "BK-2025-010", customer: "Fatima Al-Thani", service: "Plumbing", date: "2025-12-23", time: "04:00 PM - 05:30 PM", status: "Scheduled", location: "The Pearl, Doha" },
-  { id: "BK-2025-011", customer: "Qatar Foundation", service: "AC Maintenance", date: "2025-12-24", time: "09:00 AM - 11:00 AM", status: "Scheduled", location: "Education City" },
-  { id: "BK-2025-012", customer: "QNB Branch", service: "Deep Cleaning", date: "2025-12-24", time: "01:00 PM - 04:00 PM", status: "Scheduled", location: "Lusail, Doha" },
-  { id: "BK-2025-013", customer: "Sidra Medicine", service: "Electrical Repair", date: "2025-12-25", time: "10:00 AM - 01:00 PM", status: "Scheduled", location: "Al Sadd, Doha" },
-  { id: "BK-2025-014", customer: "Katara Hospitality", service: "Plumbing", date: "2025-12-26", time: "09:00 AM - 11:00 AM", status: "Scheduled", location: "Katara, Doha" },
-  { id: "BK-2025-015", customer: "Lusail Stadium", service: "Pest Control", date: "2025-12-26", time: "02:00 PM - 04:00 PM", status: "Scheduled", location: "Lusail, Doha" },
-  { id: "BK-2025-016", customer: "Aldar Properties", service: "AC Maintenance", date: "2025-12-27", time: "08:00 AM - 10:00 AM", status: "Scheduled", location: "West Bay, Doha" },
+  { id: "BK-2025-008", customer: "Aldar Properties", service: "Laundry & Ironing", date: "2025-12-23", time: "09:00 AM - 11:00 AM", status: "Completed", location: "West Bay, Doha" },
+  { id: "BK-2025-009", customer: "Katara Hospitality", service: "Kitchen Sanitization", date: "2025-12-23", time: "01:00 PM - 03:00 PM", status: "In Progress", location: "Katara, Doha" },
+  { id: "BK-2025-010", customer: "Fatima Al-Thani", service: "Floor Polishing", date: "2025-12-23", time: "04:00 PM - 05:30 PM", status: "Scheduled", location: "The Pearl, Doha" },
+  { id: "BK-2025-011", customer: "Qatar Foundation", service: "Deep Cleaning", date: "2025-12-24", time: "09:00 AM - 11:00 AM", status: "Scheduled", location: "Education City" },
+  { id: "BK-2025-012", customer: "QNB Branch", service: "Laundry & Ironing", date: "2025-12-24", time: "01:00 PM - 04:00 PM", status: "Scheduled", location: "Lusail, Doha" },
+  { id: "BK-2025-013", customer: "Sidra Medicine", service: "Window Cleaning", date: "2025-12-25", time: "10:00 AM - 01:00 PM", status: "Scheduled", location: "Al Sadd, Doha" },
+  { id: "BK-2025-014", customer: "Katara Hospitality", service: "Deep Cleaning", date: "2025-12-26", time: "09:00 AM - 11:00 AM", status: "Scheduled", location: "Katara, Doha" },
+  { id: "BK-2025-015", customer: "Lusail Stadium", service: "Kitchen Sanitization", date: "2025-12-26", time: "02:00 PM - 04:00 PM", status: "Scheduled", location: "Lusail, Doha" },
+  { id: "BK-2025-016", customer: "Aldar Properties", service: "Floor Polishing", date: "2025-12-27", time: "08:00 AM - 10:00 AM", status: "Scheduled", location: "West Bay, Doha" },
   { id: "BK-2025-017", customer: "Doha Bank", service: "Deep Cleaning", date: "2025-12-27", time: "11:00 AM - 01:00 PM", status: "Scheduled", location: "West Bay, Doha" },
-  { id: "BK-2025-018", customer: "Qatar Foundation", service: "Plumbing", date: "2025-12-28", time: "09:00 AM - 11:00 AM", status: "Scheduled", location: "Education City" },
-  { id: "BK-2025-019", customer: "Fatima Al-Thani", service: "General Maintenance", date: "2025-12-29", time: "10:00 AM - 01:00 PM", status: "Scheduled", location: "The Pearl, Doha" },
-  { id: "BK-2025-020", customer: "QNB Branch", service: "AC Maintenance", date: "2025-12-30", time: "02:00 PM - 04:00 PM", status: "Scheduled", location: "Lusail, Doha" },
+  { id: "BK-2025-018", customer: "Qatar Foundation", service: "Laundry & Ironing", date: "2025-12-28", time: "09:00 AM - 11:00 AM", status: "Scheduled", location: "Education City" },
+  { id: "BK-2025-019", customer: "Fatima Al-Thani", service: "Deep Cleaning", date: "2025-12-29", time: "10:00 AM - 01:00 PM", status: "Scheduled", location: "The Pearl, Doha" },
+  { id: "BK-2025-020", customer: "QNB Branch", service: "Window Cleaning", date: "2025-12-30", time: "02:00 PM - 04:00 PM", status: "Scheduled", location: "Lusail, Doha" },
   { id: "BK-2025-021", customer: "Sidra Medicine", service: "Deep Cleaning", date: "2025-12-31", time: "09:00 AM - 12:00 PM", status: "Scheduled", location: "Al Sadd, Doha" },
 ];
 
@@ -218,21 +225,21 @@ const mockDocuments = [
   },
   {
     id: 4,
-    name: "AC Maintenance Certification",
+    name: "Housekeeping Certification",
     type: "Certification",
     expiry: "2026-03-15",
     status: "Valid",
     uploadDate: "2024-03-15",
-    docNumber: "CERT-AC-0045",
+    docNumber: "CERT-HK-0045",
   },
   {
     id: 5,
-    name: "Electrical Safety Training",
+    name: "Chemical Safety Training",
     type: "Training",
     expiry: "2024-11-01",
     status: "Expired",
     uploadDate: "2023-11-01",
-    docNumber: "TRN-ES-0112",
+    docNumber: "TRN-CS-0112",
   },
 ];
 
@@ -296,7 +303,7 @@ const mockActivityLog: ActivityEntry[] = [
   { id: 6,  date: "2026-03-08 15:10", event: "Compensation Updated", category: "compensation", actor: "HR",       details: "Commission rate adjusted to 12% for March" },
   { id: 7,  date: "2026-03-07 09:45", event: "Document Expired",     category: "compliance",   actor: "System",   details: "Medical Certificate expired on 2026-03-07" },
   { id: 8,  date: "2026-03-06 13:00", event: "Schedule Cancelled",   category: "schedule",     actor: "Dispatch", details: "Removed from BK-2026-035 — customer rescheduled" },
-  { id: 9,  date: "2026-03-05 10:20", event: "Profile Updated",       category: "profile",      actor: "Admin",    details: "Display name updated to Nisar" },
+  { id: 9,  date: "2026-03-05 10:20", event: "Profile Updated",       category: "profile",      actor: "Admin",    details: "Display name updated to Naomi" },
   { id: 10, date: "2026-03-04 17:30", event: "System Auto Update",   category: "system",       actor: "System",   details: "Work status changed to Available based on schedule" },
   { id: 11, date: "2026-03-03 08:00", event: "Schedule Assigned",     category: "schedule",     actor: "Dispatch", details: "Assigned to BK-2026-029 — Plumbing Repair at Lusail" },
   { id: 12, date: "2026-03-02 14:15", event: "Compensation Updated", category: "compensation", actor: "HR",       details: "Overtime bonus of 150 QAR approved for February" },
@@ -461,7 +468,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-14 px-4 border border-dashed border-gray-200 rounded-sm bg-gray-50/50">
+    <div className="flex flex-col items-center justify-center py-14 px-4 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
       <div className="h-12 w-12 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-4">
         <Icon className="h-5 w-5 text-gray-400" />
       </div>
@@ -613,6 +620,16 @@ export default function FieldServiceStaffDetails() {
           const merged = {
             ...mockStaffData,
             ...found,
+            // Core identity fields always come from mockStaffData (source of truth)
+            name: mockStaffData.name,
+            nickname: mockStaffData.nickname,
+            role: mockStaffData.role,
+            position: mockStaffData.position,
+            avatar: mockStaffData.avatar,
+            skills: mockStaffData.skills,
+            languages: mockStaffData.languages,
+            email: mockStaffData.email,
+            phone: mockStaffData.phone,
             employmentStatus: found.employmentStatus || "Active",
           };
           if (!merged.membershipStatus) merged.membershipStatus = "active";
@@ -750,14 +767,14 @@ export default function FieldServiceStaffDetails() {
           }
 
           return (
-            <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               {/* Top Row: Identity + Status + Actions */}
               <div className="px-6 py-5 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
                 {/* Left: Avatar + Name + Meta */}
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Avatar className="h-14 w-14 shadow-sm border-2 border-white ring-2 ring-gray-100 rounded-sm shrink-0">
+                  <Avatar className="h-14 w-14 shadow-sm border-2 border-white ring-2 ring-gray-100 rounded-xl shrink-0">
                     <AvatarImage src={staff.avatar} className="object-cover" />
-                    <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary rounded-sm">
+                    <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary rounded-xl">
                       {staff.name.substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
@@ -769,9 +786,6 @@ export default function FieldServiceStaffDetails() {
                       {staff.verified && <CheckCircle className="h-4 w-4 text-blue-500 fill-blue-50 shrink-0" />}
                     </div>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
-                      <span className="font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded text-[10px] tracking-wider uppercase">
-                        {staff.staffId || staff.id.toString().padStart(4, "0")}
-                      </span>
                       <span className="font-medium flex items-center gap-1">
                         <Phone className="h-3 w-3 text-gray-400" />
                         {staff.phone}
@@ -787,10 +801,10 @@ export default function FieldServiceStaffDetails() {
                 {/* Right: Actions & Status */}
                 <div className="flex items-center shrink-0 gap-5">
                   <div 
-                    className="flex items-center gap-2.5 cursor-pointer group hover:bg-gray-50 px-2.5 py-1.5 -mx-1 rounded transition-colors"
+                    className="flex items-center gap-2.5 cursor-pointer group hover:bg-gray-50 px-2.5 py-1.5 -mx-1 rounded-lg transition-colors"
                     onClick={() => setLocation(`/workforce/pending/${staff.staffId || staff.id}`)}
                   >
-                    <div className="h-8 w-8 rounded bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
+                    <div className="h-8 w-8 rounded-lg bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
                       <Edit className="h-3.5 w-3.5 text-gray-500 group-hover:text-blue-600 transition-colors" />
                     </div>
                     <div className="flex flex-col justify-center">
@@ -817,7 +831,7 @@ export default function FieldServiceStaffDetails() {
                   <div className="relative z-10">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <div className="flex items-center justify-between cursor-pointer group hover:bg-gray-50 px-2 py-1 -mx-2 rounded transition-colors">
+                        <div className="flex items-center justify-between cursor-pointer group hover:bg-gray-50 px-2 py-1 -mx-2 rounded-lg transition-colors">
                           <div className="flex flex-col justify-center pt-0.5">
                             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5 min-w-[100px]">Employment</span>
                             <div className="flex items-center gap-1.5">
@@ -834,17 +848,17 @@ export default function FieldServiceStaffDetails() {
                           <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors ml-4 shrink-0" />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[140px] rounded-sm p-1 shadow-md border-gray-200">
-                        <DropdownMenuItem className="flex items-center justify-between text-[13px] font-bold text-gray-700 hover:text-green-700 hover:bg-green-50 rounded cursor-pointer" onClick={() => initiateStatusChange("Active")}>
+                      <DropdownMenuContent align="end" className="w-[140px] rounded-xl p-1 shadow-md border-gray-200">
+                        <DropdownMenuItem className="flex items-center justify-between text-[13px] font-bold text-gray-700 hover:text-green-700 hover:bg-green-50 rounded-lg cursor-pointer" onClick={() => initiateStatusChange("Active")}>
                           Active {staff.employmentStatus === "Active" && <Check className="h-4 w-4 text-green-600 opacity-80" />}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded cursor-pointer mt-0.5" onClick={() => initiateStatusChange("On Leave")}>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("On Leave")}>
                           On Leave {staff.employmentStatus === "On Leave" && <Check className="h-4 w-4 text-amber-600 opacity-80" />}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-red-600 hover:bg-red-50 rounded cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Suspended")}>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Suspended")}>
                           Suspended {staff.employmentStatus === "Suspended" && <Check className="h-4 w-4 text-red-600 opacity-80" />}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Inactive")}>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Inactive")}>
                           Inactive {staff.employmentStatus === "Inactive" && <Check className="h-4 w-4 text-gray-500 opacity-80" />}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -855,28 +869,63 @@ export default function FieldServiceStaffDetails() {
                 </div>
               </div>
 
-              {/* Bottom Row: KPI Strip */}
-              <div className="grid grid-cols-3 lg:grid-cols-6 border-t border-gray-100">
-                {[
-                  { label: "Jobs Completed", value: staff.jobsCompleted.toString(), icon: BarChart3, color: "text-blue-500" },
-                  { label: "Today's Jobs", value: mockBookings.filter((b) => b.date === "2025-12-23").length.toString(), icon: CalendarCheck, color: "text-emerald-500" },
-                  { label: "Upcoming", value: mockBookings.filter((b) => b.status === "Scheduled").length.toString(), icon: CalendarDays, color: "text-purple-500" },
-                  { label: "Completion", value: "98%", icon: CheckCircle, color: "text-teal-500" },
-                  { label: "On-Time", value: "96%", icon: Clock, color: "text-indigo-500" },
-                  { label: "Avg. Rating", value: staff.rating.toString(), icon: Star, color: "text-amber-500 fill-amber-500" },
-                ].map((stat, i) => (
-                  <div key={i} className="px-4 py-3 flex items-center gap-3 border-r border-gray-100 last:border-r-0 hover:bg-gray-50/50 transition-colors">
-                    <stat.icon className={`h-4 w-4 shrink-0 hidden sm:block ${stat.color}`} />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-lg font-bold text-gray-900 leading-none tracking-tight">
-                        {stat.value}
-                      </span>
-                      <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-0.5 truncate">
-                        {stat.label}
-                      </span>
+              {/* Bottom Row: Workbook Profile */}
+              <div className="bg-gray-50/50 border-t border-gray-100 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-1 md:mb-0">
+                  <div className="flex items-center gap-2 px-2.5 py-1.5 bg-gray-100 rounded-lg border border-gray-200 shadow-sm w-fit">
+                    <img src="/workbook-logo.png" alt="Workbook" className="h-3.5 grayscale opacity-70" />
+                    <span className="text-[10px] font-extrabold tracking-widest text-gray-600 border-l border-gray-300 pl-2">WB-000341</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-medium text-gray-500 whitespace-nowrap">Member since 2023</span>
+                    <div className="w-1 h-1 rounded-full bg-gray-300 hidden sm:block"></div>
+                    <div className="flex items-center gap-1 bg-blue-50/50 text-blue-700 px-2 py-0.5 rounded border border-blue-100/50 w-fit">
+                      <ShieldCheck className="h-3 w-3" />
+                      <span className="text-[9px] font-bold uppercase tracking-wider">Verified Worker</span>
                     </div>
                   </div>
-                ))}
+                </div>
+                
+                <div className="flex-1 flex flex-wrap max-md:justify-center items-center md:justify-end gap-x-8 gap-y-3">
+                  <div className="flex flex-col items-end sm:items-start group">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5 group-hover:text-blue-500 transition-colors">Total Experience</span>
+                    <div className="flex items-center gap-1.5">
+                      <Briefcase className="h-[14px] w-[14px] text-blue-500" />
+                      <span className="text-sm font-bold text-gray-900 leading-none">6 Years</span>
+                    </div>
+                  </div>
+                  
+                  <div className="w-px h-6 bg-gray-200 hidden sm:block" />
+
+                  <div className="flex flex-col items-end sm:items-start group">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5 group-hover:text-indigo-500 transition-colors">Total Hours Worked</span>
+                    <div className="flex items-center gap-1.5">
+                      <Clock className="h-[14px] w-[14px] text-indigo-500" />
+                      <span className="text-sm font-bold text-gray-900 leading-none">8,420 <span className="text-[11px] text-gray-500 font-semibold">hrs</span></span>
+                    </div>
+                  </div>
+
+                  <div className="w-px h-6 bg-gray-200 hidden sm:block" />
+
+                  <div className="flex flex-col items-end sm:items-start group">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5 group-hover:text-emerald-500 transition-colors">Total Tasks Completed</span>
+                    <div className="flex items-center gap-1.5">
+                      <CheckCircle className="h-[14px] w-[14px] text-emerald-500" />
+                      <span className="text-sm font-bold text-gray-900 leading-none">1,230</span>
+                    </div>
+                  </div>
+
+                  <div className="w-px h-6 bg-gray-200 hidden sm:block" />
+
+                  <div className="flex flex-col items-end sm:items-start group">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-0.5 group-hover:text-amber-500 transition-colors">Global Rating</span>
+                    <div className="flex items-center gap-1.5 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-100">
+                      <span className="text-sm font-extrabold text-amber-700 leading-none tracking-tight">4.7</span>
+                      <Star className="h-3 w-3 text-amber-500 fill-amber-500" />
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -895,42 +944,42 @@ export default function FieldServiceStaffDetails() {
               <TabsList className="flex flex-col bg-transparent border-0 h-auto p-0 items-stretch space-y-1 w-full text-left">
                     <TabsTrigger
                       value="overview"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
                     >
                       <User className="h-4 w-4 mr-3 opacity-70" />
                       Overview
                     </TabsTrigger>
                     <TabsTrigger
                       value="schedule"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
                     >
                       <CalendarCheck className="h-4 w-4 mr-3 opacity-70" />
                       Schedule
                     </TabsTrigger>
                     <TabsTrigger
                       value="availability"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
                     >
                       <Clock className="h-4 w-4 mr-3 opacity-70" />
                       Availability
                     </TabsTrigger>
                     <TabsTrigger
                       value="compliance"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
                     >
                       <ShieldCheck className="h-4 w-4 mr-3 opacity-70" />
                       Compliance
                     </TabsTrigger>
                     <TabsTrigger
                       value="compensation"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
                     >
                       <Banknote className="h-4 w-4 mr-3 opacity-70" />
                       Compensation
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
                     >
                       <Activity className="h-4 w-4 mr-3 opacity-70" />
                       Activity
@@ -948,7 +997,7 @@ export default function FieldServiceStaffDetails() {
             <div className="flex flex-col xl:flex-row gap-6">
 
               {/* ── LEFT: Property Grid ──────────────────────────── */}
-              <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-sm overflow-hidden shadow-sm">
+              <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
 
                 {/* Section 1: Personal Details */}
                 <div className="px-6 py-6">
@@ -1037,7 +1086,7 @@ export default function FieldServiceStaffDetails() {
               <div className="w-full xl:w-80 shrink-0 flex flex-col gap-5">
 
                 {/* Today's Schedule */}
-                <div className="bg-white border border-gray-200/70 rounded-sm overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                <div className="bg-white border border-gray-200/70 rounded-xl overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
                   <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
                     <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Today's Schedule</h3>
                     <span className="text-[10px] font-medium text-gray-400">Dec 23</span>
@@ -1071,7 +1120,7 @@ export default function FieldServiceStaffDetails() {
                                 <span className="text-[11px] font-bold tracking-wide text-blue-600 hover:text-blue-700 transition-colors cursor-pointer">
                                   {booking.id}
                                 </span>
-                                <span className="text-[11px] font-medium text-gray-600 flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded">
+                                <span className="text-[11px] font-medium text-gray-600 flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-1.5 py-0.5 rounded-lg">
                                   <Clock className="h-3 w-3 text-gray-500" />
                                   {booking.time}
                                 </span>
@@ -1103,7 +1152,7 @@ export default function FieldServiceStaffDetails() {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white border border-gray-200/70 rounded-sm overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                <div className="bg-white border border-gray-200/70 rounded-xl overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
                   <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/30">
                     <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Recent Activity</h3>
                   </div>
@@ -1129,32 +1178,7 @@ export default function FieldServiceStaffDetails() {
                   </div>
                 </div>
 
-                {/* Performance Snapshot */}
-                <div className="bg-white border border-gray-200/70 rounded-sm overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
-                  <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/30">
-                    <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Performance This Month</h3>
-                  </div>
-                  <div className="px-5 py-4 space-y-3">
-                    {[
-                      { label: "Jobs Completed", value: 24, max: 30, color: "bg-blue-500" },
-                      { label: "Customer Satisfaction", value: 96, max: 100, color: "bg-green-500" },
-                      { label: "On-Time Rate", value: 92, max: 100, color: "bg-amber-500" },
-                    ].map((metric, i) => (
-                      <div key={i}>
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-gray-500 font-medium">{metric.label}</span>
-                          <span className="text-xs font-semibold text-gray-900">{metric.value}{metric.max === 100 ? "%" : `/${metric.max}`}</span>
-                        </div>
-                        <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${metric.color} transition-all`}
-                            style={{ width: `${(metric.value / metric.max) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+
 
               </div>
 
@@ -1166,7 +1190,7 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="schedule" className="mt-0 space-y-4">
             {/* Schedule Summary Strip */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <BarChart3 className="h-4 w-4 text-gray-400" />
@@ -1190,7 +1214,7 @@ export default function FieldServiceStaffDetails() {
             </div>
 
             {/* Assignments Table & Calendar */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden flex flex-col">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col">
               {/* Header with Search & Filters */}
               <div className="px-6 py-4 border-b border-gray-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white">
                 <div className="flex items-center gap-4">
@@ -1201,18 +1225,18 @@ export default function FieldServiceStaffDetails() {
                       placeholder="Search bookings..." 
                       value={scheduleSearch}
                       onChange={(e) => { setScheduleSearch(e.target.value); setSchedulePage(1); }}
-                      className="h-8 pl-8 text-xs border-gray-200 shadow-sm w-full sm:w-[220px] rounded bg-gray-50/50 hover:bg-white transition-colors focus-visible:bg-white font-medium" 
+                      className="h-8 pl-8 text-xs border-gray-200 shadow-sm w-full sm:w-[220px] rounded-lg bg-gray-50/50 hover:bg-white transition-colors focus-visible:bg-white font-medium" 
                     />
                   </div>
                   <div className="w-px h-6 bg-gray-200 hidden sm:block" />
-                  <div className="flex items-center gap-1.5 bg-gray-100/80 p-1 rounded">
-                    <button onClick={() => setScheduleView('list')} className={`px-2.5 py-1.5 rounded-sm text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'list' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
+                  <div className="flex items-center gap-1.5 bg-gray-100/80 p-1 rounded-lg">
+                    <button onClick={() => setScheduleView('list')} className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'list' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
                       <List className="h-3.5 w-3.5"/> List
                     </button>
-                    <button onClick={() => { setScheduleView('kanban'); if (scheduleDateFilter === 'all' || scheduleDateFilter === 'this_month' || scheduleDateFilter === 'last_7' || scheduleDateFilter === 'last_30' || scheduleDateFilter === 'custom') { setScheduleDateFilter('today'); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); } }} className={`px-2.5 py-1.5 rounded-sm text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'kanban' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
+                    <button onClick={() => { setScheduleView('kanban'); if (scheduleDateFilter === 'all' || scheduleDateFilter === 'this_month' || scheduleDateFilter === 'last_7' || scheduleDateFilter === 'last_30' || scheduleDateFilter === 'custom') { setScheduleDateFilter('today'); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); } }} className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'kanban' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
                       <Kanban className="h-3.5 w-3.5"/> Kanban
                     </button>
-                    <button onClick={() => setScheduleView('calendar')} className={`px-2.5 py-1.5 rounded-sm text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'calendar' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
+                    <button onClick={() => setScheduleView('calendar')} className={`px-2.5 py-1.5 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'calendar' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
                       <CalendarDays className="h-3.5 w-3.5"/> Calendar
                     </button>
                   </div>
@@ -1225,12 +1249,12 @@ export default function FieldServiceStaffDetails() {
                     /* ── Full Date Range Picker (List only) ── */
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded shrink-0 ${scheduleDateFilter !== 'all' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
+                        <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded-lg shrink-0 ${scheduleDateFilter !== 'all' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
                           <CalendarDays className="h-3 w-3" />
                           <span className="hidden sm:inline">{dateFilterLabel}</span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-sm shadow-xl border-gray-100" align="end">
+                      <PopoverContent className="w-auto p-0 rounded-xl shadow-xl border-gray-100" align="end">
                         <div className="flex">
                           {/* Quick Presets */}
                           <div className="w-[160px] border-r border-gray-100 p-2 space-y-0.5">
@@ -1247,7 +1271,7 @@ export default function FieldServiceStaffDetails() {
                               <button
                                 key={opt.value}
                                 onClick={() => { setScheduleDateFilter(opt.value); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); setSchedulePage(1); }}
-                                className={`w-full text-left px-2.5 py-2 rounded text-xs font-medium transition-colors ${
+                                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
                                   scheduleDateFilter === opt.value
                                     ? 'bg-blue-50 text-blue-700 font-bold'
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -1286,7 +1310,7 @@ export default function FieldServiceStaffDetails() {
                   {/* ── Kanban View Controls ── */}
                   {scheduleView === 'kanban' && (
                     /* ── Compact Date Pill Chips (Kanban only — narrow ranges to prevent overload) ── */
-                    <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded">
+                    <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-lg">
                       {[
                         { label: "Today", value: "today" },
                         { label: "Tomorrow", value: "tomorrow" },
@@ -1295,7 +1319,7 @@ export default function FieldServiceStaffDetails() {
                         <button
                           key={opt.value}
                           onClick={() => { setScheduleDateFilter(opt.value); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); }}
-                          className={`px-2.5 py-1.5 rounded-sm text-[11px] font-bold transition-all whitespace-nowrap ${
+                          className={`px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition-all whitespace-nowrap ${
                             scheduleDateFilter === opt.value
                               ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200/50'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
@@ -1310,34 +1334,34 @@ export default function FieldServiceStaffDetails() {
                   {/* ── Calendar View Controls ── */}
                   {scheduleView === 'calendar' && (
                     <div className="flex items-center gap-1.5 mr-2">
-                       <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 shadow-sm rounded bg-white px-3" onClick={() => setCalendarMonth(new Date(2025, 11, 1))}>
+                       <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 shadow-sm rounded-lg bg-white px-3" onClick={() => setCalendarMonth(new Date(2025, 11, 1))}>
                          Today
                        </Button>
                        <div className="w-px h-5 bg-gray-200" />
-                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>
+                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded-lg" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>
                          <ChevronLeft className="h-4 w-4 text-gray-500" />
                        </Button>
                        <span className="text-xs font-bold text-gray-900 w-32 text-center select-none">{format(calendarMonth, "MMMM yyyy")}</span>
-                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}>
+                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded-lg" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}>
                          <ChevronRight className="h-4 w-4 text-gray-500" />
                        </Button>
                     </div>
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 gap-1.5 shadow-sm rounded bg-white shrink-0">
+                      <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 gap-1.5 shadow-sm rounded-lg bg-white shrink-0">
                         <Download className="h-3 w-3" />
                         <span className="hidden sm:inline">Export</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[180px] rounded-sm shadow-lg border-gray-100 p-1.5">
+                    <DropdownMenuContent align="end" className="w-[180px] rounded-xl shadow-lg border-gray-100 p-1.5">
                       <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 px-2 py-1.5">Export Format</DropdownMenuLabel>
                       <DropdownMenuSeparator className="mx-1" />
-                      <DropdownMenuItem onClick={() => toast("Exporting CSV", { description: "Your schedule report is being exported as CSV." })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                      <DropdownMenuItem onClick={() => toast("Exporting CSV", { description: "Your schedule report is being exported as CSV." })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
                         <FileText className="h-3.5 w-3.5 text-green-600" />
                         Export as CSV
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast("Exporting PDF", { description: "Your schedule report is being exported as PDF." })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                      <DropdownMenuItem onClick={() => toast("Exporting PDF", { description: "Your schedule report is being exported as PDF." })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
                         <FileIcon className="h-3.5 w-3.5 text-red-500" />
                         Export as PDF
                       </DropdownMenuItem>
@@ -1345,20 +1369,20 @@ export default function FieldServiceStaffDetails() {
                   </DropdownMenu>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded shrink-0 ${scheduleFilterStatus !== 'All' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
+                      <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded-lg shrink-0 ${scheduleFilterStatus !== 'All' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
                         <Filter className="h-3 w-3" />
                         <span className="hidden sm:inline">
                           {scheduleFilterStatus === "All" ? "Filter" : scheduleFilterStatus}
                         </span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[180px] rounded-sm shadow-lg border-gray-100 p-1.5">
+                    <DropdownMenuContent align="end" className="w-[180px] rounded-xl shadow-lg border-gray-100 p-1.5">
                       <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 px-2 py-1.5">Filter by Status</DropdownMenuLabel>
                       <DropdownMenuSeparator className="mx-1" />
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("All"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "All" ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600'}`}>All Assignments</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("In Progress"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "In Progress" ? 'bg-amber-50 text-amber-700 font-bold' : 'text-gray-600'}`}>In Progress</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Scheduled"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "Scheduled" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600'}`}>Scheduled</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Completed"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "Completed" ? 'bg-green-50 text-green-700 font-bold' : 'text-gray-600'}`}>Completed</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("All"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "All" ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600'}`}>All Assignments</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("In Progress"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "In Progress" ? 'bg-amber-50 text-amber-700 font-bold' : 'text-gray-600'}`}>In Progress</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Scheduled"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "Scheduled" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600'}`}>Scheduled</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Completed"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "Completed" ? 'bg-green-50 text-green-700 font-bold' : 'text-gray-600'}`}>Completed</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -1463,19 +1487,19 @@ export default function FieldServiceStaffDetails() {
                         <TableCell className="w-[50px] pr-4">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 rounded opacity-0 group-hover/row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg opacity-0 group-hover/row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-100">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-[180px] rounded-sm shadow-lg border-gray-100 p-1.5">
-                              <DropdownMenuItem onClick={() => { setSelectedBooking(booking); setBookingDetailOpen(true); }} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                            <DropdownMenuContent align="end" className="w-[180px] rounded-xl shadow-lg border-gray-100 p-1.5">
+                              <DropdownMenuItem onClick={() => { setSelectedBooking(booking); setBookingDetailOpen(true); }} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
                                 <Eye className="h-3.5 w-3.5 text-blue-500" /> View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => toast("Reassign", { description: `Opens reassignment flow for ${booking.id}` })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                              <DropdownMenuItem onClick={() => toast("Reassign", { description: `Opens reassignment flow for ${booking.id}` })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
                                 <Repeat className="h-3.5 w-3.5 text-purple-500" /> Reassign Staff
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="mx-1" />
-                              <DropdownMenuItem onClick={() => toast.error("Cancelled", { description: `${booking.id} has been cancelled.` })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-red-600 flex items-center gap-2">
+                              <DropdownMenuItem onClick={() => toast.error("Cancelled", { description: `${booking.id} has been cancelled.` })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-red-600 flex items-center gap-2">
                                 <X className="h-3.5 w-3.5" /> Cancel Booking
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -1496,7 +1520,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
                           onClick={() => setSchedulePage(1)}
                           disabled={safeSchedulePage === 1}
                         >
@@ -1505,7 +1529,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
                           onClick={() => setSchedulePage(p => Math.max(1, p - 1))}
                           disabled={safeSchedulePage === 1}
                         >
@@ -1517,7 +1541,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
                           onClick={() => setSchedulePage(p => Math.min(scheduleTotalPages, p + 1))}
                           disabled={safeSchedulePage === scheduleTotalPages}
                         >
@@ -1526,7 +1550,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
                           onClick={() => setSchedulePage(scheduleTotalPages)}
                           disabled={safeSchedulePage === scheduleTotalPages}
                         >
@@ -1546,7 +1570,7 @@ export default function FieldServiceStaffDetails() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="text-gray-600 border-gray-200 shadow-sm h-8 rounded text-xs font-bold mt-2"
+                            className="text-gray-600 border-gray-200 shadow-sm h-8 rounded-lg text-xs font-bold mt-2"
                             onClick={() => { setScheduleSearch(""); setScheduleFilterStatus("All"); setScheduleDateFilter("all"); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); }}
                           >
                             Clear Filters
@@ -1584,7 +1608,7 @@ export default function FieldServiceStaffDetails() {
                         </div>
                         <div className="grid grid-cols-7 gap-2">
                           {days.map((date, i) => {
-                            if (!date) return <div key={i} className="min-h-[100px] bg-gray-50/50 rounded border border-transparent" />;
+                            if (!date) return <div key={i} className="min-h-[100px] bg-gray-50/50 rounded-lg border border-transparent" />;
                             
                             const dateStr = date.toISOString().split("T")[0];
                             const dayBookings = scheduleBookings.filter(b => 
@@ -1594,7 +1618,7 @@ export default function FieldServiceStaffDetails() {
                             const isToday = dateStr === "2025-12-23"; // Our mock "today"
 
                             return (
-                              <div key={i} className={`min-h-[100px] p-2.5 rounded border flex flex-col transition-colors ${isToday ? 'bg-blue-50/30 border-blue-200 shadow-sm shadow-blue-100' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
+                              <div key={i} className={`min-h-[100px] p-2.5 rounded-lg border flex flex-col transition-colors ${isToday ? 'bg-blue-50/30 border-blue-200 shadow-sm shadow-blue-100' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
                                 <div className="flex items-center justify-between mb-2">
                                   <span className={`text-[11px] font-bold h-6 w-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : 'text-gray-700'}`}>
                                     {date.getDate()}
@@ -1610,7 +1634,7 @@ export default function FieldServiceStaffDetails() {
                                     <div 
                                       key={b.id} 
                                       onClick={() => { setSelectedBooking(b); setBookingDetailOpen(true); }}
-                                      className={`p-1.5 rounded-sm border text-left cursor-pointer transition-all hover:shadow-sm ${
+                                      className={`p-1.5 rounded-xl border text-left cursor-pointer transition-all hover:shadow-sm ${
                                       b.status === "In Progress" ? "bg-amber-50/80 border-amber-100 hover:border-amber-300" :
                                       b.status === "Scheduled" ? "bg-blue-50/80 border-blue-100 hover:border-blue-300" :
                                       "bg-gray-50 border-gray-200 hover:border-gray-300"
@@ -1644,7 +1668,7 @@ export default function FieldServiceStaffDetails() {
                         return (
                           <div 
                             key={col} 
-                            className={`flex-1 min-w-[320px] max-w-[450px] rounded-sm border p-3 min-h-[400px] max-h-[calc(100vh-380px)] flex flex-col transition-all duration-200 ${isDragOver ? 'bg-blue-50/60 border-blue-300 shadow-[0_0_0_2px_rgba(59,130,246,0.15)] ring-1 ring-blue-200' : 'bg-gray-100/50 border-gray-200/60'}`}
+                            className={`flex-1 min-w-[320px] max-w-[450px] rounded-xl border p-3 min-h-[400px] max-h-[calc(100vh-380px)] flex flex-col transition-all duration-200 ${isDragOver ? 'bg-blue-50/60 border-blue-300 shadow-[0_0_0_2px_rgba(59,130,246,0.15)] ring-1 ring-blue-200' : 'bg-gray-100/50 border-gray-200/60'}`}
                             onDragOver={(e) => { e.preventDefault(); setKanbanDragOverCol(col); }}
                             onDragEnter={(e) => { e.preventDefault(); setKanbanDragOverCol(col); }}
                             onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setKanbanDragOverCol(null); }}
@@ -1669,7 +1693,7 @@ export default function FieldServiceStaffDetails() {
                                   key={b.id} 
                                   draggable
                                   onDragStart={(e) => e.dataTransfer.setData("bookingId", b.id)}
-                                  className="bg-white border border-gray-200 rounded p-3.5 hover:border-blue-300 hover:shadow-md cursor-grab active:cursor-grabbing active:opacity-60 active:scale-[0.98] transition-all group relative"
+                                  className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-blue-300 hover:shadow-md cursor-grab active:cursor-grabbing active:opacity-60 active:scale-[0.98] transition-all group relative"
                                 >
                                   <div className="absolute top-3 right-2 opacity-0 group-hover:opacity-40 transition-opacity">
                                     <GripVertical className="h-4 w-4 text-gray-400" />
@@ -1697,13 +1721,13 @@ export default function FieldServiceStaffDetails() {
                               {colBookings.length > 8 && (
                                 <button 
                                   onClick={() => { setScheduleView('list'); setScheduleFilterStatus(col === 'Scheduled' || col === 'In Progress' || col === 'Completed' ? col : 'All'); }}
-                                  className="w-full py-2.5 rounded border-2 border-dashed border-blue-200 bg-blue-50/50 text-[11px] font-bold text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all flex items-center justify-center gap-1.5"
+                                  className="w-full py-2.5 rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/50 text-[11px] font-bold text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all flex items-center justify-center gap-1.5"
                                 >
                                   View all {colBookings.length} in List →
                                 </button>
                               )}
                               {colBookings.length === 0 && (
-                                <div className={`h-full min-h-[150px] flex items-center justify-center border-2 border-dashed rounded transition-colors ${isDragOver ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                                <div className={`h-full min-h-[150px] flex items-center justify-center border-2 border-dashed rounded-lg transition-colors ${isDragOver ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'}`}>
                                   <span className={`text-xs font-semibold ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`}>{isDragOver ? `Drop here to mark as ${col}` : `No ${col} assignments`}</span>
                                 </div>
                               )}
@@ -1722,135 +1746,253 @@ export default function FieldServiceStaffDetails() {
               AVAILABILITY TAB
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="availability" className="mt-0 space-y-6">
-            {/* ── Weekly Schedule ───────────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
-                  <Clock className="h-4 w-4 text-gray-400" />
-                  Weekly Schedule
-                </h3>
-                <div className="flex items-center gap-3">
-                  <div className="text-right">
-                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Total / Net Hrs</p>
-                    <p className="text-sm font-bold text-gray-900">
-                      {(() => {
-                        const total = mockWeeklySchedule.filter(d => d.enabled).reduce((sum, d) => {
-                          const s = parseInt(d.start.split(":")[0]) || 0;
-                          const e = parseInt(d.end.split(":")[0]) || 0;
-                          return sum + (e - s);
-                        }, 0);
-                        const breaks = mockWeeklySchedule.filter(d => d.enabled).reduce((sum, d) => sum + d.breakMins, 0) / 60;
-                        return `${total}h / ${total - breaks}h net`;
-                      })()}
-                    </p>
+            
+            {/* ── Top Level Context ───────────────────────────────────────── */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Real-time Status Card */}
+              <div className="bg-white border border-green-200 rounded-xl p-5 shadow-sm shadow-green-100/50 flex flex-col relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-green-500 rounded-l-xl"></div>
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Current Status</h3>
+                    <p className="text-[11px] text-gray-500 mt-1">Real-time dispatch status</p>
+                  </div>
+                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 shadow-sm shadow-green-200/50 flex items-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 flex-shrink-0 relative">
+                        <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+                    </span>
+                    Available Now
+                  </Badge>
+                </div>
+                <div className="mt-auto space-y-2">
+                  <div className="flex items-center gap-2">
+                      <Clock className="w-3.5 h-3.5 text-gray-400" />
+                      <p className="text-[13px] text-gray-700"><strong className="text-gray-900">Next Shift:</strong> Tomorrow, 08:00 AM</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                      <MapPin className="w-3.5 h-3.5 text-gray-400" />
+                      <p className="text-[13px] text-gray-700"><strong className="text-gray-900">Location:</strong> Pearl Qatar (Zone 1)</p>
                   </div>
                 </div>
               </div>
-              <div className="px-6 py-5">
-                <div className="grid grid-cols-7 gap-2">
-                  {mockWeeklySchedule.map((day) => (
-                    <div
-                      key={day.day}
-                      className={`rounded border p-3 text-center ${
-                        day.enabled
-                          ? "bg-white border-gray-200"
-                          : "bg-gray-50 border-gray-100"
-                      }`}
-                    >
-                      <p className={`text-xs font-semibold uppercase tracking-wider mb-1.5 ${day.enabled ? "text-gray-700" : "text-gray-400"}`}>
-                        {day.day.substring(0, 3)}
-                      </p>
-                      {day.enabled ? (
-                        <>
-                          <p className="text-sm font-bold text-gray-900">{day.start}–{day.end}</p>
-                          {day.breakMins > 0 && (
-                            <p className="text-xs text-gray-500 mt-1">
-                              {day.breakMins}m break
-                            </p>
-                          )}
-                        </>
-                      ) : (
-                        <p className="text-xs text-gray-400 font-medium">Off</p>
-                      )}
+
+              {/* Shift Configuration Card */}
+              <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col hover:border-blue-200 transition-colors">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">Shift Configuration</h3>
+                    <p className="text-[11px] text-gray-500 mt-1">Primary schedule pattern and total assigned hours</p>
+                  </div>
+                  <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs font-bold border-gray-200 text-gray-600 hover:text-gray-900">
+                    <Settings2 className="h-3 w-3" />
+                    Configure System
+                  </Button>
+                </div>
+                
+                <div className="mt-auto grid grid-cols-3 gap-4">
+                  <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">System Type</p>
+                    <p className="text-sm font-bold text-blue-700">Fixed Hours</p>
+                  </div>
+                  <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Standard Day</p>
+                    <p className="text-[13px] font-medium text-gray-900">08:00 - 17:00</p>
+                  </div>
+                  <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100 flex items-center justify-between">
+                    <div>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weekly Load</p>
+                        <p className="text-[13px] font-bold text-gray-900">45h <span className="text-gray-500 font-medium">/ 40h net</span></p>
                     </div>
-                  ))}
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Seasonal Patterns ────────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
-                  <CalendarDays className="h-4 w-4 text-gray-400" />
-                  Seasonal Patterns
-                </h3>
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded text-xs font-bold">
-                  <Plus className="h-3 w-3" />
-                  Add Pattern
+            {/* ── Working Schedule ───────────────────────────────────────────── */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center border border-blue-200">
+                        <Calendar className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Active Weekly Schedule</h3>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Primary dispatch availability across the week</p>
+                    </div>
+                </div>
+                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm">
+                  <Edit3 className="h-3.5 w-3.5" />
+                  Edit Schedule
                 </Button>
               </div>
-              <div className="px-6 py-5">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="p-6 bg-white">
+                <div className="grid grid-cols-2 lg:grid-cols-7 gap-3">
+                  {mockWeeklySchedule.map((day) => {
+                    const isActive = day.enabled;
+                    return (
+                        <div
+                            key={day.day}
+                            className={`
+                                flex flex-col pt-3 pb-3 px-3 rounded-xl border-2 transition-all min-h-[100px]
+                                ${isActive ? "bg-white border-blue-100 shadow-[0_2px_10px_-3px_rgba(59,130,246,0.1)] hover:border-blue-300" : "bg-gray-50/50 border-gray-100 opacity-80"}
+                            `}
+                        >
+                            <div className="flex items-center justify-between mb-3">
+                                <span className={`text-[13px] font-bold ${isActive ? "text-gray-900" : "text-gray-500"}`}>
+                                    {day.day}
+                                </span>
+                                {isActive && <div className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>}
+                            </div>
+                            
+                            {isActive ? (
+                                <div className="mt-auto">
+                                    <div className="bg-blue-50 text-blue-700 text-[11px] font-bold px-2.5 py-1.5 rounded-lg inline-block border border-blue-100 mb-2">
+                                        {day.start} - {day.end}
+                                    </div>
+                                    <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5">
+                                        <Coffee className="h-3 w-3 shrink-0" /> {day.breakMins}m Break
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="mt-auto">
+                                    <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded inline-block border border-gray-200">Off Duty</span>
+                                </div>
+                            )}
+                        </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* ── Seasonal & Special Schedules ────────────────────────────────────────── */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center border border-orange-200">
+                        <Sun className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Seasonal Adjustments</h3>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Temporary schedule overrides for Ramadan, summer heat, etc.</p>
+                    </div>
+                </div>
+                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm">
+                  <Plus className="h-3 max-w-3" />
+                  Add Seasonal Rule
+                </Button>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {mockSeasonalPatterns.map(pattern => (
-                    <div key={pattern.id} className="rounded border border-gray-200 bg-white p-4 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <h4 className="text-sm font-semibold text-gray-900">{pattern.name}</h4>
-                        <Badge className="text-xs bg-green-100 text-green-700 hover:bg-green-100 border-0">
-                          {pattern.status}
-                        </Badge>
+                    <div key={pattern.id} className="rounded-xl border border-orange-100 bg-orange-50/30 p-4 relative overflow-hidden group hover:border-orange-200 transition-colors">
+                        <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:text-gray-700 bg-white shadow-sm border border-gray-100 rounded-md">
+                                <MoreHorizontal className="h-3.5 w-3.5" />
+                            </Button>
+                        </div>
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="h-10 w-10 rounded-full bg-orange-100/80 flex items-center justify-center shrink-0 border border-orange-200">
+                           {pattern.name.includes("Ramadan") ? <Moon className="h-4 w-4 text-orange-600" /> : <Sun className="h-4 w-4 text-orange-600" />}
+                        </div>
+                        <div>
+                            <h4 className="text-sm font-bold text-gray-900 leading-tight">{pattern.name}</h4>
+                            <span className="text-[11px] font-bold text-orange-600 mt-0.5 block">{pattern.status}</span>
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-500">{pattern.months}</p>
-                      <p className="text-sm text-gray-700">{pattern.adjustment}</p>
+                      <div className="bg-white rounded-lg p-3 border border-orange-100 shadow-sm space-y-2">
+                          <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-500 font-medium">Effective</span>
+                              <span className="font-bold text-gray-900">{pattern.months}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-xs">
+                              <span className="text-gray-500 font-medium">Adjustment</span>
+                              <span className="font-bold text-gray-900">{pattern.adjustment}</span>
+                          </div>
+                      </div>
                     </div>
                   ))}
+                  
+                  {/* Add New Visual */}
+                  <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all min-h-[140px]">
+                      <div className="h-8 w-8 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center mb-2">
+                          <Plus className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <span className="text-xs font-bold text-gray-600">Create Adjustment</span>
+                      <span className="text-[10px] text-gray-400 mt-1 max-w-[150px]">Configure new override rule</span>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* ── Time Off ─────────────────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
-                  <Calendar className="h-4 w-4 text-gray-400" />
-                  Time Off
-                </h3>
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded text-xs font-bold">
-                  <Plus className="h-3 w-3" />
-                  Request Leave
-                </Button>
+            {/* ── Time Off & Leave Management ─────────────────────────────────────────────────── */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center border border-red-100">
+                        <CalendarOff className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Leave & Time-Off</h3>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Vacations, sick days, and other reported unavailabilities</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm">
+                        <History className="h-3.5 w-3.5" />
+                        History
+                    </Button>
+                    <Button size="sm" className="gap-1.5 h-8 rounded-lg text-xs font-bold bg-gray-900 hover:bg-gray-800 text-white shadow-sm">
+                        <Plus className="h-3.5 w-3.5" />
+                        Log Time-Off
+                    </Button>
+                </div>
               </div>
               <div>
                 {mockTimeOff.length > 0 ? (
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-[11px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 h-[38px]">Type</TableHead>
-                      <TableHead className="text-[11px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 h-[38px]">From</TableHead>
-                      <TableHead className="text-[11px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 h-[38px]">To</TableHead>
-                      <TableHead className="text-[11px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 h-[38px]">Days</TableHead>
-                      <TableHead className="text-[11px] font-bold uppercase tracking-wider text-gray-500 bg-gray-50/50 h-[38px]">Status</TableHead>
+                    <TableRow className="bg-white hover:bg-white border-b border-gray-100">
+                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11 px-6">Leave Type</TableHead>
+                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11">Duration</TableHead>
+                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11">Days</TableHead>
+                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11">Status</TableHead>
+                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11 w-[50px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {mockTimeOff.map(leave => (
-                      <TableRow key={leave.id} className="hover:bg-gray-50/50">
-                        <TableCell className="text-sm font-medium">{leave.type}</TableCell>
-                        <TableCell className="text-sm">{leave.from}</TableCell>
-                        <TableCell className="text-sm">{leave.to}</TableCell>
-                        <TableCell className="text-sm font-semibold">{leave.days}</TableCell>
-                        <TableCell>
+                      <TableRow key={leave.id} className="hover:bg-gray-50/50 group/row border-b border-gray-50 last:border-0 transition-colors">
+                        <TableCell className="px-6 py-3.5">
+                            <span className="text-[13px] font-bold text-gray-900 block">{leave.type}</span>
+                        </TableCell>
+                        <TableCell className="py-3.5">
+                            <div className="flex items-center gap-1.5">
+                                <span className="text-[13px] font-semibold text-gray-700">{leave.from}</span>
+                                <span className="text-gray-300">-</span>
+                                <span className="text-[13px] font-semibold text-gray-700">{leave.to}</span>
+                            </div>
+                        </TableCell>
+                        <TableCell className="py-3.5">
+                            <Badge variant="outline" className="bg-white text-gray-600 border-gray-200 text-[11px] font-bold shadow-sm">
+                                {leave.days}
+                            </Badge>
+                        </TableCell>
+                        <TableCell className="py-3.5">
                           <Badge
-                            className={
-                              leave.status === "Approved"
-                                ? "bg-green-100 text-green-700 hover:bg-green-100 border-0"
-                                : leave.status === "Pending"
-                                  ? "bg-amber-100 text-amber-700 hover:bg-amber-100 border-0"
-                                  : "bg-red-100 text-red-700 hover:bg-red-100 border-0"
-                            }
+                            className={`shadow-none border-0 text-[11px] font-bold px-2 py-0.5
+                              ${leave.status === "Approved" ? "bg-green-100 text-green-700 hover:bg-green-100" : 
+                                leave.status === "Pending" ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : 
+                                "bg-red-100 text-red-700 hover:bg-red-100"}
+                            `}
                           >
                             {leave.status}
                           </Badge>
+                        </TableCell>
+                        <TableCell className="py-3.5 pr-6 w-[50px]">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md opacity-0 group-hover/row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -1858,68 +2000,69 @@ export default function FieldServiceStaffDetails() {
                 </Table>
                 ) : (
                   <EmptyState
-                    icon={Calendar}
+                    icon={CalendarOff}
                     title="No time-off records"
                     description="No leave requests have been submitted for this staff member."
-                    action={
-                      <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8">
-                        <Plus className="h-3 w-3" />
-                        Request Leave
-                      </Button>
-                    }
                   />
                 )}
               </div>
             </div>
 
-            {/* ── Advanced Preferences ──────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
-                  <TrendingUp className="h-4 w-4 text-gray-400" />
-                  Advanced Preferences
-                </h3>
+            {/* ── Dispatch & Availability Overrides ──────────────────────────────────────── */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
+                        <SlidersHorizontal className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Dispatch Rules & Constraints</h3>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Emergency buffers, overtime capacity, and hard scheduling limits</p>
+                    </div>
+                </div>
               </div>
-              <div className="px-6 py-5">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-4">
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
+                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Emergency Availability</p>
-                      <p className="text-xs text-gray-500">Can be called for urgent jobs</p>
+                      <p className="text-sm font-bold text-gray-900">Emergency Availability</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">Can be called for urgent jobs</p>
                     </div>
-                    <Badge className={mockAdvancedPreferences.emergencyAvailability ? "bg-green-100 text-green-700 hover:bg-green-100 border-0" : "bg-gray-100 text-gray-500 hover:bg-gray-100 border-0"}>
-                      {mockAdvancedPreferences.emergencyAvailability ? "Yes" : "No"}
+                    <Badge className={mockAdvancedPreferences.emergencyAvailability ? "bg-green-100 text-green-700 hover:bg-green-100 border-0 shadow-none font-bold text-xs" : "bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 shadow-none font-bold text-xs"}>
+                      {mockAdvancedPreferences.emergencyAvailability ? "Opted In" : "Opted Out"}
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Overtime Willingness</p>
-                      <p className="text-xs text-gray-500">Available beyond scheduled hours</p>
+                      <p className="text-sm font-bold text-gray-900">Overtime Willingness</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">Available beyond scheduled hours</p>
                     </div>
-                    <Badge className={mockAdvancedPreferences.overtimeWilling ? "bg-green-100 text-green-700 hover:bg-green-100 border-0" : "bg-gray-100 text-gray-500 hover:bg-gray-100 border-0"}>
-                      {mockAdvancedPreferences.overtimeWilling ? "Yes" : "No"}
+                    <Badge className={mockAdvancedPreferences.overtimeWilling ? "bg-green-100 text-green-700 hover:bg-green-100 border-0 shadow-none font-bold text-xs" : "bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 shadow-none font-bold text-xs"}>
+                      {mockAdvancedPreferences.overtimeWilling ? "Opted In" : "Opted Out"}
                     </Badge>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Max Daily Hours</p>
-                      <p className="text-xs text-gray-500">Hard limit per day</p>
+                      <p className="text-sm font-bold text-gray-900">Max Daily Hours</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">Hard limit per day algorithm</p>
                     </div>
-                    <span className="text-sm font-bold text-gray-900">{mockAdvancedPreferences.maxDailyHours}h</span>
+                    <div className="bg-gray-100 border border-gray-200 text-gray-900 text-[11px] font-bold px-2.5 py-1 rounded inline-block">
+                        {mockAdvancedPreferences.maxDailyHours} Hours
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Shift Preference</p>
-                      <p className="text-xs text-gray-500">Preferred shift slot</p>
+                      <p className="text-sm font-bold text-gray-900">Shift Preference</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">Preferred assignment priority</p>
                     </div>
-                    <span className="text-sm font-medium text-gray-700">{mockAdvancedPreferences.shiftPreference}</span>
+                    <span className="text-xs font-bold text-gray-700 px-2 py-1 bg-gray-50 rounded border border-gray-100">{mockAdvancedPreferences.shiftPreference}</span>
                   </div>
-                  <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">Break Preference</p>
-                      <p className="text-xs text-gray-500">Preferred break structure</p>
+                      <p className="text-sm font-bold text-gray-900">Break Preference</p>
+                      <p className="text-[11px] text-gray-500 mt-0.5">Preferred timing structure</p>
                     </div>
-                    <span className="text-sm font-medium text-gray-700">{mockAdvancedPreferences.breakPreference}</span>
+                    <span className="text-xs font-bold text-gray-700 px-2 py-1 bg-gray-50 rounded border border-gray-100">{mockAdvancedPreferences.breakPreference}</span>
                   </div>
                 </div>
               </div>
@@ -1937,7 +2080,7 @@ export default function FieldServiceStaffDetails() {
               const valid = activeDocuments.filter(d => d.status === "Valid").length;
               const hasRisk = expired > 0 || expiring > 0;
               return (
-                <div className={`rounded border px-5 py-4 flex items-center justify-between ${hasRisk ? "border-amber-200 bg-amber-100" : "border-green-200 bg-green-100"}`}>
+                <div className={`rounded-lg border px-5 py-4 flex items-center justify-between ${hasRisk ? "border-amber-200 bg-amber-100" : "border-green-200 bg-green-100"}`}>
                   <div className="flex items-center gap-3">
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center ${hasRisk ? "bg-amber-100" : "bg-green-100"}`}>
                       <ShieldCheck className={`h-5 w-5 ${hasRisk ? "text-amber-600" : "text-green-600"}`} />
@@ -1960,7 +2103,7 @@ export default function FieldServiceStaffDetails() {
             })()}
 
             {/* Documents & Certifications Table */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <FileText className="h-4 w-4 text-gray-400" />
@@ -1985,7 +2128,7 @@ export default function FieldServiceStaffDetails() {
                       <TableRow key={doc.id} className="hover:bg-gray-50/50">
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded bg-gray-100 flex items-center justify-center shrink-0">
+                            <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
                               <FileIcon className="h-4 w-4 text-gray-500" />
                             </div>
                             <span className="text-sm font-medium">{doc.name}</span>
@@ -2080,7 +2223,7 @@ export default function FieldServiceStaffDetails() {
               const key = `${compMonth.year}-${String(compMonth.month + 1).padStart(2, "0")}`;
               const data = mockMonthlyCompensation[key] || { base: "0", commission: "0", tips: "0", total: "0" };
               return (
-                <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                   <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
                     {[
                       { label: "Base Salary", value: `${data.base} QAR`, color: "text-gray-900" },
@@ -2099,7 +2242,7 @@ export default function FieldServiceStaffDetails() {
             })()}
 
             {/* Employment Terms */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Briefcase className="h-4 w-4 text-gray-400" />
@@ -2114,7 +2257,7 @@ export default function FieldServiceStaffDetails() {
             </div>
 
             {/* Payout History */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Banknote className="h-4 w-4 text-gray-400" />
@@ -2173,7 +2316,7 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="activity" className="mt-0 space-y-6">
             {/* ── Operational Timeline (Top 10) ────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Activity className="h-4 w-4 text-gray-400" />
@@ -2182,7 +2325,7 @@ export default function FieldServiceStaffDetails() {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="gap-1.5 text-xs h-8 text-gray-600 border-gray-200 hover:text-gray-900 bg-white shadow-sm rounded font-bold"
+                  className="gap-1.5 text-xs h-8 text-gray-600 border-gray-200 hover:text-gray-900 bg-white shadow-sm rounded-lg font-bold"
                   onClick={() => document.getElementById("full-activity-log")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 >
                   View Full Activity Log
@@ -2212,7 +2355,7 @@ export default function FieldServiceStaffDetails() {
                           <div>
                             <div className="flex items-center gap-2 mb-1">
                               <h4 className="text-sm font-semibold text-gray-900">{log.event}</h4>
-                              <span className={`text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded ${
+                              <span className={`text-[10px] uppercase tracking-wider font-bold px-1.5 py-0.5 rounded-lg ${
                                 log.actor === "System" ? "bg-gray-100 text-gray-600" :
                                 log.actor === "Admin"  ? "bg-blue-50 text-blue-600" :
                                 log.actor === "HR"     ? "bg-violet-50 text-violet-600" :
@@ -2240,7 +2383,7 @@ export default function FieldServiceStaffDetails() {
             <div id="full-activity-log" className="flex flex-wrap items-center gap-3 pt-2">
               {/* Date Range */}
               <Select value={activityDateRange} onValueChange={v => { setActivityDateRange(v); setActivityPage(1); }}>
-                <SelectTrigger className="h-8 w-auto min-w-[150px] border-gray-200 bg-white shadow-sm rounded-sm px-2.5 text-xs gap-1">
+                <SelectTrigger className="h-8 w-auto min-w-[150px] border-gray-200 bg-white shadow-sm rounded-xl px-2.5 text-xs gap-1">
                   <SelectValue placeholder="Date range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2254,7 +2397,7 @@ export default function FieldServiceStaffDetails() {
 
               {/* Event Type */}
               <Select value={activityFilter} onValueChange={v => { setActivityFilter(v); setActivityPage(1); }}>
-                <SelectTrigger className="h-8 w-auto min-w-[170px] border-gray-200 bg-white shadow-sm rounded-sm px-2.5 text-xs gap-1">
+                <SelectTrigger className="h-8 w-auto min-w-[170px] border-gray-200 bg-white shadow-sm rounded-xl px-2.5 text-xs gap-1">
                   <SelectValue placeholder="Event type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2311,7 +2454,7 @@ export default function FieldServiceStaffDetails() {
               const paged = filtered.slice((safePage - 1) * ACTIVITY_PER_PAGE, safePage * ACTIVITY_PER_PAGE);
 
               return (
-                <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
+                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
                   <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                       <Activity className="h-4 w-4 text-gray-400" />
@@ -2352,7 +2495,7 @@ export default function FieldServiceStaffDetails() {
                                   </Badge>
                                 </TableCell>
                                 <TableCell>
-                                  <span className={`text-xs font-medium px-2 py-0.5 rounded ${
+                                  <span className={`text-xs font-medium px-2 py-0.5 rounded-lg ${
                                     log.actor === "System" ? "bg-gray-100 text-gray-600" :
                                     log.actor === "Admin"  ? "bg-blue-50 text-blue-600" :
                                     log.actor === "HR"     ? "bg-violet-50 text-violet-600" :
@@ -2431,7 +2574,7 @@ export default function FieldServiceStaffDetails() {
 
       {/* ─── STATUS CHANGE CONFIRMATION DIALOG ──────────────────────────── */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent className="max-w-md p-6 gap-0 rounded border-0 shadow-2xl">
+        <DialogContent className="max-w-md p-6 gap-0 rounded-lg border-0 shadow-2xl">
           <div className="flex items-start gap-3 mb-3">
             <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="space-y-1.5">
@@ -2444,7 +2587,7 @@ export default function FieldServiceStaffDetails() {
 
           <div className="pl-8 mb-6">
             {/* Impact Warning Block */}
-            <div className="bg-amber-50/60 border border-amber-200/60 rounded-sm p-4 space-y-3">
+            <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 space-y-3">
               <h4 className="font-bold text-amber-800 text-[13px] flex items-center gap-2 tracking-wide">
                 <Info className="h-4 w-4" /> Impact on Current Operation
               </h4>
@@ -2467,7 +2610,7 @@ export default function FieldServiceStaffDetails() {
                   <Label className="text-xs font-semibold text-gray-700">Start Date</Label>
                   <Input
                     type="date"
-                    className="h-9 rounded"
+                    className="h-9 rounded-lg"
                     value={leaveDates.start}
                     onChange={e =>
                       setLeaveDates({ ...leaveDates, start: e.target.value })
@@ -2478,7 +2621,7 @@ export default function FieldServiceStaffDetails() {
                   <Label className="text-xs font-semibold text-gray-700">End Date (Optional)</Label>
                   <Input
                     type="date"
-                    className="h-9 rounded"
+                    className="h-9 rounded-lg"
                     value={leaveDates.end}
                     onChange={e =>
                       setLeaveDates({ ...leaveDates, end: e.target.value })
@@ -2492,13 +2635,13 @@ export default function FieldServiceStaffDetails() {
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button
               variant="outline"
-              className="px-5 rounded border-gray-200 text-gray-700 font-semibold shadow-sm hover:bg-gray-50"
+              className="px-5 rounded-lg border-gray-200 text-gray-700 font-semibold shadow-sm hover:bg-gray-50"
               onClick={() => setStatusDialogOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              className="px-5 rounded font-bold shadow-sm bg-[#dc2626] hover:bg-[#b91c1c] text-white border-0"
+              className="px-5 rounded-lg font-bold shadow-sm bg-[#dc2626] hover:bg-[#b91c1c] text-white border-0"
               onClick={confirmStatusChange}
             >
               Unassign Jobs & set {pendingEmploymentStatus}
@@ -2509,7 +2652,7 @@ export default function FieldServiceStaffDetails() {
 
       {/* ── Booking Detail Dialog ───────────────────────────────────────── */}
       <Dialog open={bookingDetailOpen} onOpenChange={setBookingDetailOpen}>
-        <DialogContent className="max-w-md rounded p-0 overflow-hidden border-gray-200 shadow-2xl">
+        <DialogContent className="max-w-md rounded-lg p-0 overflow-hidden border-gray-200 shadow-2xl">
           {selectedBooking && (
             <>
               <div className="px-6 pt-6 pb-4 border-b border-gray-100">
@@ -2552,7 +2695,7 @@ export default function FieldServiceStaffDetails() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 h-8 text-xs font-bold rounded gap-1.5"
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 h-8 text-xs font-bold rounded-lg gap-1.5"
                   onClick={() => { toast.error("Booking cancelled", { description: `${selectedBooking.id} has been cancelled.` }); setBookingDetailOpen(false); }}
                 >
                   <X className="h-3 w-3" /> Cancel Booking
@@ -2561,14 +2704,14 @@ export default function FieldServiceStaffDetails() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-gray-600 border-gray-200 h-8 text-xs font-bold rounded gap-1.5"
+                    className="text-gray-600 border-gray-200 h-8 text-xs font-bold rounded-lg gap-1.5"
                     onClick={() => { toast("Reassign", { description: `Opens reassignment flow for ${selectedBooking.id}` }); }}
                   >
                     <Repeat className="h-3 w-3" /> Reassign
                   </Button>
                   <Button
                     size="sm"
-                    className="h-8 text-xs font-bold rounded gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="h-8 text-xs font-bold rounded-lg gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={() => { toast("Opening booking", { description: `Navigating to ${selectedBooking.id}` }); setBookingDetailOpen(false); }}
                   >
                     <ExternalLink className="h-3 w-3" /> Open Full View
