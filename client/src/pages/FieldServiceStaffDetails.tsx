@@ -461,7 +461,7 @@ function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center py-14 px-4 border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+    <div className="flex flex-col items-center justify-center py-14 px-4 border border-dashed border-gray-200 rounded-sm bg-gray-50/50">
       <div className="h-12 w-12 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center mb-4">
         <Icon className="h-5 w-5 text-gray-400" />
       </div>
@@ -726,7 +726,7 @@ export default function FieldServiceStaffDetails() {
 
   return (
     <DashboardLayout>
-      <div className="max-w-[1720px] mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      <div className="max-w-[1720px] mx-auto px-4 sm:px-6 lg:px-8 pb-8 pt-0 space-y-5">
 
         {/* ─── BACK NAVIGATION ──────────────────────────────────────────── */}
         <Button variant="ghost" className="text-gray-500 hover:text-gray-900 -ml-2 h-8 text-[13px] font-medium gap-1.5" onClick={() => window.history.back()}>
@@ -750,14 +750,14 @@ export default function FieldServiceStaffDetails() {
           }
 
           return (
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
               {/* Top Row: Identity + Status + Actions */}
               <div className="px-6 py-5 flex flex-col lg:flex-row lg:items-center gap-5 lg:gap-8">
                 {/* Left: Avatar + Name + Meta */}
                 <div className="flex items-center gap-4 flex-1 min-w-0">
-                  <Avatar className="h-14 w-14 shadow-sm border-2 border-white ring-2 ring-gray-100 rounded-xl shrink-0">
+                  <Avatar className="h-14 w-14 shadow-sm border-2 border-white ring-2 ring-gray-100 rounded-sm shrink-0">
                     <AvatarImage src={staff.avatar} className="object-cover" />
-                    <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary rounded-xl">
+                    <AvatarFallback className="text-lg font-bold bg-primary/10 text-primary rounded-sm">
                       {staff.name.substring(0, 2)}
                     </AvatarFallback>
                   </Avatar>
@@ -787,10 +787,10 @@ export default function FieldServiceStaffDetails() {
                 {/* Right: Actions & Status */}
                 <div className="flex items-center shrink-0 gap-5">
                   <div 
-                    className="flex items-center gap-2.5 cursor-pointer group hover:bg-gray-50 px-2.5 py-1.5 -mx-1 rounded-lg transition-colors"
+                    className="flex items-center gap-2.5 cursor-pointer group hover:bg-gray-50 px-2.5 py-1.5 -mx-1 rounded transition-colors"
                     onClick={() => setLocation(`/workforce/pending/${staff.staffId || staff.id}`)}
                   >
-                    <div className="h-8 w-8 rounded-lg bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
+                    <div className="h-8 w-8 rounded bg-gray-100 group-hover:bg-blue-50 flex items-center justify-center transition-colors">
                       <Edit className="h-3.5 w-3.5 text-gray-500 group-hover:text-blue-600 transition-colors" />
                     </div>
                     <div className="flex flex-col justify-center">
@@ -817,7 +817,7 @@ export default function FieldServiceStaffDetails() {
                   <div className="relative z-10">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <div className="flex items-center justify-between cursor-pointer group hover:bg-gray-50 px-2 py-1 -mx-2 rounded-lg transition-colors">
+                        <div className="flex items-center justify-between cursor-pointer group hover:bg-gray-50 px-2 py-1 -mx-2 rounded transition-colors">
                           <div className="flex flex-col justify-center pt-0.5">
                             <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-none mb-1.5 min-w-[100px]">Employment</span>
                             <div className="flex items-center gap-1.5">
@@ -834,17 +834,17 @@ export default function FieldServiceStaffDetails() {
                           <ChevronDown className="h-4 w-4 text-gray-400 group-hover:text-gray-600 transition-colors ml-4 shrink-0" />
                         </div>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-[140px] rounded-xl p-1 shadow-md border-gray-200">
-                        <DropdownMenuItem className="flex items-center justify-between text-[13px] font-bold text-gray-700 hover:text-green-700 hover:bg-green-50 rounded-lg cursor-pointer" onClick={() => initiateStatusChange("Active")}>
+                      <DropdownMenuContent align="end" className="w-[140px] rounded-sm p-1 shadow-md border-gray-200">
+                        <DropdownMenuItem className="flex items-center justify-between text-[13px] font-bold text-gray-700 hover:text-green-700 hover:bg-green-50 rounded cursor-pointer" onClick={() => initiateStatusChange("Active")}>
                           Active {staff.employmentStatus === "Active" && <Check className="h-4 w-4 text-green-600 opacity-80" />}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("On Leave")}>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-amber-700 hover:bg-amber-50 rounded cursor-pointer mt-0.5" onClick={() => initiateStatusChange("On Leave")}>
                           On Leave {staff.employmentStatus === "On Leave" && <Check className="h-4 w-4 text-amber-600 opacity-80" />}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Suspended")}>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-700 hover:text-red-600 hover:bg-red-50 rounded cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Suspended")}>
                           Suspended {staff.employmentStatus === "Suspended" && <Check className="h-4 w-4 text-red-600 opacity-80" />}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Inactive")}>
+                        <DropdownMenuItem className="text-[13px] font-bold tracking-wide text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded cursor-pointer mt-0.5" onClick={() => initiateStatusChange("Inactive")}>
                           Inactive {staff.employmentStatus === "Inactive" && <Check className="h-4 w-4 text-gray-500 opacity-80" />}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -895,42 +895,42 @@ export default function FieldServiceStaffDetails() {
               <TabsList className="flex flex-col bg-transparent border-0 h-auto p-0 items-stretch space-y-1 w-full text-left">
                     <TabsTrigger
                       value="overview"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
                     >
                       <User className="h-4 w-4 mr-3 opacity-70" />
                       Overview
                     </TabsTrigger>
                     <TabsTrigger
                       value="schedule"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
                     >
                       <CalendarCheck className="h-4 w-4 mr-3 opacity-70" />
                       Schedule
                     </TabsTrigger>
                     <TabsTrigger
                       value="availability"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
                     >
                       <Clock className="h-4 w-4 mr-3 opacity-70" />
                       Availability
                     </TabsTrigger>
                     <TabsTrigger
                       value="compliance"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
                     >
                       <ShieldCheck className="h-4 w-4 mr-3 opacity-70" />
                       Compliance
                     </TabsTrigger>
                     <TabsTrigger
                       value="compensation"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
                     >
                       <Banknote className="h-4 w-4 mr-3 opacity-70" />
                       Compensation
                     </TabsTrigger>
                     <TabsTrigger
                       value="activity"
-                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-xl transition-all"
+                      className="data-[state=active]:bg-white data-[state=active]:text-blue-700 data-[state=active]:shadow-sm data-[state=active]:ring-1 data-[state=active]:ring-gray-200/50 data-[state=active]:font-semibold text-gray-500 hover:bg-gray-100/50 hover:text-gray-900 justify-start w-full px-3.5 py-2.5 h-auto text-sm font-medium rounded-sm transition-all"
                     >
                       <Activity className="h-4 w-4 mr-3 opacity-70" />
                       Activity
@@ -948,7 +948,7 @@ export default function FieldServiceStaffDetails() {
             <div className="flex flex-col xl:flex-row gap-6">
 
               {/* ── LEFT: Property Grid ──────────────────────────── */}
-              <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+              <div className="flex-1 min-w-0 bg-white border border-gray-200 rounded-sm overflow-hidden shadow-sm">
 
                 {/* Section 1: Personal Details */}
                 <div className="px-6 py-6">
@@ -1037,7 +1037,7 @@ export default function FieldServiceStaffDetails() {
               <div className="w-full xl:w-80 shrink-0 flex flex-col gap-5">
 
                 {/* Today's Schedule */}
-                <div className="bg-white border border-gray-200/70 rounded-xl overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                <div className="bg-white border border-gray-200/70 rounded-sm overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
                   <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30">
                     <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Today's Schedule</h3>
                     <span className="text-[10px] font-medium text-gray-400">Dec 23</span>
@@ -1103,7 +1103,7 @@ export default function FieldServiceStaffDetails() {
                 </div>
 
                 {/* Recent Activity */}
-                <div className="bg-white border border-gray-200/70 rounded-xl overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                <div className="bg-white border border-gray-200/70 rounded-sm overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
                   <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/30">
                     <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Recent Activity</h3>
                   </div>
@@ -1130,7 +1130,7 @@ export default function FieldServiceStaffDetails() {
                 </div>
 
                 {/* Performance Snapshot */}
-                <div className="bg-white border border-gray-200/70 rounded-xl overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                <div className="bg-white border border-gray-200/70 rounded-sm overflow-hidden shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
                   <div className="px-5 py-4 border-b border-gray-100 bg-gray-50/30">
                     <h3 className="text-[11px] font-bold text-gray-500 uppercase tracking-widest">Performance This Month</h3>
                   </div>
@@ -1166,7 +1166,7 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="schedule" className="mt-0 space-y-4">
             {/* Schedule Summary Strip */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <BarChart3 className="h-4 w-4 text-gray-400" />
@@ -1190,7 +1190,7 @@ export default function FieldServiceStaffDetails() {
             </div>
 
             {/* Assignments Table & Calendar */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden flex flex-col">
               {/* Header with Search & Filters */}
               <div className="px-6 py-4 border-b border-gray-100 flex flex-col xl:flex-row xl:items-center justify-between gap-4 bg-white">
                 <div className="flex items-center gap-4">
@@ -1201,18 +1201,18 @@ export default function FieldServiceStaffDetails() {
                       placeholder="Search bookings..." 
                       value={scheduleSearch}
                       onChange={(e) => { setScheduleSearch(e.target.value); setSchedulePage(1); }}
-                      className="h-8 pl-8 text-xs border-gray-200 shadow-sm w-full sm:w-[220px] rounded-lg bg-gray-50/50 hover:bg-white transition-colors focus-visible:bg-white font-medium" 
+                      className="h-8 pl-8 text-xs border-gray-200 shadow-sm w-full sm:w-[220px] rounded bg-gray-50/50 hover:bg-white transition-colors focus-visible:bg-white font-medium" 
                     />
                   </div>
                   <div className="w-px h-6 bg-gray-200 hidden sm:block" />
-                  <div className="flex items-center gap-1.5 bg-gray-100/80 p-1 rounded-lg">
-                    <button onClick={() => setScheduleView('list')} className={`px-2.5 py-1.5 rounded-md text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'list' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
+                  <div className="flex items-center gap-1.5 bg-gray-100/80 p-1 rounded">
+                    <button onClick={() => setScheduleView('list')} className={`px-2.5 py-1.5 rounded-sm text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'list' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
                       <List className="h-3.5 w-3.5"/> List
                     </button>
-                    <button onClick={() => { setScheduleView('kanban'); if (scheduleDateFilter === 'all' || scheduleDateFilter === 'this_month' || scheduleDateFilter === 'last_7' || scheduleDateFilter === 'last_30' || scheduleDateFilter === 'custom') { setScheduleDateFilter('today'); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); } }} className={`px-2.5 py-1.5 rounded-md text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'kanban' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
+                    <button onClick={() => { setScheduleView('kanban'); if (scheduleDateFilter === 'all' || scheduleDateFilter === 'this_month' || scheduleDateFilter === 'last_7' || scheduleDateFilter === 'last_30' || scheduleDateFilter === 'custom') { setScheduleDateFilter('today'); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); } }} className={`px-2.5 py-1.5 rounded-sm text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'kanban' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
                       <Kanban className="h-3.5 w-3.5"/> Kanban
                     </button>
-                    <button onClick={() => setScheduleView('calendar')} className={`px-2.5 py-1.5 rounded-md text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'calendar' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
+                    <button onClick={() => setScheduleView('calendar')} className={`px-2.5 py-1.5 rounded-sm text-xs font-extrabold flex items-center gap-1.5 transition-all ${scheduleView === 'calendar' ? 'bg-white text-gray-900 shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'}`}>
                       <CalendarDays className="h-3.5 w-3.5"/> Calendar
                     </button>
                   </div>
@@ -1225,12 +1225,12 @@ export default function FieldServiceStaffDetails() {
                     /* ── Full Date Range Picker (List only) ── */
                     <Popover>
                       <PopoverTrigger asChild>
-                        <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded-lg shrink-0 ${scheduleDateFilter !== 'all' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
+                        <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded shrink-0 ${scheduleDateFilter !== 'all' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
                           <CalendarDays className="h-3 w-3" />
                           <span className="hidden sm:inline">{dateFilterLabel}</span>
                         </Button>
                       </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0 rounded-xl shadow-xl border-gray-100" align="end">
+                      <PopoverContent className="w-auto p-0 rounded-sm shadow-xl border-gray-100" align="end">
                         <div className="flex">
                           {/* Quick Presets */}
                           <div className="w-[160px] border-r border-gray-100 p-2 space-y-0.5">
@@ -1247,7 +1247,7 @@ export default function FieldServiceStaffDetails() {
                               <button
                                 key={opt.value}
                                 onClick={() => { setScheduleDateFilter(opt.value); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); setSchedulePage(1); }}
-                                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs font-medium transition-colors ${
+                                className={`w-full text-left px-2.5 py-2 rounded text-xs font-medium transition-colors ${
                                   scheduleDateFilter === opt.value
                                     ? 'bg-blue-50 text-blue-700 font-bold'
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
@@ -1286,7 +1286,7 @@ export default function FieldServiceStaffDetails() {
                   {/* ── Kanban View Controls ── */}
                   {scheduleView === 'kanban' && (
                     /* ── Compact Date Pill Chips (Kanban only — narrow ranges to prevent overload) ── */
-                    <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded-lg">
+                    <div className="flex items-center gap-1 bg-gray-100/80 p-1 rounded">
                       {[
                         { label: "Today", value: "today" },
                         { label: "Tomorrow", value: "tomorrow" },
@@ -1295,7 +1295,7 @@ export default function FieldServiceStaffDetails() {
                         <button
                           key={opt.value}
                           onClick={() => { setScheduleDateFilter(opt.value); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); }}
-                          className={`px-2.5 py-1.5 rounded-md text-[11px] font-bold transition-all whitespace-nowrap ${
+                          className={`px-2.5 py-1.5 rounded-sm text-[11px] font-bold transition-all whitespace-nowrap ${
                             scheduleDateFilter === opt.value
                               ? 'bg-white text-blue-700 shadow-sm ring-1 ring-blue-200/50'
                               : 'text-gray-500 hover:text-gray-700 hover:bg-gray-200/50'
@@ -1310,34 +1310,34 @@ export default function FieldServiceStaffDetails() {
                   {/* ── Calendar View Controls ── */}
                   {scheduleView === 'calendar' && (
                     <div className="flex items-center gap-1.5 mr-2">
-                       <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 shadow-sm rounded-lg bg-white px-3" onClick={() => setCalendarMonth(new Date(2025, 11, 1))}>
+                       <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 shadow-sm rounded bg-white px-3" onClick={() => setCalendarMonth(new Date(2025, 11, 1))}>
                          Today
                        </Button>
                        <div className="w-px h-5 bg-gray-200" />
-                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded-lg" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>
+                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1))}>
                          <ChevronLeft className="h-4 w-4 text-gray-500" />
                        </Button>
                        <span className="text-xs font-bold text-gray-900 w-32 text-center select-none">{format(calendarMonth, "MMMM yyyy")}</span>
-                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded-lg" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}>
+                       <Button variant="outline" size="icon" className="h-8 w-8 border-gray-200 shadow-sm rounded" onClick={() => setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1))}>
                          <ChevronRight className="h-4 w-4 text-gray-500" />
                        </Button>
                     </div>
                   )}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 gap-1.5 shadow-sm rounded-lg bg-white shrink-0">
+                      <Button variant="outline" size="sm" className="h-8 text-xs font-bold border-gray-200 text-gray-600 gap-1.5 shadow-sm rounded bg-white shrink-0">
                         <Download className="h-3 w-3" />
                         <span className="hidden sm:inline">Export</span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[180px] rounded-xl shadow-lg border-gray-100 p-1.5">
+                    <DropdownMenuContent align="end" className="w-[180px] rounded-sm shadow-lg border-gray-100 p-1.5">
                       <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 px-2 py-1.5">Export Format</DropdownMenuLabel>
                       <DropdownMenuSeparator className="mx-1" />
-                      <DropdownMenuItem onClick={() => toast("Exporting CSV", { description: "Your schedule report is being exported as CSV." })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                      <DropdownMenuItem onClick={() => toast("Exporting CSV", { description: "Your schedule report is being exported as CSV." })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
                         <FileText className="h-3.5 w-3.5 text-green-600" />
                         Export as CSV
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => toast("Exporting PDF", { description: "Your schedule report is being exported as PDF." })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                      <DropdownMenuItem onClick={() => toast("Exporting PDF", { description: "Your schedule report is being exported as PDF." })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
                         <FileIcon className="h-3.5 w-3.5 text-red-500" />
                         Export as PDF
                       </DropdownMenuItem>
@@ -1345,20 +1345,20 @@ export default function FieldServiceStaffDetails() {
                   </DropdownMenu>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded-lg shrink-0 ${scheduleFilterStatus !== 'All' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
+                      <Button variant="outline" size="sm" className={`h-8 text-xs font-bold gap-1.5 shadow-sm rounded shrink-0 ${scheduleFilterStatus !== 'All' ? 'border-blue-300 bg-blue-50/50 text-blue-700' : 'border-gray-200 text-gray-600 bg-white'}`}>
                         <Filter className="h-3 w-3" />
                         <span className="hidden sm:inline">
                           {scheduleFilterStatus === "All" ? "Filter" : scheduleFilterStatus}
                         </span>
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-[180px] rounded-xl shadow-lg border-gray-100 p-1.5">
+                    <DropdownMenuContent align="end" className="w-[180px] rounded-sm shadow-lg border-gray-100 p-1.5">
                       <DropdownMenuLabel className="text-[10px] font-extrabold uppercase tracking-widest text-gray-400 px-2 py-1.5">Filter by Status</DropdownMenuLabel>
                       <DropdownMenuSeparator className="mx-1" />
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("All"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "All" ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600'}`}>All Assignments</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("In Progress"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "In Progress" ? 'bg-amber-50 text-amber-700 font-bold' : 'text-gray-600'}`}>In Progress</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Scheduled"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "Scheduled" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600'}`}>Scheduled</DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Completed"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 ${scheduleFilterStatus === "Completed" ? 'bg-green-50 text-green-700 font-bold' : 'text-gray-600'}`}>Completed</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("All"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "All" ? 'bg-gray-100 text-gray-900 font-bold' : 'text-gray-600'}`}>All Assignments</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("In Progress"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "In Progress" ? 'bg-amber-50 text-amber-700 font-bold' : 'text-gray-600'}`}>In Progress</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Scheduled"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "Scheduled" ? 'bg-blue-50 text-blue-700 font-bold' : 'text-gray-600'}`}>Scheduled</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => { setScheduleFilterStatus("Completed"); setSchedulePage(1); }} className={`text-xs font-medium cursor-pointer rounded px-2.5 py-2 ${scheduleFilterStatus === "Completed" ? 'bg-green-50 text-green-700 font-bold' : 'text-gray-600'}`}>Completed</DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -1463,19 +1463,19 @@ export default function FieldServiceStaffDetails() {
                         <TableCell className="w-[50px] pr-4">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-7 w-7 rounded-lg opacity-0 group-hover/row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                              <Button variant="ghost" size="icon" className="h-7 w-7 rounded opacity-0 group-hover/row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-100">
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-[180px] rounded-xl shadow-lg border-gray-100 p-1.5">
-                              <DropdownMenuItem onClick={() => { setSelectedBooking(booking); setBookingDetailOpen(true); }} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                            <DropdownMenuContent align="end" className="w-[180px] rounded-sm shadow-lg border-gray-100 p-1.5">
+                              <DropdownMenuItem onClick={() => { setSelectedBooking(booking); setBookingDetailOpen(true); }} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
                                 <Eye className="h-3.5 w-3.5 text-blue-500" /> View Details
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => toast("Reassign", { description: `Opens reassignment flow for ${booking.id}` })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-gray-600 flex items-center gap-2">
+                              <DropdownMenuItem onClick={() => toast("Reassign", { description: `Opens reassignment flow for ${booking.id}` })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-gray-600 flex items-center gap-2">
                                 <Repeat className="h-3.5 w-3.5 text-purple-500" /> Reassign Staff
                               </DropdownMenuItem>
                               <DropdownMenuSeparator className="mx-1" />
-                              <DropdownMenuItem onClick={() => toast.error("Cancelled", { description: `${booking.id} has been cancelled.` })} className="text-xs font-medium cursor-pointer rounded-lg px-2.5 py-2 text-red-600 flex items-center gap-2">
+                              <DropdownMenuItem onClick={() => toast.error("Cancelled", { description: `${booking.id} has been cancelled.` })} className="text-xs font-medium cursor-pointer rounded px-2.5 py-2 text-red-600 flex items-center gap-2">
                                 <X className="h-3.5 w-3.5" /> Cancel Booking
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -1496,7 +1496,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
                           onClick={() => setSchedulePage(1)}
                           disabled={safeSchedulePage === 1}
                         >
@@ -1505,7 +1505,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
                           onClick={() => setSchedulePage(p => Math.max(1, p - 1))}
                           disabled={safeSchedulePage === 1}
                         >
@@ -1517,7 +1517,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
                           onClick={() => setSchedulePage(p => Math.min(scheduleTotalPages, p + 1))}
                           disabled={safeSchedulePage === scheduleTotalPages}
                         >
@@ -1526,7 +1526,7 @@ export default function FieldServiceStaffDetails() {
                         <Button
                           variant="outline"
                           size="icon"
-                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded-lg"
+                          className="h-8 w-8 text-gray-500 hover:text-gray-900 border-gray-200 bg-white shadow-sm rounded"
                           onClick={() => setSchedulePage(scheduleTotalPages)}
                           disabled={safeSchedulePage === scheduleTotalPages}
                         >
@@ -1546,7 +1546,7 @@ export default function FieldServiceStaffDetails() {
                           <Button 
                             variant="outline" 
                             size="sm" 
-                            className="text-gray-600 border-gray-200 shadow-sm h-8 rounded-lg text-xs font-bold mt-2"
+                            className="text-gray-600 border-gray-200 shadow-sm h-8 rounded text-xs font-bold mt-2"
                             onClick={() => { setScheduleSearch(""); setScheduleFilterStatus("All"); setScheduleDateFilter("all"); setScheduleDateFrom(undefined); setScheduleDateTo(undefined); }}
                           >
                             Clear Filters
@@ -1584,7 +1584,7 @@ export default function FieldServiceStaffDetails() {
                         </div>
                         <div className="grid grid-cols-7 gap-2">
                           {days.map((date, i) => {
-                            if (!date) return <div key={i} className="min-h-[100px] bg-gray-50/50 rounded-lg border border-transparent" />;
+                            if (!date) return <div key={i} className="min-h-[100px] bg-gray-50/50 rounded border border-transparent" />;
                             
                             const dateStr = date.toISOString().split("T")[0];
                             const dayBookings = scheduleBookings.filter(b => 
@@ -1594,7 +1594,7 @@ export default function FieldServiceStaffDetails() {
                             const isToday = dateStr === "2025-12-23"; // Our mock "today"
 
                             return (
-                              <div key={i} className={`min-h-[100px] p-2.5 rounded-lg border flex flex-col transition-colors ${isToday ? 'bg-blue-50/30 border-blue-200 shadow-sm shadow-blue-100' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
+                              <div key={i} className={`min-h-[100px] p-2.5 rounded border flex flex-col transition-colors ${isToday ? 'bg-blue-50/30 border-blue-200 shadow-sm shadow-blue-100' : 'bg-white border-gray-200 hover:border-gray-300'}`}>
                                 <div className="flex items-center justify-between mb-2">
                                   <span className={`text-[11px] font-bold h-6 w-6 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : 'text-gray-700'}`}>
                                     {date.getDate()}
@@ -1610,7 +1610,7 @@ export default function FieldServiceStaffDetails() {
                                     <div 
                                       key={b.id} 
                                       onClick={() => { setSelectedBooking(b); setBookingDetailOpen(true); }}
-                                      className={`p-1.5 rounded-md border text-left cursor-pointer transition-all hover:shadow-sm ${
+                                      className={`p-1.5 rounded-sm border text-left cursor-pointer transition-all hover:shadow-sm ${
                                       b.status === "In Progress" ? "bg-amber-50/80 border-amber-100 hover:border-amber-300" :
                                       b.status === "Scheduled" ? "bg-blue-50/80 border-blue-100 hover:border-blue-300" :
                                       "bg-gray-50 border-gray-200 hover:border-gray-300"
@@ -1644,7 +1644,7 @@ export default function FieldServiceStaffDetails() {
                         return (
                           <div 
                             key={col} 
-                            className={`flex-1 min-w-[320px] max-w-[450px] rounded-xl border p-3 min-h-[400px] max-h-[calc(100vh-380px)] flex flex-col transition-all duration-200 ${isDragOver ? 'bg-blue-50/60 border-blue-300 shadow-[0_0_0_2px_rgba(59,130,246,0.15)] ring-1 ring-blue-200' : 'bg-gray-100/50 border-gray-200/60'}`}
+                            className={`flex-1 min-w-[320px] max-w-[450px] rounded-sm border p-3 min-h-[400px] max-h-[calc(100vh-380px)] flex flex-col transition-all duration-200 ${isDragOver ? 'bg-blue-50/60 border-blue-300 shadow-[0_0_0_2px_rgba(59,130,246,0.15)] ring-1 ring-blue-200' : 'bg-gray-100/50 border-gray-200/60'}`}
                             onDragOver={(e) => { e.preventDefault(); setKanbanDragOverCol(col); }}
                             onDragEnter={(e) => { e.preventDefault(); setKanbanDragOverCol(col); }}
                             onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setKanbanDragOverCol(null); }}
@@ -1669,7 +1669,7 @@ export default function FieldServiceStaffDetails() {
                                   key={b.id} 
                                   draggable
                                   onDragStart={(e) => e.dataTransfer.setData("bookingId", b.id)}
-                                  className="bg-white border border-gray-200 rounded-lg p-3.5 hover:border-blue-300 hover:shadow-md cursor-grab active:cursor-grabbing active:opacity-60 active:scale-[0.98] transition-all group relative"
+                                  className="bg-white border border-gray-200 rounded p-3.5 hover:border-blue-300 hover:shadow-md cursor-grab active:cursor-grabbing active:opacity-60 active:scale-[0.98] transition-all group relative"
                                 >
                                   <div className="absolute top-3 right-2 opacity-0 group-hover:opacity-40 transition-opacity">
                                     <GripVertical className="h-4 w-4 text-gray-400" />
@@ -1697,13 +1697,13 @@ export default function FieldServiceStaffDetails() {
                               {colBookings.length > 8 && (
                                 <button 
                                   onClick={() => { setScheduleView('list'); setScheduleFilterStatus(col === 'Scheduled' || col === 'In Progress' || col === 'Completed' ? col : 'All'); }}
-                                  className="w-full py-2.5 rounded-lg border-2 border-dashed border-blue-200 bg-blue-50/50 text-[11px] font-bold text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all flex items-center justify-center gap-1.5"
+                                  className="w-full py-2.5 rounded border-2 border-dashed border-blue-200 bg-blue-50/50 text-[11px] font-bold text-blue-600 hover:bg-blue-50 hover:border-blue-300 transition-all flex items-center justify-center gap-1.5"
                                 >
                                   View all {colBookings.length} in List →
                                 </button>
                               )}
                               {colBookings.length === 0 && (
-                                <div className={`h-full min-h-[150px] flex items-center justify-center border-2 border-dashed rounded-lg transition-colors ${isDragOver ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'}`}>
+                                <div className={`h-full min-h-[150px] flex items-center justify-center border-2 border-dashed rounded transition-colors ${isDragOver ? 'border-blue-300 bg-blue-50/30' : 'border-gray-200 bg-gray-50/50'}`}>
                                   <span className={`text-xs font-semibold ${isDragOver ? 'text-blue-500' : 'text-gray-400'}`}>{isDragOver ? `Drop here to mark as ${col}` : `No ${col} assignments`}</span>
                                 </div>
                               )}
@@ -1723,7 +1723,7 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="availability" className="mt-0 space-y-6">
             {/* ── Weekly Schedule ───────────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Clock className="h-4 w-4 text-gray-400" />
@@ -1751,7 +1751,7 @@ export default function FieldServiceStaffDetails() {
                   {mockWeeklySchedule.map((day) => (
                     <div
                       key={day.day}
-                      className={`rounded-lg border p-3 text-center ${
+                      className={`rounded border p-3 text-center ${
                         day.enabled
                           ? "bg-white border-gray-200"
                           : "bg-gray-50 border-gray-100"
@@ -1779,13 +1779,13 @@ export default function FieldServiceStaffDetails() {
             </div>
 
             {/* ── Seasonal Patterns ────────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <CalendarDays className="h-4 w-4 text-gray-400" />
                   Seasonal Patterns
                 </h3>
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded-lg text-xs font-bold">
+                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded text-xs font-bold">
                   <Plus className="h-3 w-3" />
                   Add Pattern
                 </Button>
@@ -1793,7 +1793,7 @@ export default function FieldServiceStaffDetails() {
               <div className="px-6 py-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {mockSeasonalPatterns.map(pattern => (
-                    <div key={pattern.id} className="rounded-lg border border-gray-200 bg-white p-4 space-y-2">
+                    <div key={pattern.id} className="rounded border border-gray-200 bg-white p-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <h4 className="text-sm font-semibold text-gray-900">{pattern.name}</h4>
                         <Badge className="text-xs bg-green-100 text-green-700 hover:bg-green-100 border-0">
@@ -1809,13 +1809,13 @@ export default function FieldServiceStaffDetails() {
             </div>
 
             {/* ── Time Off ─────────────────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Calendar className="h-4 w-4 text-gray-400" />
                   Time Off
                 </h3>
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded-lg text-xs font-bold">
+                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-600 hover:text-gray-900 h-8 rounded text-xs font-bold">
                   <Plus className="h-3 w-3" />
                   Request Leave
                 </Button>
@@ -1873,7 +1873,7 @@ export default function FieldServiceStaffDetails() {
             </div>
 
             {/* ── Advanced Preferences ──────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <TrendingUp className="h-4 w-4 text-gray-400" />
@@ -1937,7 +1937,7 @@ export default function FieldServiceStaffDetails() {
               const valid = activeDocuments.filter(d => d.status === "Valid").length;
               const hasRisk = expired > 0 || expiring > 0;
               return (
-                <div className={`rounded-lg border px-5 py-4 flex items-center justify-between ${hasRisk ? "border-amber-200 bg-amber-100" : "border-green-200 bg-green-100"}`}>
+                <div className={`rounded border px-5 py-4 flex items-center justify-between ${hasRisk ? "border-amber-200 bg-amber-100" : "border-green-200 bg-green-100"}`}>
                   <div className="flex items-center gap-3">
                     <div className={`h-10 w-10 rounded-full flex items-center justify-center ${hasRisk ? "bg-amber-100" : "bg-green-100"}`}>
                       <ShieldCheck className={`h-5 w-5 ${hasRisk ? "text-amber-600" : "text-green-600"}`} />
@@ -1960,7 +1960,7 @@ export default function FieldServiceStaffDetails() {
             })()}
 
             {/* Documents & Certifications Table */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <FileText className="h-4 w-4 text-gray-400" />
@@ -1985,7 +1985,7 @@ export default function FieldServiceStaffDetails() {
                       <TableRow key={doc.id} className="hover:bg-gray-50/50">
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
+                            <div className="h-8 w-8 rounded bg-gray-100 flex items-center justify-center shrink-0">
                               <FileIcon className="h-4 w-4 text-gray-500" />
                             </div>
                             <span className="text-sm font-medium">{doc.name}</span>
@@ -2080,7 +2080,7 @@ export default function FieldServiceStaffDetails() {
               const key = `${compMonth.year}-${String(compMonth.month + 1).padStart(2, "0")}`;
               const data = mockMonthlyCompensation[key] || { base: "0", commission: "0", tips: "0", total: "0" };
               return (
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
                   <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-100">
                     {[
                       { label: "Base Salary", value: `${data.base} QAR`, color: "text-gray-900" },
@@ -2099,7 +2099,7 @@ export default function FieldServiceStaffDetails() {
             })()}
 
             {/* Employment Terms */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Briefcase className="h-4 w-4 text-gray-400" />
@@ -2114,7 +2114,7 @@ export default function FieldServiceStaffDetails() {
             </div>
 
             {/* Payout History */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Banknote className="h-4 w-4 text-gray-400" />
@@ -2173,7 +2173,7 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="activity" className="mt-0 space-y-6">
             {/* ── Operational Timeline (Top 10) ────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                   <Activity className="h-4 w-4 text-gray-400" />
@@ -2182,7 +2182,7 @@ export default function FieldServiceStaffDetails() {
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="gap-1.5 text-xs h-8 text-gray-600 border-gray-200 hover:text-gray-900 bg-white shadow-sm rounded-lg font-bold"
+                  className="gap-1.5 text-xs h-8 text-gray-600 border-gray-200 hover:text-gray-900 bg-white shadow-sm rounded font-bold"
                   onClick={() => document.getElementById("full-activity-log")?.scrollIntoView({ behavior: "smooth", block: "start" })}
                 >
                   View Full Activity Log
@@ -2240,7 +2240,7 @@ export default function FieldServiceStaffDetails() {
             <div id="full-activity-log" className="flex flex-wrap items-center gap-3 pt-2">
               {/* Date Range */}
               <Select value={activityDateRange} onValueChange={v => { setActivityDateRange(v); setActivityPage(1); }}>
-                <SelectTrigger className="h-8 w-auto min-w-[150px] border-gray-200 bg-white shadow-sm rounded-md px-2.5 text-xs gap-1">
+                <SelectTrigger className="h-8 w-auto min-w-[150px] border-gray-200 bg-white shadow-sm rounded-sm px-2.5 text-xs gap-1">
                   <SelectValue placeholder="Date range" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2254,7 +2254,7 @@ export default function FieldServiceStaffDetails() {
 
               {/* Event Type */}
               <Select value={activityFilter} onValueChange={v => { setActivityFilter(v); setActivityPage(1); }}>
-                <SelectTrigger className="h-8 w-auto min-w-[170px] border-gray-200 bg-white shadow-sm rounded-md px-2.5 text-xs gap-1">
+                <SelectTrigger className="h-8 w-auto min-w-[170px] border-gray-200 bg-white shadow-sm rounded-sm px-2.5 text-xs gap-1">
                   <SelectValue placeholder="Event type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -2311,7 +2311,7 @@ export default function FieldServiceStaffDetails() {
               const paged = filtered.slice((safePage - 1) * ACTIVITY_PER_PAGE, safePage * ACTIVITY_PER_PAGE);
 
               return (
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                <div className="bg-white border border-gray-200 rounded-sm overflow-hidden">
                   <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
                     <h3 className="text-[11px] font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2.5">
                       <Activity className="h-4 w-4 text-gray-400" />
@@ -2431,7 +2431,7 @@ export default function FieldServiceStaffDetails() {
 
       {/* ─── STATUS CHANGE CONFIRMATION DIALOG ──────────────────────────── */}
       <Dialog open={statusDialogOpen} onOpenChange={setStatusDialogOpen}>
-        <DialogContent className="max-w-md p-6 gap-0 rounded-2xl border-0 shadow-2xl">
+        <DialogContent className="max-w-md p-6 gap-0 rounded border-0 shadow-2xl">
           <div className="flex items-start gap-3 mb-3">
             <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
             <div className="space-y-1.5">
@@ -2444,7 +2444,7 @@ export default function FieldServiceStaffDetails() {
 
           <div className="pl-8 mb-6">
             {/* Impact Warning Block */}
-            <div className="bg-amber-50/60 border border-amber-200/60 rounded-xl p-4 space-y-3">
+            <div className="bg-amber-50/60 border border-amber-200/60 rounded-sm p-4 space-y-3">
               <h4 className="font-bold text-amber-800 text-[13px] flex items-center gap-2 tracking-wide">
                 <Info className="h-4 w-4" /> Impact on Current Operation
               </h4>
@@ -2467,7 +2467,7 @@ export default function FieldServiceStaffDetails() {
                   <Label className="text-xs font-semibold text-gray-700">Start Date</Label>
                   <Input
                     type="date"
-                    className="h-9 rounded-lg"
+                    className="h-9 rounded"
                     value={leaveDates.start}
                     onChange={e =>
                       setLeaveDates({ ...leaveDates, start: e.target.value })
@@ -2478,7 +2478,7 @@ export default function FieldServiceStaffDetails() {
                   <Label className="text-xs font-semibold text-gray-700">End Date (Optional)</Label>
                   <Input
                     type="date"
-                    className="h-9 rounded-lg"
+                    className="h-9 rounded"
                     value={leaveDates.end}
                     onChange={e =>
                       setLeaveDates({ ...leaveDates, end: e.target.value })
@@ -2492,13 +2492,13 @@ export default function FieldServiceStaffDetails() {
           <div className="flex items-center justify-end gap-3 pt-2">
             <Button
               variant="outline"
-              className="px-5 rounded-lg border-gray-200 text-gray-700 font-semibold shadow-sm hover:bg-gray-50"
+              className="px-5 rounded border-gray-200 text-gray-700 font-semibold shadow-sm hover:bg-gray-50"
               onClick={() => setStatusDialogOpen(false)}
             >
               Cancel
             </Button>
             <Button
-              className="px-5 rounded-lg font-bold shadow-sm bg-[#dc2626] hover:bg-[#b91c1c] text-white border-0"
+              className="px-5 rounded font-bold shadow-sm bg-[#dc2626] hover:bg-[#b91c1c] text-white border-0"
               onClick={confirmStatusChange}
             >
               Unassign Jobs & set {pendingEmploymentStatus}
@@ -2509,7 +2509,7 @@ export default function FieldServiceStaffDetails() {
 
       {/* ── Booking Detail Dialog ───────────────────────────────────────── */}
       <Dialog open={bookingDetailOpen} onOpenChange={setBookingDetailOpen}>
-        <DialogContent className="max-w-md rounded-2xl p-0 overflow-hidden border-gray-200 shadow-2xl">
+        <DialogContent className="max-w-md rounded p-0 overflow-hidden border-gray-200 shadow-2xl">
           {selectedBooking && (
             <>
               <div className="px-6 pt-6 pb-4 border-b border-gray-100">
@@ -2552,7 +2552,7 @@ export default function FieldServiceStaffDetails() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 h-8 text-xs font-bold rounded-lg gap-1.5"
+                  className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300 h-8 text-xs font-bold rounded gap-1.5"
                   onClick={() => { toast.error("Booking cancelled", { description: `${selectedBooking.id} has been cancelled.` }); setBookingDetailOpen(false); }}
                 >
                   <X className="h-3 w-3" /> Cancel Booking
@@ -2561,14 +2561,14 @@ export default function FieldServiceStaffDetails() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-gray-600 border-gray-200 h-8 text-xs font-bold rounded-lg gap-1.5"
+                    className="text-gray-600 border-gray-200 h-8 text-xs font-bold rounded gap-1.5"
                     onClick={() => { toast("Reassign", { description: `Opens reassignment flow for ${selectedBooking.id}` }); }}
                   >
                     <Repeat className="h-3 w-3" /> Reassign
                   </Button>
                   <Button
                     size="sm"
-                    className="h-8 text-xs font-bold rounded-lg gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
+                    className="h-8 text-xs font-bold rounded gap-1.5 bg-blue-600 hover:bg-blue-700 text-white"
                     onClick={() => { toast("Opening booking", { description: `Navigating to ${selectedBooking.id}` }); setBookingDetailOpen(false); }}
                   >
                     <ExternalLink className="h-3 w-3" /> Open Full View
