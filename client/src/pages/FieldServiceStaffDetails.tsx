@@ -64,6 +64,15 @@ import {
   SlidersHorizontal,
   CalendarOff,
   Edit3,
+  Zap,
+  Shield,
+  Timer,
+  History,
+  Truck,
+  Ban,
+  RotateCcw,
+  FileWarning,
+  Gauge,
 } from "lucide-react";
 import {
   Select,
@@ -109,6 +118,8 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 // ─── Types & Enums ───────────────────────────────────────────────────────────
 
 type EmploymentStatus = "Active" | "On Leave" | "Suspended" | "Inactive";
@@ -381,7 +392,20 @@ const mockAdvancedPreferences = {
   overtimeWilling: true,
   breakPreference: "1 hr midday",
   maxDailyHours: 10,
+  maxWeeklyHours: 48,
+  minRestBetweenShifts: 12,
+  travelBufferMins: 30,
 };
+
+const mockRecurringOffs = [
+  { id: 1, name: "Friday Weekly Off", rule: "Every Friday", type: "Weekly", status: "Active" },
+  { id: 2, name: "Alternate Saturday", rule: "2nd & 4th Saturday", type: "Monthly", status: "Active" },
+];
+
+const mockScheduleOverrides = [
+  { id: 1, date: "2025-12-26", type: "Start Late", time: "10:00 – 15:00", reason: "Medical Appointment", status: "Approved" },
+  { id: 2, date: "2026-01-08", type: "Extended Hours", time: "07:00 – 18:00", reason: "Event Operations", status: "Approved" },
+];
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -524,6 +548,15 @@ export default function FieldServiceStaffDetails() {
   const [calendarPopoverBooking, setCalendarPopoverBooking] = useState<typeof mockBookings[0] | null>(null);
   const [bookingDetailOpen, setBookingDetailOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<typeof mockBookings[0] | null>(null);
+
+  // ─── Availability Modals State ───────────────────────────────────────────
+  const [isEditBaseScheduleOpen, setIsEditBaseScheduleOpen] = useState(false);
+  const [isAddRecurringOffOpen, setIsAddRecurringOffOpen] = useState(false);
+  const [isAddScheduleOverrideOpen, setIsAddScheduleOverrideOpen] = useState(false);
+  const [isLogTimeOffOpen, setIsLogTimeOffOpen] = useState(false);
+  const [isAssignPolicyOpen, setIsAssignPolicyOpen] = useState(false);
+  const [isEditRulesOpen, setIsEditRulesOpen] = useState(false);
+  const [isConfigSystemOpen, setIsConfigSystemOpen] = useState(false);
 
   // ─── Sort Handler ───────────────────────────────────────────────────────
   const handleScheduleSort = (column: typeof scheduleSortColumn) => {
@@ -1747,115 +1780,126 @@ export default function FieldServiceStaffDetails() {
           ══════════════════════════════════════════════════════════════════ */}
           <TabsContent value="availability" className="mt-0 space-y-6">
             
-            {/* ── Top Level Context ───────────────────────────────────────── */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Real-time Status Card */}
-              <div className="bg-white border border-green-200 rounded-xl p-5 shadow-sm shadow-green-100/50 flex flex-col relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-1 h-full bg-green-500 rounded-l-xl"></div>
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900">Current Status</h3>
-                    <p className="text-[11px] text-gray-500 mt-1">Real-time dispatch status</p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 shadow-sm shadow-green-200/50 flex items-center">
-                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-2 flex-shrink-0 relative">
-                        <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
-                    </span>
-                    Available Now
-                  </Badge>
-                </div>
-                <div className="mt-auto space-y-2">
-                  <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-gray-400" />
-                      <p className="text-[13px] text-gray-700"><strong className="text-gray-900">Next Shift:</strong> Tomorrow, 08:00 AM</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                      <MapPin className="w-3.5 h-3.5 text-gray-400" />
-                      <p className="text-[13px] text-gray-700"><strong className="text-gray-900">Location:</strong> Pearl Qatar (Zone 1)</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Shift Configuration Card */}
-              <div className="col-span-1 md:col-span-2 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col hover:border-blue-200 transition-colors">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-900">Shift Configuration</h3>
-                    <p className="text-[11px] text-gray-500 mt-1">Primary schedule pattern and total assigned hours</p>
-                  </div>
-                  <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs font-bold border-gray-200 text-gray-600 hover:text-gray-900">
-                    <Settings2 className="h-3 w-3" />
-                    Configure System
-                  </Button>
-                </div>
+            {/* 1. Availability Status Summary */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex flex-col relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-green-500"></div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 
-                <div className="mt-auto grid grid-cols-3 gap-4">
-                  <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">System Type</p>
-                    <p className="text-sm font-bold text-blue-700">Fixed Hours</p>
+                <div className="flex items-start gap-4 flex-1">
+                  <div className="h-12 w-12 rounded-full bg-green-100/50 flex items-center justify-center border border-green-200 shrink-0">
+                    <ShieldCheck className="h-6 w-6 text-green-600" />
                   </div>
-                  <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100">
-                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Standard Day</p>
-                    <p className="text-[13px] font-medium text-gray-900">08:00 - 17:00</p>
-                  </div>
-                  <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-100 flex items-center justify-between">
-                    <div>
-                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5">Weekly Load</p>
-                        <p className="text-[13px] font-bold text-gray-900">45h <span className="text-gray-500 font-medium">/ 40h net</span></p>
+                  <div>
+                    <div className="flex items-center gap-3 mb-1.5">
+                      <h3 className="text-lg font-bold text-gray-900 leading-none">Available for Dispatch</h3>
+                      <Badge className="bg-green-100 text-green-700 hover:bg-green-100 border-green-200 shadow-sm shadow-green-200/50 flex items-center px-2 py-0.5 text-xs">
+                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 flex-shrink-0 relative">
+                            <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+                        </span>
+                        Active Status
+                      </Badge>
                     </div>
+                    <p className="text-[13px] text-gray-600 font-medium">Available today until 15:00 <span className="text-gray-300 mx-2">|</span> Next available: Sun, 07:00 AM</p>
                   </div>
                 </div>
+
+                <div className="flex flex-col md:flex-row gap-4 md:gap-8 bg-gray-50/50 rounded-xl p-4 border border-gray-100">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Shift Pattern</span>
+                    <span className="text-sm font-bold text-gray-900 truncate max-w-[150px]">Fixed Hours AM</span>
+                  </div>
+                  <div className="hidden md:block w-px bg-gray-200" />
+                  <div className="flex flex-col gap-1">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Weekly Capacity</span>
+                    <span className="text-sm font-bold text-gray-900">45h Total <span className="text-gray-500 text-xs font-semibold ml-1">(40h Net)</span></span>
+                  </div>
+                  <div className="hidden md:block w-px bg-gray-200" />
+                  <div className="flex flex-col gap-1 pr-2">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Upcoming Time Off</span>
+                    <span className="text-sm font-bold text-amber-600 flex items-center gap-1.5">
+                      <CalendarOff className="h-3.5 w-3.5" /> Dec 28 (7 days)
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+              
+              <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-6">
+                 <div className="flex items-center gap-2">
+                    <Zap className={mockAdvancedPreferences.emergencyAvailability ? "h-3.5 w-3.5 text-blue-500" : "h-3.5 w-3.5 text-gray-400"} />
+                    <span className={`text-[11px] font-bold ${mockAdvancedPreferences.emergencyAvailability ? "text-blue-700" : "text-gray-500"}`}>
+                        Emergency Operations {mockAdvancedPreferences.emergencyAvailability ? "Enabled" : "Disabled"}
+                    </span>
+                 </div>
+                 <div className="w-1 h-1 rounded-full bg-gray-300" />
+                 <div className="flex items-center gap-2">
+                    <Clock className={mockAdvancedPreferences.overtimeWilling ? "h-3.5 w-3.5 text-indigo-500" : "h-3.5 w-3.5 text-gray-400"} />
+                    <span className={`text-[11px] font-bold ${mockAdvancedPreferences.overtimeWilling ? "text-indigo-700" : "text-gray-500"}`}>
+                        Overtime {mockAdvancedPreferences.overtimeWilling ? "Approved" : "Declined"}
+                    </span>
+                 </div>
               </div>
             </div>
 
-            {/* ── Working Schedule ───────────────────────────────────────────── */}
+            {/* 2. Base Working Schedule */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                 <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center border border-blue-200">
-                        <Calendar className="h-4 w-4" />
+                        <CalendarDays className="h-4 w-4" />
                     </div>
                     <div>
-                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Active Weekly Schedule</h3>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Primary dispatch availability across the week</p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Base Working Schedule</h3>
+                          <Badge variant="outline" className="bg-white text-gray-500 border-gray-200 shadow-none text-[9px] uppercase font-bold px-1.5 py-0">Fixed Shift</Badge>
+                        </div>
+                        <p className="text-[11px] text-gray-500">Default operational availability assigned during onboarding</p>
                     </div>
                 </div>
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm"
+                  onClick={() => setIsEditBaseScheduleOpen(true)}
+                >
                   <Edit3 className="h-3.5 w-3.5" />
-                  Edit Schedule
+                  Edit Base Schedule
                 </Button>
               </div>
-              <div className="p-6 bg-white">
-                <div className="grid grid-cols-2 lg:grid-cols-7 gap-3">
+              <div className="p-6">
+                <div className="grid grid-cols-2 lg:grid-cols-7 gap-3 relative">
+                  {/* Visual connector line for active days */}
+                  <div className="absolute top-[48px] left-8 right-8 h-[2px] bg-blue-100/50 -z-10 hidden lg:block" />
+                  
                   {mockWeeklySchedule.map((day) => {
                     const isActive = day.enabled;
                     return (
                         <div
                             key={day.day}
                             className={`
-                                flex flex-col pt-3 pb-3 px-3 rounded-xl border-2 transition-all min-h-[100px]
-                                ${isActive ? "bg-white border-blue-100 shadow-[0_2px_10px_-3px_rgba(59,130,246,0.1)] hover:border-blue-300" : "bg-gray-50/50 border-gray-100 opacity-80"}
+                                flex flex-col pt-3 pb-3 px-3 rounded-xl border-2 transition-all min-h-[110px] relative bg-white
+                                ${isActive ? "border-blue-100 shadow-sm" : "border-gray-100/60 opacity-60"}
                             `}
                         >
-                            <div className="flex items-center justify-between mb-3">
-                                <span className={`text-[13px] font-bold ${isActive ? "text-gray-900" : "text-gray-500"}`}>
+                            <div className="flex items-center justify-between mb-2">
+                                <span className={`text-[12px] font-bold ${isActive ? "text-gray-900" : "text-gray-400"}`}>
                                     {day.day}
                                 </span>
-                                {isActive && <div className="h-2 w-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>}
+                                {isActive && <div className="h-1.5 w-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]"></div>}
                             </div>
                             
                             {isActive ? (
                                 <div className="mt-auto">
-                                    <div className="bg-blue-50 text-blue-700 text-[11px] font-bold px-2.5 py-1.5 rounded-lg inline-block border border-blue-100 mb-2">
+                                    <div className="bg-blue-50/50 text-blue-700 text-[11px] font-bold px-2.5 py-1.5 rounded-md inline-block border border-blue-100/50 mb-2 w-full text-center tracking-wide">
                                         {day.start} - {day.end}
                                     </div>
-                                    <div className="text-[10px] font-semibold text-gray-500 flex items-center gap-1.5">
+                                    <div className="text-[10px] font-semibold text-gray-500 flex items-center justify-center gap-1.5 bg-gray-50 rounded-md py-1 border border-gray-100/80">
                                         <Coffee className="h-3 w-3 shrink-0" /> {day.breakMins}m Break
                                     </div>
                                 </div>
                             ) : (
-                                <div className="mt-auto">
-                                    <span className="text-[11px] font-semibold text-gray-500 bg-gray-100 px-2 py-1 rounded inline-block border border-gray-200">Off Duty</span>
+                                <div className="mt-auto flex justify-center pb-2">
+                                    <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 bg-gray-50 px-3 py-1.5 rounded border border-gray-100">Off Duty</span>
                                 </div>
                             )}
                         </div>
@@ -1865,67 +1909,125 @@ export default function FieldServiceStaffDetails() {
               </div>
             </div>
 
-            {/* ── Seasonal & Special Schedules ────────────────────────────────────────── */}
-            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-orange-100 text-orange-600 flex items-center justify-center border border-orange-200">
-                        <Sun className="h-4 w-4" />
-                    </div>
-                    <div>
-                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Seasonal Adjustments</h3>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Temporary schedule overrides for Ramadan, summer heat, etc.</p>
-                    </div>
-                </div>
-                <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm">
-                  <Plus className="h-3 max-w-3" />
-                  Add Seasonal Rule
-                </Button>
-              </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {mockSeasonalPatterns.map(pattern => (
-                    <div key={pattern.id} className="rounded-xl border border-orange-100 bg-orange-50/30 p-4 relative overflow-hidden group hover:border-orange-200 transition-colors">
-                        <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:text-gray-700 bg-white shadow-sm border border-gray-100 rounded-md">
-                                <MoreHorizontal className="h-3.5 w-3.5" />
-                            </Button>
-                        </div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="h-10 w-10 rounded-full bg-orange-100/80 flex items-center justify-center shrink-0 border border-orange-200">
-                           {pattern.name.includes("Ramadan") ? <Moon className="h-4 w-4 text-orange-600" /> : <Sun className="h-4 w-4 text-orange-600" />}
-                        </div>
-                        <div>
-                            <h4 className="text-sm font-bold text-gray-900 leading-tight">{pattern.name}</h4>
-                            <span className="text-[11px] font-bold text-orange-600 mt-0.5 block">{pattern.status}</span>
-                        </div>
+            {/* 3 & 4. Recurring Offs & Schedule Overrides Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Recurring Off Pattern / Monthly Off */}
+              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all flex flex-col">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                  <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100">
+                          <Repeat className="h-4 w-4" />
                       </div>
-                      <div className="bg-white rounded-lg p-3 border border-orange-100 shadow-sm space-y-2">
-                          <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-500 font-medium">Effective</span>
-                              <span className="font-bold text-gray-900">{pattern.months}</span>
-                          </div>
-                          <div className="flex justify-between items-center text-xs">
-                              <span className="text-gray-500 font-medium">Adjustment</span>
-                              <span className="font-bold text-gray-900">{pattern.adjustment}</span>
-                          </div>
+                      <div>
+                          <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Recurring Off Patterns</h3>
+                          <p className="text-[11px] text-gray-500 mt-0.5">Automated availability exemptions</p>
                       </div>
-                    </div>
-                  ))}
-                  
-                  {/* Add New Visual */}
-                  <div className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all min-h-[140px]">
-                      <div className="h-8 w-8 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center mb-2">
-                          <Plus className="h-4 w-4 text-gray-400" />
-                      </div>
-                      <span className="text-xs font-bold text-gray-600">Create Adjustment</span>
-                      <span className="text-[10px] text-gray-400 mt-1 max-w-[150px]">Configure new override rule</span>
                   </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-7 w-7 p-0 rounded-lg text-gray-500 hover:text-gray-900"
+                    onClick={() => setIsAddRecurringOffOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="p-0 flex-1 flex flex-col">
+                   {mockRecurringOffs.length > 0 ? (
+                      <div className="divide-y divide-gray-100">
+                        {mockRecurringOffs.map((override) => (
+                          <div key={override.id} className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 flex border-2 border-white rounded-lg bg-gray-100 relative overflow-hidden shadow-sm items-center justify-center">
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">OFF</span>
+                              </div>
+                              <div>
+                                <h4 className="text-[13px] font-bold text-gray-900 leading-tight">{override.name}</h4>
+                                <div className="flex items-center gap-1.5 mt-0.5">
+                                  <Badge variant="outline" className="h-4 px-1 leading-none text-[9px] uppercase bg-white text-gray-500 rounded shadow-none border-gray-200">{override.type}</Badge>
+                                  <span className="text-[11px] font-medium text-gray-500">{override.rule}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 rounded-lg transition-all shadow-none">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                   ) : (
+                     <EmptyState
+                        icon={Repeat}
+                        title="No recurring patterns"
+                        description="Staff follows standard base schedule."
+                      />
+                   )}
                 </div>
               </div>
+
+              {/* Schedule Overrides */}
+              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all flex flex-col">
+                <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                  <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center border border-purple-100">
+                          <RotateCcw className="h-4 w-4" />
+                      </div>
+                      <div>
+                          <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Schedule Overrides</h3>
+                          <p className="text-[11px] text-gray-500 mt-0.5">Date-specific exceptions and adjustments</p>
+                      </div>
+                  </div>
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-7 w-7 p-0 rounded-lg text-gray-500 hover:text-gray-900"
+                    onClick={() => setIsAddScheduleOverrideOpen(true)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="p-0 flex-1 flex flex-col">
+                   {mockScheduleOverrides.length > 0 ? (
+                      <div className="divide-y divide-gray-100">
+                        {mockScheduleOverrides.map((override) => (
+                          <div key={override.id} className="p-4 flex items-center justify-between hover:bg-gray-50/50 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 flex flex-col border border-gray-200 rounded-lg bg-white relative overflow-hidden shadow-sm text-center">
+                                <div className="h-3 w-full bg-red-600"></div>
+                                <span className="text-[12px] font-black text-gray-900 flex-1 flex items-center justify-center leading-none mt-px">
+                                  {new Date(override.date).getDate()}
+                                </span>
+                              </div>
+                              <div>
+                                <h4 className="text-[13px] font-bold text-gray-900 leading-tight">
+                                  {override.type}
+                                  <span className="text-[11px] ml-2 font-semibold text-purple-600 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-100">{override.time}</span>
+                                </h4>
+                                <div className="flex items-center gap-1.5 mt-1">
+                                  <span className="text-[11px] font-medium text-gray-500">{override.reason}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 rounded-lg transition-all shadow-none">
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                   ) : (
+                     <EmptyState
+                        icon={RotateCcw}
+                        title="No schedule overrides"
+                        description="No date-specific exceptions exist."
+                      />
+                   )}
+                </div>
+              </div>
+              
             </div>
 
-            {/* ── Time Off & Leave Management ─────────────────────────────────────────────────── */}
+            {/* 5. Time Off */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                 <div className="flex items-center gap-3">
@@ -1933,18 +2035,26 @@ export default function FieldServiceStaffDetails() {
                         <CalendarOff className="h-4 w-4" />
                     </div>
                     <div>
-                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Leave & Time-Off</h3>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Vacations, sick days, and other reported unavailabilities</p>
+                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Time Off</h3>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Approved and pending operational leave blocks</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm">
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm"
+                    >
                         <History className="h-3.5 w-3.5" />
-                        History
+                        Leave History
                     </Button>
-                    <Button size="sm" className="gap-1.5 h-8 rounded-lg text-xs font-bold bg-gray-900 hover:bg-gray-800 text-white shadow-sm">
+                    <Button 
+                      size="sm" 
+                      className="gap-1.5 h-8 rounded-lg text-xs font-bold bg-gray-900 hover:bg-gray-800 text-white shadow-sm"
+                      onClick={() => setIsLogTimeOffOpen(true)}
+                    >
                         <Plus className="h-3.5 w-3.5" />
-                        Log Time-Off
+                        Request Leave
                     </Button>
                 </div>
               </div>
@@ -1953,44 +2063,47 @@ export default function FieldServiceStaffDetails() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-white hover:bg-white border-b border-gray-100">
-                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11 px-6">Leave Type</TableHead>
-                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11">Duration</TableHead>
-                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11">Days</TableHead>
-                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11">Status</TableHead>
-                      <TableHead className="text-[11px] font-extrabold uppercase tracking-widest text-gray-400 bg-transparent h-11 w-[50px]"></TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-transparent h-10 px-6 w-[200px]">Type</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-transparent h-10">Period</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-transparent h-10 w-[100px] text-center">Duration</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-transparent h-10 w-[120px]">Status</TableHead>
+                      <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-400 bg-transparent h-10 w-[60px]"></TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {mockTimeOff.map(leave => (
                       <TableRow key={leave.id} className="hover:bg-gray-50/50 group/row border-b border-gray-50 last:border-0 transition-colors">
-                        <TableCell className="px-6 py-3.5">
-                            <span className="text-[13px] font-bold text-gray-900 block">{leave.type}</span>
+                        <TableCell className="px-6 py-3">
+                            <span className="text-[13px] font-bold text-gray-900 flex items-center gap-2">
+                               {leave.type === "Sick Leave" ? <div className="w-1.5 h-1.5 rounded-full bg-red-400" /> : <div className="w-1.5 h-1.5 rounded-full bg-blue-400" />}
+                               {leave.type}
+                            </span>
                         </TableCell>
-                        <TableCell className="py-3.5">
+                        <TableCell className="py-3">
                             <div className="flex items-center gap-1.5">
-                                <span className="text-[13px] font-semibold text-gray-700">{leave.from}</span>
-                                <span className="text-gray-300">-</span>
-                                <span className="text-[13px] font-semibold text-gray-700">{leave.to}</span>
+                                <span className="text-[13px] font-semibold text-gray-900">{format(new Date(leave.from), "MMM d, yyyy")}</span>
+                                <span className="text-gray-300 mx-1">→</span>
+                                <span className="text-[13px] font-semibold text-gray-900">{format(new Date(leave.to), "MMM d, yyyy")}</span>
                             </div>
                         </TableCell>
-                        <TableCell className="py-3.5">
-                            <Badge variant="outline" className="bg-white text-gray-600 border-gray-200 text-[11px] font-bold shadow-sm">
-                                {leave.days}
+                        <TableCell className="py-3 text-center">
+                            <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200 text-[11px] font-bold shadow-none rounded">
+                                {leave.days} {leave.days === 1 ? 'Day' : 'Days'}
                             </Badge>
                         </TableCell>
-                        <TableCell className="py-3.5">
+                        <TableCell className="py-3">
                           <Badge
-                            className={`shadow-none border-0 text-[11px] font-bold px-2 py-0.5
-                              ${leave.status === "Approved" ? "bg-green-100 text-green-700 hover:bg-green-100" : 
-                                leave.status === "Pending" ? "bg-amber-100 text-amber-700 hover:bg-amber-100" : 
-                                "bg-red-100 text-red-700 hover:bg-red-100"}
+                            className={`shadow-none border border-transparent text-[11px] font-bold px-2 py-0.5
+                              ${leave.status === "Approved" ? "bg-green-100 border-green-200 text-green-700 hover:bg-green-100" : 
+                                leave.status === "Pending" ? "bg-amber-100 border-amber-200 text-amber-700 hover:bg-amber-100" : 
+                                "bg-red-100 border-red-200 text-red-700 hover:bg-red-100"}
                             `}
                           >
                             {leave.status}
                           </Badge>
                         </TableCell>
-                        <TableCell className="py-3.5 pr-6 w-[50px]">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md opacity-0 group-hover/row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-100">
+                        <TableCell className="py-3 pr-6 text-right">
+                            <Button variant="ghost" size="icon" className="h-7 w-7 rounded-md opacity-0 group-hover/row:opacity-100 transition-opacity text-gray-400 hover:text-gray-700 hover:bg-gray-100 border border-transparent hover:border-gray-200">
                                 <MoreHorizontal className="h-4 w-4" />
                             </Button>
                         </TableCell>
@@ -2008,65 +2121,183 @@ export default function FieldServiceStaffDetails() {
               </div>
             </div>
 
-            {/* ── Dispatch & Availability Overrides ──────────────────────────────────────── */}
+            {/* 6. Special Schedule Policies */}
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
               <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                 <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center border border-indigo-100">
-                        <SlidersHorizontal className="h-4 w-4" />
+                    <div className="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-100">
+                        <FileWarning className="h-4 w-4" />
                     </div>
                     <div>
-                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Dispatch Rules & Constraints</h3>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Emergency buffers, overtime capacity, and hard scheduling limits</p>
+                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Special Schedule Policies</h3>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Automated seasonal and company-wide operational adjustments</p>
                     </div>
                 </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm"
+                  onClick={() => setIsAssignPolicyOpen(true)}
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Manage Policies
+                </Button>
               </div>
               <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-6">
-                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Emergency Availability</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">Can be called for urgent jobs</p>
-                    </div>
-                    <Badge className={mockAdvancedPreferences.emergencyAvailability ? "bg-green-100 text-green-700 hover:bg-green-100 border-0 shadow-none font-bold text-xs" : "bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 shadow-none font-bold text-xs"}>
-                      {mockAdvancedPreferences.emergencyAvailability ? "Opted In" : "Opted Out"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Overtime Willingness</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">Available beyond scheduled hours</p>
-                    </div>
-                    <Badge className={mockAdvancedPreferences.overtimeWilling ? "bg-green-100 text-green-700 hover:bg-green-100 border-0 shadow-none font-bold text-xs" : "bg-gray-100 text-gray-500 hover:bg-gray-100 border-0 shadow-none font-bold text-xs"}>
-                      {mockAdvancedPreferences.overtimeWilling ? "Opted In" : "Opted Out"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Max Daily Hours</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">Hard limit per day algorithm</p>
-                    </div>
-                    <div className="bg-gray-100 border border-gray-200 text-gray-900 text-[11px] font-bold px-2.5 py-1 rounded inline-block">
-                        {mockAdvancedPreferences.maxDailyHours} Hours
-                    </div>
-                  </div>
-                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Shift Preference</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">Preferred assignment priority</p>
-                    </div>
-                    <span className="text-xs font-bold text-gray-700 px-2 py-1 bg-gray-50 rounded border border-gray-100">{mockAdvancedPreferences.shiftPreference}</span>
-                  </div>
-                  <div className="flex items-start justify-between border border-gray-100 rounded-xl p-4 bg-white shadow-sm">
-                    <div>
-                      <p className="text-sm font-bold text-gray-900">Break Preference</p>
-                      <p className="text-[11px] text-gray-500 mt-0.5">Preferred timing structure</p>
-                    </div>
-                    <span className="text-xs font-bold text-gray-700 px-2 py-1 bg-gray-50 rounded border border-gray-100">{mockAdvancedPreferences.breakPreference}</span>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {mockSeasonalPatterns.map(pattern => {
+                    const isRamadan = pattern.name.includes("Ramadan");
+                    return (
+                      <div key={pattern.id} className="rounded-xl border border-emerald-100/50 bg-emerald-50/20 p-4 relative overflow-hidden group hover:border-emerald-200 transition-colors">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center gap-3">
+                            <div className="h-9 w-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200 shadow-sm">
+                              {isRamadan ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                            </div>
+                            <div>
+                                <h4 className="text-sm font-bold text-gray-900 leading-tight">{pattern.name} Schedule</h4>
+                                <span className="text-[11px] font-medium text-emerald-700 mt-0.5 block">{pattern.status} Policy</span>
+                            </div>
+                          </div>
+                          <Badge variant="outline" className="bg-white text-gray-600 border-gray-200 text-[9px] uppercase font-bold px-1.5 py-0 shadow-sm leading-tight h-5">Policy</Badge>
+                        </div>
+                        <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-sm divide-y divide-gray-50">
+                            <div className="flex justify-between items-center text-xs py-1.5">
+                                <span className="text-gray-500 font-semibold">Effective</span>
+                                <span className="font-bold text-gray-900">{pattern.months}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs py-1.5">
+                                <span className="text-gray-500 font-semibold">Adjustment</span>
+                                <span className="font-bold text-gray-900">{pattern.adjustment}</span>
+                            </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                  
+                  {/* Add New Visual */}
+                  <div 
+                    className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all min-h-[140px]"
+                    onClick={() => setIsAssignPolicyOpen(true)}
+                  >
+                      <div className="h-8 w-8 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center mb-2">
+                          <Plus className="h-4 w-4 text-gray-400" />
+                      </div>
+                      <span className="text-xs font-bold text-gray-600">Assign Policy</span>
+                      <span className="text-[10px] text-gray-400 mt-1 max-w-[150px]">Link a company schedule policy</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            {/* 7. Dispatch & Capacity Rules */}
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:border-gray-300 transition-all">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+                <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-slate-900 text-white flex items-center justify-center shadow-sm">
+                        <Gauge className="h-4 w-4" />
+                    </div>
+                    <div>
+                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Dispatch & Capacity Rules</h3>
+                        <p className="text-[11px] text-gray-500 mt-0.5">Algorithm parameters governing automated assignment</p>
+                    </div>
+                </div>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm"
+                  onClick={() => setIsEditRulesOpen(true)}
+                >
+                  <Edit3 className="h-3.5 w-3.5" />
+                  Edit Rules
+                </Button>
+              </div>
+              
+              <div className="p-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                  
+                  {/* Capacity Box */}
+                  <div className="p-6 flex flex-col justify-center space-y-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <Timer className="h-4 w-4 text-gray-400" />
+                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Max Daily</span>
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.maxDailyHours}h</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <CalendarDays className="h-4 w-4 text-gray-400" />
+                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Max Weekly</span>
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.maxWeeklyHours}h</span>
+                    </div>
+                  </div>
+
+                  {/* Operational Box */}
+                  <div className="p-6 flex flex-col justify-center space-y-5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <Coffee className="h-4 w-4 text-gray-400" />
+                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Min Rest</span>
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.minRestBetweenShifts}h</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <Truck className="h-4 w-4 text-gray-400" />
+                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Travel Buffer</span>
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.travelBufferMins}m</span>
+                    </div>
+                  </div>
+
+                  {/* Preference Box */}
+                  <div className="p-6 flex flex-col justify-center lg:col-span-2 bg-gray-50/30">
+                    <div className="flex items-start justify-between bg-white border border-gray-100 rounded-lg p-3 shadow-sm mb-3">
+                      <div>
+                         <p className="text-xs font-bold text-gray-900">Preferred Shift Window</p>
+                         <p className="text-[11px] text-gray-500 mt-0.5">Algorithm prioritizes assignment into this window</p>
+                      </div>
+                      <Badge variant="outline" className="bg-gray-50 text-gray-700 shadow-none border-gray-200 font-bold max-w-[120px] truncate text-center block">
+                        {mockAdvancedPreferences.shiftPreference}
+                      </Badge>
+                    </div>
+                    <div className="flex items-start justify-between bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
+                      <div>
+                         <p className="text-xs font-bold text-gray-900">Break Block Structure</p>
+                         <p className="text-[11px] text-gray-500 mt-0.5">Preferred mandatory mid-shift rest</p>
+                      </div>
+                      <Badge variant="outline" className="bg-gray-50 text-gray-700 shadow-none border-gray-200 font-bold max-w-[120px] truncate text-center block">
+                        {mockAdvancedPreferences.breakPreference}
+                      </Badge>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            {/* 8. Audit Visibility */}
+            <div className="flex items-center justify-between px-2 pt-2 pb-6 border-t border-gray-100 opacity-60 hover:opacity-100 transition-opacity">
+               <div className="flex items-center gap-4 text-[11px] font-medium text-gray-500">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-gray-400 uppercase tracking-widest">Last Updated</span>
+                    <span>March 14, 2026 at 09:23 AM</span>
+                  </div>
+                  <div className="w-1 h-1 rounded-full bg-gray-300" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-bold text-gray-400 uppercase tracking-widest">Modified By</span>
+                    <span className="flex items-center gap-1 text-gray-700 font-semibold"><div className="h-4 w-4 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center text-[8px]">SA</div> System Admin</span>
+                  </div>
+               </div>
+               <div className="text-[11px] text-gray-500 font-medium">
+                  Next scheduled sync: <span className="font-bold text-gray-700">None pending</span>
+               </div>
+            </div>
+
           </TabsContent>
 
           {/* ══════════════════════════════════════════════════════════════════
@@ -2720,6 +2951,280 @@ export default function FieldServiceStaffDetails() {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* ─── AVAILABILITY MODALS ────────────────────────────────────────── */}
+
+      {/* 1. Edit Base Schedule */}
+      <Dialog open={isEditBaseScheduleOpen} onOpenChange={setIsEditBaseScheduleOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Edit Base Schedule</DialogTitle>
+            <DialogDescription>
+              Modify the default operational availability assigned to this staff member.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex items-start gap-3">
+              <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+              <p className="text-[12px] text-blue-800 leading-relaxed">
+                Changes to the base schedule will re-calculate expected capacity. This will not override existing specific date exceptions.
+              </p>
+            </div>
+            <div className="space-y-3">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right text-xs text-gray-500 font-bold">Shift Type</Label>
+                <div className="col-span-3">
+                  <Select defaultValue="fixed">
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select shift type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="fixed">Fixed Hours</SelectItem>
+                      <SelectItem value="flexible">Flexible Window</SelectItem>
+                      <SelectItem value="rotational">Rotational</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right text-xs text-gray-500 font-bold">Standard Day</Label>
+                <div className="col-span-3 flex items-center gap-2">
+                  <Input type="time" defaultValue="08:00" className="flex-1" />
+                  <span className="text-gray-400">to</span>
+                  <Input type="time" defaultValue="17:00" className="flex-1" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditBaseScheduleOpen(false)}>Cancel</Button>
+            <Button onClick={() => { setIsEditBaseScheduleOpen(false); toast.success("Base schedule updated", { description: "The new schedule will apply starting next week."}); }}>Save Schedule</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 2. Add Recurring Off */}
+      <Dialog open={isAddRecurringOffOpen} onOpenChange={setIsAddRecurringOffOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle>Add Recurring Off Pattern</DialogTitle>
+            <DialogDescription>
+              Create automated availability exemptions like monthly off days.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Pattern Name</Label>
+              <Input placeholder="e.g. Alternate Saturday Off" />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Frequency</Label>
+              <Select defaultValue="monthly">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select frequency" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="biweekly">Bi-weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Select Days</Label>
+              <Input placeholder="e.g. 2nd & 4th Saturday" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddRecurringOffOpen(false)}>Cancel</Button>
+            <Button onClick={() => { setIsAddRecurringOffOpen(false); toast.success("Recurring pattern added"); }}>Create Pattern</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 3. Add Schedule Override */}
+      <Dialog open={isAddScheduleOverrideOpen} onOpenChange={setIsAddScheduleOverrideOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle>Create Schedule Override</DialogTitle>
+            <DialogDescription>
+              Add a date-specific availability exception or hours adjustment.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-3">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600 font-bold">Override Type</Label>
+                <Select defaultValue="start_late">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="start_late">Start Late</SelectItem>
+                    <SelectItem value="end_early">End Early</SelectItem>
+                    <SelectItem value="extended">Extended Hours</SelectItem>
+                    <SelectItem value="training">Training Block</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600 font-bold">Date</Label>
+                <Input type="date" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Adjusted Hours</Label>
+              <div className="flex items-center gap-2">
+                <Input type="time" defaultValue="10:00" className="flex-1" />
+                <span className="text-gray-400">to</span>
+                <Input type="time" defaultValue="17:00" className="flex-1" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Reason / Notes</Label>
+              <Textarea placeholder="Medical appointment, event support..." className="resize-none h-20" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAddScheduleOverrideOpen(false)}>Cancel</Button>
+            <Button onClick={() => { setIsAddScheduleOverrideOpen(false); toast.success("Override created successfully"); }}>Save Override</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 4. Log Time Off */}
+      <Dialog open={isLogTimeOffOpen} onOpenChange={setIsLogTimeOffOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle>Request Leave / Time Off</DialogTitle>
+            <DialogDescription>
+              Submit an operational leave block for this staff member.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Leave Type</Label>
+              <Select defaultValue="annual">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="annual">Annual Leave</SelectItem>
+                  <SelectItem value="sick">Sick Leave</SelectItem>
+                  <SelectItem value="personal">Personal Leave</SelectItem>
+                  <SelectItem value="unpaid">Unpaid Leave</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600 font-bold">From Date</Label>
+                <Input type="date" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-gray-600 font-bold">To Date</Label>
+                <Input type="date" />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Operational Note (Optional)</Label>
+              <Textarea placeholder="Add details for dispatchers..." className="resize-none h-20" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsLogTimeOffOpen(false)}>Cancel</Button>
+            <Button onClick={() => { setIsLogTimeOffOpen(false); toast.success("Leave request submitted", { description: "It is now pending admin approval."}); }}>Submit Request</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 5. Assign Policy */}
+      <Dialog open={isAssignPolicyOpen} onOpenChange={setIsAssignPolicyOpen}>
+        <DialogContent className="sm:max-w-[450px]">
+          <DialogHeader>
+            <DialogTitle>Assign Schedule Policy</DialogTitle>
+            <DialogDescription>
+              Link a company-wide operational schedule policy.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-3">
+            <div className="space-y-2">
+              <Label className="text-xs text-gray-600 font-bold">Select Policy Definition</Label>
+              <Select defaultValue="ramadan_26">
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose policy" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ramadan_26">Ramadan Schedule 2026</SelectItem>
+                  <SelectItem value="summer_heat">Summer Heat Adjustment</SelectItem>
+                  <SelectItem value="winter_peak">Winter Peak Hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-start gap-3 mt-2">
+              <Info className="h-4 w-4 text-gray-500 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                Applying a policy will automatically overwrite base schedule parameters during the policy's effective date range. Current overrides will remain unaffected.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAssignPolicyOpen(false)}>Cancel</Button>
+            <Button onClick={() => { setIsAssignPolicyOpen(false); toast.success("Policy assigned"); }}>Apply Policy</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* 6. Edit Dispatch Rules */}
+      <Dialog open={isEditRulesOpen} onOpenChange={setIsEditRulesOpen}>
+        <DialogContent className="sm:max-w-[550px]">
+          <DialogHeader>
+            <DialogTitle>Edit Dispatch & Capacity Rules</DialogTitle>
+            <DialogDescription>
+              Adjust core algorithm parameters for automated scheduling.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5 py-3">
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-4 border border-gray-100 rounded-lg p-4 bg-gray-50/50">
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Capacity Limits</h4>
+                <div className="space-y-2">
+                  <Label className="text-[11px] text-gray-600 font-bold">Max Daily Hours</Label>
+                  <Input type="number" defaultValue={10} min={1} max={16} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] text-gray-600 font-bold">Max Weekly Hours</Label>
+                  <Input type="number" defaultValue={48} min={10} max={80} />
+                </div>
+              </div>
+              
+              <div className="space-y-4 border border-gray-100 rounded-lg p-4 bg-gray-50/50">
+                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Operational Bounds</h4>
+                <div className="space-y-2">
+                  <Label className="text-[11px] text-gray-600 font-bold">Min Rest Between Shifts (hrs)</Label>
+                  <Input type="number" defaultValue={12} min={8} max={24} />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] text-gray-600 font-bold">Travel Buffer (mins)</Label>
+                  <Input type="number" defaultValue={30} step={5} />
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex items-center justify-between border border-gray-100 p-4 rounded-lg">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-bold text-gray-900">Emergency Availability</Label>
+                <p className="text-[11px] text-gray-500">Allow system to bypass certain limits for urgent jobs</p>
+              </div>
+              <Switch defaultChecked={true} />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditRulesOpen(false)}>Cancel</Button>
+            <Button onClick={() => { setIsEditRulesOpen(false); toast.success("Dispatch rules updated and applied."); }}>Save Rules</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
