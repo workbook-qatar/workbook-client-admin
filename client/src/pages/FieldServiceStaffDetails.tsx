@@ -558,6 +558,30 @@ export default function FieldServiceStaffDetails() {
   const [isEditRulesOpen, setIsEditRulesOpen] = useState(false);
   const [isConfigSystemOpen, setIsConfigSystemOpen] = useState(false);
 
+  // ─── Edit Schedule State ────────────────────────────────────────────────
+  const [editShiftSystem, setEditShiftSystem] = useState("Fixed");
+  const [editWorkingDays, setEditWorkingDays] = useState(["Mon", "Tue", "Wed", "Thu", "Sat", "Sun"]);
+  const [editWorkHoursStart, setEditWorkHoursStart] = useState("09:00");
+  const [editWorkHoursEnd, setEditWorkHoursEnd] = useState("17:00");
+  const [editRotationalSchedule, setEditRotationalSchedule] = useState<Record<string, {start: string, end: string}[]>>({
+    Sun: [{start: "06:00", end: "14:00"}, {start: "14:00", end: "22:00"}],
+    Mon: [{start: "06:00", end: "14:00"}, {start: "14:00", end: "22:00"}],
+    Tue: [{start: "06:00", end: "14:00"}, {start: "14:00", end: "22:00"}],
+  });
+
+  // ─── Recurring Off State ────────────────────────────────────────────────
+  const [recurringPatternName, setRecurringPatternName] = useState("");
+  const [recurringFrequency, setRecurringFrequency] = useState("monthly");
+  const [recurringDays, setRecurringDays] = useState<string[]>([]);
+  const [recurringOccurrences, setRecurringOccurrences] = useState<string[]>([]);
+
+  // ─── Schedule Override State ────────────────────────────────────────────
+  const [overrideType, setOverrideType] = useState("start_late");
+  const [overrideDate, setOverrideDate] = useState("");
+  const [overrideStart, setOverrideStart] = useState("10:00");
+  const [overrideEnd, setOverrideEnd] = useState("15:00");
+  const [overrideReason, setOverrideReason] = useState("");
+
   // ─── Sort Handler ───────────────────────────────────────────────────────
   const handleScheduleSort = (column: typeof scheduleSortColumn) => {
     if (scheduleSortColumn === column) {
@@ -2958,71 +2982,259 @@ export default function FieldServiceStaffDetails() {
 
       {/* 1. Edit Base Schedule */}
       <Dialog open={isEditBaseScheduleOpen} onOpenChange={setIsEditBaseScheduleOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
+        <DialogContent className="sm:max-w-[700px] overflow-hidden flex flex-col max-h-[90vh]">
+          <DialogHeader className="shrink-0">
             <DialogTitle>Edit Base Schedule</DialogTitle>
             <DialogDescription>
               Modify the default operational availability assigned to this staff member.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-2">
+          <div className="space-y-6 py-4 overflow-y-auto pr-2 custom-scrollbar flex-1">
             <div className="bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex items-start gap-3">
               <Info className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
               <p className="text-[12px] text-blue-800 leading-relaxed">
                 Changes to the base schedule will re-calculate expected capacity. This will not override existing specific date exceptions.
               </p>
             </div>
-            <div className="space-y-3">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right text-xs text-gray-500 font-bold">Shift Type</Label>
-                <div className="col-span-3">
-                  <Select defaultValue="fixed">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select shift type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="fixed">Fixed Hours</SelectItem>
-                      <SelectItem value="flexible">Flexible Window</SelectItem>
-                      <SelectItem value="rotational">Rotational</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            
+            <div className="space-y-4">
+              <div className="max-w-xs space-y-2">
+                <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">
+                  Shift System
+                </Label>
+                <Select
+                  value={editShiftSystem}
+                  onValueChange={setEditShiftSystem}
+                >
+                  <SelectTrigger className="bg-white w-full h-10 border-gray-200 hover:border-blue-300 transition-all text-sm font-medium">
+                    <SelectValue placeholder="Select System" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Fixed">Fixed</SelectItem>
+                    <SelectItem value="Flexible">Flexible</SelectItem>
+                    <SelectItem value="Rotational">Rotational</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right text-xs text-gray-500 font-bold">Standard Day</Label>
-                <div className="col-span-3 flex items-center gap-2">
-                  <Input type="time" defaultValue="08:00" className="flex-1" />
-                  <span className="text-gray-400">to</span>
-                  <Input type="time" defaultValue="17:00" className="flex-1" />
+
+              {/* FIXED SHIFT UI */}
+              {editShiftSystem === "Fixed" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="bg-blue-50/50 p-4 rounded-xl border border-blue-100 flex flex-col md:flex-row items-start md:items-center gap-4">
+                    <div className="space-y-2 flex-1">
+                      <Label className="text-[11px] font-bold uppercase text-blue-800 tracking-wider">
+                        Standard Daily Hours
+                      </Label>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="time"
+                          value={editWorkHoursStart}
+                          onChange={e => setEditWorkHoursStart(e.target.value)}
+                          className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32 font-medium"
+                        />
+                        <span className="text-blue-400 font-medium">to</span>
+                        <Input
+                          type="time"
+                          value={editWorkHoursEnd}
+                          onChange={e => setEditWorkHoursEnd(e.target.value)}
+                          className="h-10 bg-white border-blue-200 focus-visible:ring-blue-500 w-32 font-medium"
+                        />
+                      </div>
+                    </div>
+                    <div className="hidden md:block w-px h-12 bg-blue-200"></div>
+                    <div className="text-[12px] text-blue-700 max-w-sm leading-relaxed">
+                      These hours will apply to all selected days below.
+                      Uncheck days to mark them as "Off".
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">
+                      Working Days
+                    </Label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
+                        const isActive = editWorkingDays.includes(day);
+                        return (
+                          <div
+                            key={day}
+                            onClick={() => {
+                              if (isActive) {
+                                setEditWorkingDays(prev => prev.filter(d => d !== day));
+                              } else {
+                                setEditWorkingDays(prev => [...prev, day]);
+                              }
+                            }}
+                            className={`
+                              flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer transition-all h-24
+                              ${
+                                isActive
+                                  ? "bg-green-50 border-green-200 text-green-700 shadow-sm ring-1 ring-green-100"
+                                  : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:border-gray-300"
+                              }
+                            `}
+                          >
+                            <span className="font-bold text-sm mb-1.5">{day}</span>
+                            {isActive ? (
+                              <div className="text-[10px] bg-green-100 text-green-800 px-2 py-0.5 rounded-full font-bold">
+                                {editWorkHoursStart || "09:00"} - {editWorkHoursEnd || "17:00"}
+                              </div>
+                            ) : (
+                              <span className="text-[11px] font-medium italic">Off Day</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* FLEXIBLE SHIFT UI */}
+              {editShiftSystem === "Flexible" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100 text-purple-700 text-[13px] leading-relaxed">
+                    Flexible staff do not have fixed start/end times. Select the days they are generally available to accept jobs.
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">
+                      Availability Days
+                    </Label>
+                    <div className="grid grid-cols-7 gap-2">
+                      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
+                        const isActive = editWorkingDays.includes(day);
+                        return (
+                          <div
+                            key={day}
+                            onClick={() => {
+                              if (isActive) {
+                                setEditWorkingDays(prev => prev.filter(d => d !== day));
+                              } else {
+                                setEditWorkingDays(prev => [...prev, day]);
+                              }
+                            }}
+                            className={`
+                              flex flex-col items-center justify-center p-3 rounded-xl border cursor-pointer transition-all h-20
+                              ${
+                                isActive
+                                  ? "bg-purple-50 border-purple-200 text-purple-700 shadow-sm"
+                                  : "bg-white border-gray-200 text-gray-400 hover:bg-gray-50 hover:border-gray-300"
+                              }
+                            `}
+                          >
+                            <span className="font-bold text-sm">{day}</span>
+                            <span className="text-[10px] mt-1 font-semibold text-purple-600">
+                              {isActive ? "Available" : "-"}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ROTATIONAL SHIFT UI */}
+              {editShiftSystem === "Rotational" && (
+                <div className="space-y-5 animate-in fade-in">
+                  <div className="flex items-center justify-between bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+                    <div className="flex items-center gap-2 text-emerald-800 text-sm font-bold">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                      Weekly Coverage Preview
+                    </div>
+                    <div className="text-[11px] text-emerald-600 font-medium italic">
+                      Click on any day to configure multiple shifts.
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-7 gap-2">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(day => {
+                      const slots = editRotationalSchedule[day] || [];
+                      const hasShift = slots.length > 0;
+
+                      // Calculate hours
+                      const totalHours = slots.reduce((acc, slot) => {
+                        const start = parseInt(slot.start.split(":")[0]) || 0;
+                        const end = parseInt(slot.end.split(":")[0]) || 0;
+                        return acc + Math.max(0, end - start);
+                      }, 0);
+
+                      return (
+                        <div key={day} className="flex flex-col gap-2">
+                          <div className="text-center">
+                            <div className="text-[11px] font-bold text-gray-700 uppercase tracking-widest">{day}</div>
+                            <div className="text-[10px] font-medium text-gray-400">
+                              {hasShift ? `(${totalHours}h)` : "(0h)"}
+                            </div>
+                          </div>
+
+                          <div
+                            className={`
+                              h-40 rounded-xl border flex flex-col items-center justify-start p-1.5 gap-1.5 cursor-pointer transition-all group
+                              hover:ring-2 hover:ring-emerald-200 hover:border-emerald-300
+                              ${hasShift ? "bg-white border-gray-200" : "bg-gray-50/50 border-gray-100 opacity-70"}
+                            `}
+                            onClick={() => toast("Day Configuration", { description: "Opening shift editor for " + day + "." })}
+                          >
+                            {hasShift ? (
+                              slots.map((slot, idx) => (
+                                <div
+                                  key={idx}
+                                  className="w-full bg-emerald-50 text-emerald-800 text-[10px] py-1 px-1 rounded-lg font-bold border border-emerald-100 flex flex-col items-center justify-center flex-shrink-0 min-h-[32px] shadow-sm"
+                                >
+                                  <span>{slot.start}</span>
+                                  <span className="w-4 h-[1px] bg-emerald-200 my-0.5"></span>
+                                  <span>{slot.end}</span>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-[11px] font-medium text-gray-400 italic">
+                                Off
+                              </div>
+                            )}
+                            <div className="mt-auto pt-1 text-[9px] text-emerald-600 font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                              Edit
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="shrink-0 pt-4 border-t border-gray-100">
             <Button variant="outline" onClick={() => setIsEditBaseScheduleOpen(false)}>Cancel</Button>
-            <Button onClick={() => { setIsEditBaseScheduleOpen(false); toast.success("Base schedule updated", { description: "The new schedule will apply starting next week."}); }}>Save Schedule</Button>
+            <Button onClick={() => { setIsEditBaseScheduleOpen(false); toast.success("Base schedule updated", { description: "The new schedule rule will apply starting next week."}); }}>Save Schedule</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* 2. Add Recurring Off */}
       <Dialog open={isAddRecurringOffOpen} onOpenChange={setIsAddRecurringOffOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Add Recurring Off Pattern</DialogTitle>
             <DialogDescription>
               Create automated availability exemptions like monthly off days.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-3">
+          <div className="space-y-5 py-3 custom-scrollbar">
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600 font-bold">Pattern Name</Label>
-              <Input placeholder="e.g. Alternate Saturday Off" />
+              <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Pattern Name</Label>
+              <Input 
+                placeholder="e.g. Alternate Saturday Off" 
+                value={recurringPatternName}
+                onChange={(e) => setRecurringPatternName(e.target.value)}
+                className="font-medium"
+              />
             </div>
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600 font-bold">Frequency</Label>
-              <Select defaultValue="monthly">
-                <SelectTrigger>
+              <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Frequency</Label>
+              <Select value={recurringFrequency} onValueChange={setRecurringFrequency}>
+                <SelectTrigger className="font-medium">
                   <SelectValue placeholder="Select frequency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -3032,14 +3244,105 @@ export default function FieldServiceStaffDetails() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-gray-600 font-bold">Select Days</Label>
-              <Input placeholder="e.g. 2nd & 4th Saturday" />
+            
+            {/* Dynamic Content Based on Frequency */}
+            {(recurringFrequency === "weekly" || recurringFrequency === "biweekly") && (
+              <div className="space-y-3 animate-in fade-in">
+                <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Select Days</Label>
+                <div className="grid grid-cols-7 gap-1.5">
+                  {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
+                    const isActive = recurringDays.includes(day);
+                    return (
+                      <div
+                        key={day}
+                        onClick={() => {
+                          if (isActive) setRecurringDays(prev => prev.filter(d => d !== day));
+                          else setRecurringDays(prev => [...prev, day]);
+                        }}
+                        className={`
+                          flex flex-col items-center justify-center py-2 px-1 rounded-lg border cursor-pointer transition-all
+                          ${isActive ? "bg-blue-50 border-blue-200 text-blue-700 shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}
+                        `}
+                      >
+                        <span className="text-[11px] font-bold">{day}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                {recurringFrequency === "biweekly" && (
+                  <div className="bg-gray-50/80 p-3 rounded-lg border border-gray-200 mt-2 flex items-center gap-3">
+                     <Calendar className="h-4 w-4 text-gray-400" />
+                     <div className="space-y-1 w-full">
+                       <Label className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Starting Week Of</Label>
+                       <Input type="date" className="h-8 text-xs font-medium" />
+                     </div>
+                  </div>
+                )}
+              </div>
+            )}
+            
+            {recurringFrequency === "monthly" && (
+              <div className="space-y-4 animate-in fade-in bg-gray-50/50 p-4 rounded-xl border border-gray-100">
+                <div className="space-y-3">
+                  <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Occurrences</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {["1st", "2nd", "3rd", "4th", "Last"].map(occ => {
+                      const isActive = recurringOccurrences.includes(occ);
+                      return (
+                        <div
+                          key={occ}
+                          onClick={() => {
+                            if (isActive) setRecurringOccurrences(prev => prev.filter(o => o !== occ));
+                            else setRecurringOccurrences(prev => [...prev, occ]);
+                          }}
+                          className={`
+                            px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all
+                            ${isActive ? "bg-purple-50 border-purple-200 text-purple-700 shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}
+                          `}
+                        >
+                          {occ}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Days of Week</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(day => {
+                      const isActive = recurringDays.includes(day);
+                      return (
+                        <div
+                          key={day}
+                          onClick={() => {
+                            if (isActive) setRecurringDays(prev => prev.filter(d => d !== day));
+                            else setRecurringDays(prev => [...prev, day]);
+                          }}
+                          className={`
+                            px-3 py-1.5 rounded-lg border text-xs font-bold cursor-pointer transition-all
+                            ${isActive ? "bg-purple-50 border-purple-200 text-purple-700 shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:bg-gray-50"}
+                          `}
+                        >
+                          {day}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100 flex items-start gap-3 mt-4">
+              <FileWarning className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
+              <p className="text-[11px] text-orange-800 leading-relaxed font-medium">
+                Recurring patterns will overwrite the base schedule automatically for the matched days.
+              </p>
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-2">
             <Button variant="outline" onClick={() => setIsAddRecurringOffOpen(false)}>Cancel</Button>
-            <Button onClick={() => { setIsAddRecurringOffOpen(false); toast.success("Recurring pattern added"); }}>Create Pattern</Button>
+            <Button onClick={() => { setIsAddRecurringOffOpen(false); toast.success("Recurring pattern added", { description: "Pattern " + (recurringPatternName || "Off Pattern") + " created successfully." }); }}>Create Pattern</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -3056,9 +3359,9 @@ export default function FieldServiceStaffDetails() {
           <div className="space-y-4 py-3">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600 font-bold">Override Type</Label>
-                <Select defaultValue="start_late">
-                  <SelectTrigger>
+                <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Override Type</Label>
+                <Select value={overrideType} onValueChange={setOverrideType}>
+                  <SelectTrigger className="font-medium text-sm">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
@@ -3070,26 +3373,42 @@ export default function FieldServiceStaffDetails() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-gray-600 font-bold">Date</Label>
-                <Input type="date" />
+                <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Date</Label>
+                <Input type="date" value={overrideDate} onChange={(e) => setOverrideDate(e.target.value)} className="font-medium text-sm" />
               </div>
             </div>
+            
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600 font-bold">Adjusted Hours</Label>
+              <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Adjusted Hours</Label>
               <div className="flex items-center gap-2">
-                <Input type="time" defaultValue="10:00" className="flex-1" />
-                <span className="text-gray-400">to</span>
-                <Input type="time" defaultValue="17:00" className="flex-1" />
+                <Input type="time" value={overrideStart} onChange={(e) => setOverrideStart(e.target.value)} className="flex-1 font-medium text-sm" />
+                <span className="text-gray-400 font-medium text-sm">to</span>
+                <Input type="time" value={overrideEnd} onChange={(e) => setOverrideEnd(e.target.value)} className="flex-1 font-medium text-sm" />
               </div>
             </div>
+            
             <div className="space-y-2">
-              <Label className="text-xs text-gray-600 font-bold">Reason / Notes</Label>
-              <Textarea placeholder="Medical appointment, event support..." className="resize-none h-20" />
+              <Label className="text-[11px] font-bold uppercase text-gray-500 tracking-wider">Reason / Notes</Label>
+              <Textarea 
+                placeholder="Medical appointment, event support..." 
+                className="resize-none h-20 text-sm" 
+                value={overrideReason}
+                onChange={(e) => setOverrideReason(e.target.value)}
+              />
             </div>
+            
+            {(overrideType === "extended" || overrideType === "training") && (
+              <div className="bg-orange-50/50 p-3 rounded-lg border border-orange-100 flex items-start gap-3 mt-4 animate-in fade-in">
+                <FileWarning className="h-4 w-4 text-orange-600 shrink-0 mt-0.5" />
+                <p className="text-[11px] text-orange-800 leading-relaxed font-medium">
+                  Modifying base duration may trigger expected capacity or overtime operational warnings.
+                </p>
+              </div>
+            )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="pt-2">
             <Button variant="outline" onClick={() => setIsAddScheduleOverrideOpen(false)}>Cancel</Button>
-            <Button onClick={() => { setIsAddScheduleOverrideOpen(false); toast.success("Override created successfully"); }}>Save Override</Button>
+            <Button onClick={() => { setIsAddScheduleOverrideOpen(false); toast.success("Override created successfully", { description: "Override established for " + (overrideDate || "selected date") + "."}); }}>Save Override</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
