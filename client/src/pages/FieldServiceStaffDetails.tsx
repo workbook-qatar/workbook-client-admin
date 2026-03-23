@@ -73,6 +73,16 @@ import {
   RotateCcw,
   FileWarning,
   Gauge,
+  Pause,
+  Play,
+  Trash2,
+  Snowflake,
+  Users,
+  CalendarRange,
+  Target,
+  Wrench,
+  Hash,
+  Layers,
 } from "lucide-react";
 import {
   Select,
@@ -120,6 +130,7 @@ import {
 
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 // ─── Types & Enums ───────────────────────────────────────────────────────────
 
 type EmploymentStatus = "Active" | "On Leave" | "Suspended" | "Inactive";
@@ -374,11 +385,86 @@ const mockWeeklySchedule = [
   { day: "Saturday", start: "08:00", end: "12:00", breakMins: 0, enabled: true },
 ];
 
-const mockSeasonalPatterns = [
-  { id: 1, name: "Summer", months: "Jun – Aug", adjustment: "Starts 06:00, ends 14:00", status: "Active" },
-  { id: 2, name: "Ramadan", months: "Varies", adjustment: "Reduced to 6 hrs/day", status: "Active" },
-  { id: 3, name: "Winter", months: "Dec – Feb", adjustment: "Standard schedule", status: "Active" },
+// ─── Schedule Policy Data Models ──────────────────────────────────────────────
+
+interface SchedulePolicyDefinition {
+  id: string;
+  name: string;
+  description: string;
+  type: "seasonal" | "operational" | "regulatory" | "custom";
+  status: "active" | "draft" | "archived";
+  effectiveLabel: string;
+  adjustmentLabel: string;
+  icon: "sun" | "moon" | "snowflake" | "calendar";
+  assignedStaffCount: number;
+}
+
+interface StaffPolicyAssignment {
+  id: string;
+  policyId: string;
+  policyName: string;
+  policyIcon: "sun" | "moon" | "snowflake" | "calendar";
+  policyType: "seasonal" | "operational" | "regulatory" | "custom";
+  status: "active" | "paused" | "expired";
+  effectiveLabel: string;
+  adjustmentLabel: string;
+  assignedBy: string;
+  assignedAt: string;
+  customDates?: { start: string; end: string };
+  note?: string;
+}
+
+const companySchedulePolicies: SchedulePolicyDefinition[] = [
+  { id: "POL-001", name: "Summer Heat Adjustment", description: "Early shift to avoid peak heat hours", type: "seasonal", status: "active", effectiveLabel: "Jun 1 – Aug 31", adjustmentLabel: "06:00–14:00 (8h/day)", icon: "sun", assignedStaffCount: 12 },
+  { id: "POL-002", name: "Ramadan Schedule", description: "Reduced working hours during Ramadan", type: "seasonal", status: "active", effectiveLabel: "Varies (Hijri Calendar)", adjustmentLabel: "Reduced to 6 hrs/day", icon: "moon", assignedStaffCount: 45 },
+  { id: "POL-003", name: "Winter Standard Schedule", description: "Standard schedule during winter months", type: "seasonal", status: "active", effectiveLabel: "Dec 1 – Feb 28", adjustmentLabel: "Standard schedule", icon: "snowflake", assignedStaffCount: 8 },
+  { id: "POL-004", name: "National Day Extended Ops", description: "Extended operations for Qatar National Day", type: "operational", status: "active", effectiveLabel: "Dec 18 (1 day)", adjustmentLabel: "07:00–20:00 (13h)", icon: "calendar", assignedStaffCount: 0 },
+  { id: "POL-005", name: "Eid Al-Fitr Adjustment", description: "Adjusted schedule around Eid holidays", type: "seasonal", status: "active", effectiveLabel: "Varies (Hijri Calendar)", adjustmentLabel: "Off for 3 days + reduced week", icon: "moon", assignedStaffCount: 38 },
 ];
+
+const initialStaffPolicyAssignments: StaffPolicyAssignment[] = [
+  { id: "SPA-001", policyId: "POL-001", policyName: "Summer Heat Adjustment", policyIcon: "sun", policyType: "seasonal", status: "active", effectiveLabel: "Jun – Aug", adjustmentLabel: "Starts 06:00, ends 14:00", assignedBy: "System Admin", assignedAt: "2026-03-01" },
+  { id: "SPA-002", policyId: "POL-002", policyName: "Ramadan Schedule", policyIcon: "moon", policyType: "seasonal", status: "active", effectiveLabel: "Varies", adjustmentLabel: "Reduced to 6 hrs/day", assignedBy: "System Admin", assignedAt: "2026-03-01" },
+  { id: "SPA-003", policyId: "POL-003", policyName: "Winter Standard Schedule", policyIcon: "snowflake", policyType: "seasonal", status: "active", effectiveLabel: "Dec – Feb", adjustmentLabel: "Standard schedule", assignedBy: "System Admin", assignedAt: "2026-03-01" },
+];
+
+// ─── Dispatch & Capacity Rules Data Model ────────────────────────────────────
+
+interface DispatchCapacityRules {
+  maxDailyHours: number;
+  maxWeeklyHours: number;
+  maxJobsPerDay: number;
+  maxConcurrentJobs: number;
+  minRestBetweenShifts: number;
+  travelBufferMins: number;
+  shiftPreference: string;
+  breakPreference: string;
+  overtimeWilling: boolean;
+  maxOvertimeHours: number;
+  dispatchPriority: "standard" | "preferred" | "backup_only";
+  skillTags: string[];
+  serviceZones: string[];
+  emergencyAvailability: boolean;
+  emergencyBypassScope: "capacity_only" | "capacity_and_rest" | "all";
+}
+
+const orgDefaultRules: DispatchCapacityRules = {
+  maxDailyHours: 10,
+  maxWeeklyHours: 48,
+  maxJobsPerDay: 8,
+  maxConcurrentJobs: 1,
+  minRestBetweenShifts: 12,
+  travelBufferMins: 30,
+  shiftPreference: "Morning (06:00–14:00)",
+  breakPreference: "1 hr midday",
+  overtimeWilling: true,
+  maxOvertimeHours: 4,
+  dispatchPriority: "standard",
+  skillTags: ["General Maintenance", "HVAC"],
+  serviceZones: ["Al Wakra", "The Pearl"],
+  emergencyAvailability: true,
+  emergencyBypassScope: "capacity_only",
+};
 
 const mockTimeOff = [
   { id: 1, type: "Annual Leave", from: "2025-12-28", to: "2026-01-05", days: 7, status: "Approved" },
@@ -386,16 +472,6 @@ const mockTimeOff = [
   { id: 3, type: "Personal", from: "2026-01-20", to: "2026-01-20", days: 1, status: "Pending" },
 ];
 
-const mockAdvancedPreferences = {
-  emergencyAvailability: true,
-  shiftPreference: "Morning (06:00–14:00)",
-  overtimeWilling: true,
-  breakPreference: "1 hr midday",
-  maxDailyHours: 10,
-  maxWeeklyHours: 48,
-  minRestBetweenShifts: 12,
-  travelBufferMins: 30,
-};
 
 const mockRecurringOffs = [
   { id: 1, name: "Friday Weekly Off", rule: "Every Friday", type: "Weekly", status: "Active" },
@@ -555,7 +631,22 @@ export default function FieldServiceStaffDetails() {
   const [isAddScheduleOverrideOpen, setIsAddScheduleOverrideOpen] = useState(false);
   const [isLogTimeOffOpen, setIsLogTimeOffOpen] = useState(false);
   const [isAssignPolicyOpen, setIsAssignPolicyOpen] = useState(false);
+  const [isManagePoliciesOpen, setIsManagePoliciesOpen] = useState(false);
+  const [assignPolicyStep, setAssignPolicyStep] = useState<1 | 2>(1);
+  const [selectedPolicyId, setSelectedPolicyId] = useState<string | null>(null);
+  const [policySearchQuery, setPolicySearchQuery] = useState("");
+  const [policyDateMode, setPolicyDateMode] = useState<"default" | "custom">("default");
+  const [policyCustomStart, setPolicyCustomStart] = useState("");
+  const [policyCustomEnd, setPolicyCustomEnd] = useState("");
+  const [policyAssignNote, setPolicyAssignNote] = useState("");
+  const [staffAssignedPolicies, setStaffAssignedPolicies] = useState<StaffPolicyAssignment[]>(initialStaffPolicyAssignments);
+  const [confirmRemovePolicyId, setConfirmRemovePolicyId] = useState<string | null>(null);
   const [isEditRulesOpen, setIsEditRulesOpen] = useState(false);
+  const [dispatchRules, setDispatchRules] = useState<DispatchCapacityRules>({...orgDefaultRules});
+  const [editDispatchRules, setEditDispatchRules] = useState<DispatchCapacityRules>({...orgDefaultRules});
+  const [dispatchRulesTab, setDispatchRulesTab] = useState<string>("capacity");
+  const [newSkillTag, setNewSkillTag] = useState("");
+  const [newServiceZone, setNewServiceZone] = useState("");
   const [isConfigSystemOpen, setIsConfigSystemOpen] = useState(false);
 
   // ─── Edit Schedule State ────────────────────────────────────────────────
@@ -1850,16 +1941,16 @@ export default function FieldServiceStaffDetails() {
               
               <div className="mt-5 pt-4 border-t border-gray-100 flex items-center gap-6">
                  <div className="flex items-center gap-2">
-                    <Zap className={mockAdvancedPreferences.emergencyAvailability ? "h-3.5 w-3.5 text-blue-500" : "h-3.5 w-3.5 text-gray-400"} />
-                    <span className={`text-[11px] font-bold ${mockAdvancedPreferences.emergencyAvailability ? "text-blue-700" : "text-gray-500"}`}>
-                        Emergency Operations {mockAdvancedPreferences.emergencyAvailability ? "Enabled" : "Disabled"}
+                    <Zap className={dispatchRules.emergencyAvailability ? "h-3.5 w-3.5 text-blue-500" : "h-3.5 w-3.5 text-gray-400"} />
+                    <span className={`text-[11px] font-bold ${dispatchRules.emergencyAvailability ? "text-blue-700" : "text-gray-500"}`}>
+                        Emergency Operations {dispatchRules.emergencyAvailability ? "Enabled" : "Disabled"}
                     </span>
                  </div>
                  <div className="w-1 h-1 rounded-full bg-gray-300" />
                  <div className="flex items-center gap-2">
-                    <Clock className={mockAdvancedPreferences.overtimeWilling ? "h-3.5 w-3.5 text-indigo-500" : "h-3.5 w-3.5 text-gray-400"} />
-                    <span className={`text-[11px] font-bold ${mockAdvancedPreferences.overtimeWilling ? "text-indigo-700" : "text-gray-500"}`}>
-                        Overtime {mockAdvancedPreferences.overtimeWilling ? "Approved" : "Declined"}
+                    <Clock className={dispatchRules.overtimeWilling ? "h-3.5 w-3.5 text-indigo-500" : "h-3.5 w-3.5 text-gray-400"} />
+                    <span className={`text-[11px] font-bold ${dispatchRules.overtimeWilling ? "text-indigo-700" : "text-gray-500"}`}>
+                        Overtime {dispatchRules.overtimeWilling ? "Approved" : "Declined"}
                     </span>
                  </div>
               </div>
@@ -2153,15 +2244,20 @@ export default function FieldServiceStaffDetails() {
                         <FileWarning className="h-4 w-4" />
                     </div>
                     <div>
-                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Special Schedule Policies</h3>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Automated seasonal and company-wide operational adjustments</p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Special Schedule Policies</h3>
+                          {staffAssignedPolicies.length > 0 && (
+                            <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 shadow-none text-[9px] uppercase font-bold px-1.5 py-0">{staffAssignedPolicies.filter(p => p.status === 'active').length} Active</Badge>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-gray-500">Automated seasonal and company-wide operational adjustments</p>
                     </div>
                 </div>
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm"
-                  onClick={() => setIsAssignPolicyOpen(true)}
+                  onClick={() => setIsManagePoliciesOpen(true)}
                 >
                   <Settings2 className="h-3.5 w-3.5" />
                   Manage Policies
@@ -2169,46 +2265,99 @@ export default function FieldServiceStaffDetails() {
               </div>
               <div className="p-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {mockSeasonalPatterns.map(pattern => {
-                    const isRamadan = pattern.name.includes("Ramadan");
+                  {staffAssignedPolicies.map((assignment) => {
+                    const iconEl = assignment.policyIcon === "moon" ? <Moon className="h-4 w-4" /> : assignment.policyIcon === "snowflake" ? <Snowflake className="h-4 w-4" /> : assignment.policyIcon === "calendar" ? <CalendarRange className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
+                    const isPaused = assignment.status === "paused";
+                    const isExpired = assignment.status === "expired";
+                    const statusDot = isPaused ? "bg-amber-400" : isExpired ? "bg-gray-400" : "bg-emerald-500";
+                    const statusLabel = isPaused ? "Paused" : isExpired ? "Expired" : "Active";
+                    const statusColor = isPaused ? "text-amber-700" : isExpired ? "text-gray-500" : "text-emerald-700";
+                    const cardBorder = isPaused ? "border-amber-100/50" : isExpired ? "border-gray-200" : "border-emerald-100/50";
+                    const cardBg = isPaused ? "bg-amber-50/10" : isExpired ? "bg-gray-50/30" : "bg-emerald-50/20";
+                    
                     return (
-                      <div key={pattern.id} className="rounded-xl border border-emerald-100/50 bg-emerald-50/20 p-4 relative overflow-hidden group hover:border-emerald-200 transition-colors">
+                      <div key={assignment.id} className={`rounded-xl border ${cardBorder} ${cardBg} p-4 relative overflow-hidden group hover:shadow-md transition-all ${isExpired ? 'opacity-60' : ''}`}>
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 border border-emerald-200 shadow-sm">
-                              {isRamadan ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                            <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 border shadow-sm ${
+                              isPaused ? 'bg-amber-100 text-amber-600 border-amber-200' : isExpired ? 'bg-gray-100 text-gray-500 border-gray-200' : 'bg-emerald-100 text-emerald-600 border-emerald-200'
+                            }`}>
+                              {iconEl}
                             </div>
                             <div>
-                                <h4 className="text-sm font-bold text-gray-900 leading-tight">{pattern.name} Schedule</h4>
-                                <span className="text-[11px] font-medium text-emerald-700 mt-0.5 block">{pattern.status} Policy</span>
+                                <h4 className="text-sm font-bold text-gray-900 leading-tight">{assignment.policyName}</h4>
+                                <span className={`text-[11px] font-semibold mt-0.5 flex items-center gap-1.5 ${statusColor}`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${statusDot}`}></span>
+                                  {statusLabel} Policy
+                                </span>
                             </div>
                           </div>
-                          <Badge variant="outline" className="bg-white text-gray-600 border-gray-200 text-[9px] uppercase font-bold px-1.5 py-0 shadow-sm leading-tight h-5">Policy</Badge>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-gray-400 hover:text-gray-700 hover:bg-white border border-transparent hover:border-gray-200 rounded-lg transition-all shadow-none opacity-0 group-hover:opacity-100">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-44">
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setStaffAssignedPolicies(prev => prev.map(p => p.id === assignment.id ? { ...p, status: p.status === 'paused' ? 'active' : 'paused' } : p));
+                                  toast.success(isPaused ? `${assignment.policyName} resumed` : `${assignment.policyName} paused`, { description: isPaused ? "Policy adjustments re-applied." : "Staff follows base schedule until resumed." });
+                                }}
+                                className="gap-2 text-xs"
+                              >
+                                {isPaused ? <Play className="h-3.5 w-3.5" /> : <Pause className="h-3.5 w-3.5" />}
+                                {isPaused ? "Resume Policy" : "Pause Policy"}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => setIsManagePoliciesOpen(true)} className="gap-2 text-xs">
+                                <Edit3 className="h-3.5 w-3.5" /> Edit Dates
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setStaffAssignedPolicies(prev => prev.filter(p => p.id !== assignment.id));
+                                  toast.success(`${assignment.policyName} removed`, { description: "Staff reverted to base schedule for this period." });
+                                }}
+                                className="gap-2 text-xs text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" /> Remove Policy
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                         <div className="bg-white rounded-lg p-3 border border-gray-100 shadow-sm divide-y divide-gray-50">
                             <div className="flex justify-between items-center text-xs py-1.5">
                                 <span className="text-gray-500 font-semibold">Effective</span>
-                                <span className="font-bold text-gray-900">{pattern.months}</span>
+                                <span className="font-bold text-gray-900">{assignment.customDates ? `${assignment.customDates.start} – ${assignment.customDates.end}` : assignment.effectiveLabel}</span>
                             </div>
                             <div className="flex justify-between items-center text-xs py-1.5">
                                 <span className="text-gray-500 font-semibold">Adjustment</span>
-                                <span className="font-bold text-gray-900">{pattern.adjustment}</span>
+                                <span className="font-bold text-gray-900">{assignment.adjustmentLabel}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-xs py-1.5">
+                                <span className="text-gray-500 font-semibold">Assigned</span>
+                                <span className="font-medium text-gray-500">{assignment.assignedAt}</span>
                             </div>
                         </div>
+                        {isPaused && (
+                          <div className="mt-3 flex items-center gap-1.5 text-[10px] font-bold text-amber-600 bg-amber-50 rounded-md px-2 py-1 border border-amber-100">
+                            <Pause className="h-3 w-3" /> Policy paused — base schedule applies
+                          </div>
+                        )}
                       </div>
                     );
                   })}
                   
-                  {/* Add New Visual */}
+                  {/* Add New Policy Card */}
                   <div 
-                    className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all min-h-[140px]"
-                    onClick={() => setIsAssignPolicyOpen(true)}
+                    className="rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/50 p-4 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-gray-50 hover:border-gray-300 transition-all min-h-[180px] group"
+                    onClick={() => { setAssignPolicyStep(1); setSelectedPolicyId(null); setPolicySearchQuery(""); setPolicyDateMode("default"); setPolicyAssignNote(""); setIsAssignPolicyOpen(true); }}
                   >
-                      <div className="h-8 w-8 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center mb-2">
-                          <Plus className="h-4 w-4 text-gray-400" />
+                      <div className="h-10 w-10 rounded-full bg-white shadow-sm border border-gray-200 flex items-center justify-center mb-3 group-hover:shadow-md group-hover:border-emerald-200 transition-all">
+                          <Plus className="h-4 w-4 text-gray-400 group-hover:text-emerald-500 transition-colors" />
                       </div>
-                      <span className="text-xs font-bold text-gray-600">Assign Policy</span>
-                      <span className="text-[10px] text-gray-400 mt-1 max-w-[150px]">Link a company schedule policy</span>
+                      <span className="text-xs font-bold text-gray-600 group-hover:text-gray-900 transition-colors">Assign Policy</span>
+                      <span className="text-[10px] text-gray-400 mt-1 max-w-[160px] leading-relaxed">Link a company schedule policy to this staff member</span>
                   </div>
                 </div>
               </div>
@@ -2222,15 +2371,22 @@ export default function FieldServiceStaffDetails() {
                         <Gauge className="h-4 w-4" />
                     </div>
                     <div>
-                        <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Dispatch & Capacity Rules</h3>
-                        <p className="text-[11px] text-gray-500 mt-0.5">Algorithm parameters governing automated assignment</p>
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <h3 className="text-[13px] font-bold text-gray-900 tracking-tight">Dispatch & Capacity Rules</h3>
+                          <Badge variant="outline" className={`text-[9px] uppercase font-bold px-1.5 py-0 shadow-none ${
+                            dispatchRules.dispatchPriority === 'preferred' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                            dispatchRules.dispatchPriority === 'backup_only' ? 'bg-amber-50 text-amber-700 border-amber-200' :
+                            'bg-gray-50 text-gray-600 border-gray-200'
+                          }`}>{dispatchRules.dispatchPriority === 'backup_only' ? 'Backup Only' : dispatchRules.dispatchPriority === 'preferred' ? 'Preferred' : 'Standard'} Priority</Badge>
+                        </div>
+                        <p className="text-[11px] text-gray-500">Algorithm parameters governing automated assignment</p>
                     </div>
                 </div>
                 <Button 
                   size="sm" 
                   variant="outline" 
                   className="gap-1.5 border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white h-8 rounded-lg text-xs font-bold bg-white shadow-sm"
-                  onClick={() => setIsEditRulesOpen(true)}
+                  onClick={() => { setEditDispatchRules({...dispatchRules}); setDispatchRulesTab("capacity"); setIsEditRulesOpen(true); }}
                 >
                   <Edit3 className="h-3.5 w-3.5" />
                   Edit Rules
@@ -2241,62 +2397,94 @@ export default function FieldServiceStaffDetails() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 divide-y md:divide-y-0 md:divide-x divide-gray-100">
                   
                   {/* Capacity Box */}
-                  <div className="p-6 flex flex-col justify-center space-y-5">
+                  <div className="p-5 flex flex-col justify-center space-y-3.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-gray-500">
-                         <Timer className="h-4 w-4 text-gray-400" />
-                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Max Daily</span>
+                         <Timer className="h-3.5 w-3.5 text-gray-400" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Max Daily</span>
                       </div>
-                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.maxDailyHours}h</span>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{dispatchRules.maxDailyHours}h</span>
                     </div>
-                    
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-gray-500">
-                         <CalendarDays className="h-4 w-4 text-gray-400" />
-                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Max Weekly</span>
+                         <CalendarDays className="h-3.5 w-3.5 text-gray-400" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Max Weekly</span>
                       </div>
-                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.maxWeeklyHours}h</span>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{dispatchRules.maxWeeklyHours}h</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <Hash className="h-3.5 w-3.5 text-gray-400" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Jobs/Day</span>
+                      </div>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{dispatchRules.maxJobsPerDay}</span>
                     </div>
                   </div>
 
                   {/* Operational Box */}
-                  <div className="p-6 flex flex-col justify-center space-y-5">
+                  <div className="p-5 flex flex-col justify-center space-y-3.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-gray-500">
-                         <Coffee className="h-4 w-4 text-gray-400" />
-                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Min Rest</span>
+                         <Coffee className="h-3.5 w-3.5 text-gray-400" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Min Rest</span>
                       </div>
-                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.minRestBetweenShifts}h</span>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{dispatchRules.minRestBetweenShifts}h</span>
                     </div>
-                    
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2 text-gray-500">
-                         <Truck className="h-4 w-4 text-gray-400" />
-                         <span className="text-[11px] font-bold uppercase tracking-widest leading-none">Travel Buffer</span>
+                         <Truck className="h-3.5 w-3.5 text-gray-400" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Travel Buffer</span>
                       </div>
-                      <span className="text-[13px] font-bold text-gray-900 leading-none">{mockAdvancedPreferences.travelBufferMins}m</span>
+                      <span className="text-[13px] font-bold text-gray-900 leading-none">{dispatchRules.travelBufferMins}m</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-gray-500">
+                         <Zap className="h-3.5 w-3.5 text-gray-400" />
+                         <span className="text-[10px] font-bold uppercase tracking-widest leading-none">Emergency</span>
+                      </div>
+                      <Badge variant="outline" className={`text-[9px] font-bold px-1.5 py-0 shadow-none ${dispatchRules.emergencyAvailability ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                        {dispatchRules.emergencyAvailability ? 'On' : 'Off'}
+                      </Badge>
                     </div>
                   </div>
 
                   {/* Preference Box */}
-                  <div className="p-6 flex flex-col justify-center lg:col-span-2 bg-gray-50/30">
-                    <div className="flex items-start justify-between bg-white border border-gray-100 rounded-lg p-3 shadow-sm mb-3">
-                      <div>
-                         <p className="text-xs font-bold text-gray-900">Preferred Shift Window</p>
-                         <p className="text-[11px] text-gray-500 mt-0.5">Algorithm prioritizes assignment into this window</p>
+                  <div className="p-5 flex flex-col justify-center lg:col-span-2 bg-gray-50/30">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                      <div className="flex items-center justify-between bg-white border border-gray-100 rounded-lg px-3 py-2.5 shadow-sm">
+                        <div className="min-w-0">
+                           <p className="text-[11px] font-bold text-gray-900 truncate">Shift Window</p>
+                           <p className="text-[10px] text-gray-500 mt-0.5 truncate">Algorithm prioritizes this</p>
+                        </div>
+                        <Badge variant="outline" className="bg-gray-50 text-gray-700 shadow-none border-gray-200 font-bold text-[10px] shrink-0 ml-2 truncate max-w-[100px]">
+                          {dispatchRules.shiftPreference.split(' ')[0]}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="bg-gray-50 text-gray-700 shadow-none border-gray-200 font-bold max-w-[120px] truncate text-center block">
-                        {mockAdvancedPreferences.shiftPreference}
-                      </Badge>
-                    </div>
-                    <div className="flex items-start justify-between bg-white border border-gray-100 rounded-lg p-3 shadow-sm">
-                      <div>
-                         <p className="text-xs font-bold text-gray-900">Break Block Structure</p>
-                         <p className="text-[11px] text-gray-500 mt-0.5">Preferred mandatory mid-shift rest</p>
+                      <div className="flex items-center justify-between bg-white border border-gray-100 rounded-lg px-3 py-2.5 shadow-sm">
+                        <div className="min-w-0">
+                           <p className="text-[11px] font-bold text-gray-900 truncate">Break Structure</p>
+                           <p className="text-[10px] text-gray-500 mt-0.5 truncate">Mid-shift rest preference</p>
+                        </div>
+                        <Badge variant="outline" className="bg-gray-50 text-gray-700 shadow-none border-gray-200 font-bold text-[10px] shrink-0 ml-2">
+                          {dispatchRules.breakPreference}
+                        </Badge>
                       </div>
-                      <Badge variant="outline" className="bg-gray-50 text-gray-700 shadow-none border-gray-200 font-bold max-w-[120px] truncate text-center block">
-                        {mockAdvancedPreferences.breakPreference}
-                      </Badge>
+                      <div className="flex items-center justify-between bg-white border border-gray-100 rounded-lg px-3 py-2.5 shadow-sm">
+                        <div className="min-w-0">
+                           <p className="text-[11px] font-bold text-gray-900 truncate">Overtime</p>
+                           <p className="text-[10px] text-gray-500 mt-0.5 truncate">{dispatchRules.overtimeWilling ? `Up to ${dispatchRules.maxOvertimeHours}h extra/day` : 'Not available'}</p>
+                        </div>
+                        <Badge variant="outline" className={`text-[10px] font-bold shrink-0 ml-2 shadow-none ${dispatchRules.overtimeWilling ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-gray-50 text-gray-500 border-gray-200'}`}>
+                          {dispatchRules.overtimeWilling ? 'Willing' : 'No'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between bg-white border border-gray-100 rounded-lg px-3 py-2.5 shadow-sm">
+                        <div className="min-w-0">
+                           <p className="text-[11px] font-bold text-gray-900 truncate">Skills & Zones</p>
+                           <p className="text-[10px] text-gray-500 mt-0.5 truncate">{dispatchRules.skillTags.length} skills, {dispatchRules.serviceZones.length} zones</p>
+                        </div>
+                        <Wrench className="h-3.5 w-3.5 text-gray-400 shrink-0 ml-2" />
+                      </div>
                     </div>
                   </div>
 
@@ -3459,90 +3647,565 @@ export default function FieldServiceStaffDetails() {
         </DialogContent>
       </Dialog>
 
-      {/* 5. Assign Policy */}
-      <Dialog open={isAssignPolicyOpen} onOpenChange={setIsAssignPolicyOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+      {/* 5. Assign Policy — 2-Step Wizard */}
+      <Dialog open={isAssignPolicyOpen} onOpenChange={(open) => { setIsAssignPolicyOpen(open); if (!open) { setAssignPolicyStep(1); setSelectedPolicyId(null); setPolicySearchQuery(""); setPolicyDateMode("default"); setPolicyAssignNote(""); } }}>
+        <DialogContent className="sm:max-w-[520px]">
+          {assignPolicyStep === 1 ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">Assign Schedule Policy</DialogTitle>
+                <DialogDescription>Select a company-wide schedule policy to assign to this staff member.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-2">
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input placeholder="Search policies by name..." className="pl-10 h-9 text-sm" value={policySearchQuery} onChange={(e) => setPolicySearchQuery(e.target.value)} />
+                </div>
+                {/* Available Policies List */}
+                <div className="space-y-2 max-h-[340px] overflow-y-auto pr-1">
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Available Policies</Label>
+                  {companySchedulePolicies
+                    .filter(p => p.status === 'active' && p.name.toLowerCase().includes(policySearchQuery.toLowerCase()))
+                    .map(policy => {
+                      const alreadyAssigned = staffAssignedPolicies.some(a => a.policyId === policy.id);
+                      const isSelected = selectedPolicyId === policy.id;
+                      const pIcon = policy.icon === "moon" ? <Moon className="h-4 w-4" /> : policy.icon === "snowflake" ? <Snowflake className="h-4 w-4" /> : policy.icon === "calendar" ? <CalendarRange className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
+                      return (
+                        <div
+                          key={policy.id}
+                          className={`rounded-lg border-2 p-3.5 transition-all cursor-pointer ${
+                            alreadyAssigned ? 'border-gray-100 bg-gray-50/50 opacity-50 cursor-not-allowed' :
+                            isSelected ? 'border-emerald-400 bg-emerald-50/30 shadow-sm shadow-emerald-100' : 'border-gray-100 bg-white hover:border-gray-200 hover:bg-gray-50/30'
+                          }`}
+                          onClick={() => { if (!alreadyAssigned) setSelectedPolicyId(policy.id); }}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 border shadow-sm ${
+                              isSelected ? 'bg-emerald-100 text-emerald-600 border-emerald-200' : 'bg-gray-100 text-gray-500 border-gray-200'
+                            }`}>
+                              {pIcon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-0.5">
+                                <h4 className="text-[13px] font-bold text-gray-900 leading-tight truncate">{policy.name}</h4>
+                                <Badge variant="outline" className="bg-white text-gray-500 border-gray-200 text-[9px] uppercase font-bold px-1 py-0 shadow-none shrink-0">{policy.type}</Badge>
+                              </div>
+                              <p className="text-[11px] text-gray-500 mb-1.5">{policy.effectiveLabel} · {policy.adjustmentLabel}</p>
+                              <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                <Users className="h-3 w-3" />
+                                <span>{alreadyAssigned ? 'Already assigned to this staff' : `${policy.assignedStaffCount} staff assigned`}</span>
+                                {alreadyAssigned && <Check className="h-3 w-3 text-emerald-500 ml-1" />}
+                              </div>
+                            </div>
+                            {isSelected && !alreadyAssigned && (
+                              <div className="h-6 w-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shrink-0 shadow-sm">
+                                <Check className="h-3.5 w-3.5" />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  {companySchedulePolicies.filter(p => p.status === 'active' && p.name.toLowerCase().includes(policySearchQuery.toLowerCase())).length === 0 && (
+                    <div className="text-center py-8 text-gray-400">
+                      <Search className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                      <p className="text-xs font-semibold">No matching policies found</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsAssignPolicyOpen(false)}>Cancel</Button>
+                <Button disabled={!selectedPolicyId} onClick={() => setAssignPolicyStep(2)} className="gap-1.5">
+                  Next: Configure <ChevronRight className="h-3.5 w-3.5" />
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2">
+                  <Button variant="ghost" size="icon" className="h-7 w-7 -ml-1 mr-1" onClick={() => setAssignPolicyStep(1)}>
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  Configure Assignment
+                </DialogTitle>
+                <DialogDescription>Review and configure the policy assignment for this staff member.</DialogDescription>
+              </DialogHeader>
+              {(() => {
+                const selectedPolicy = companySchedulePolicies.find(p => p.id === selectedPolicyId);
+                if (!selectedPolicy) return null;
+                const pIcon = selectedPolicy.icon === "moon" ? <Moon className="h-4 w-4" /> : selectedPolicy.icon === "snowflake" ? <Snowflake className="h-4 w-4" /> : selectedPolicy.icon === "calendar" ? <CalendarRange className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
+                return (
+                  <div className="space-y-5 py-2">
+                    {/* Selected Policy Summary */}
+                    <div className="rounded-lg border border-emerald-200 bg-emerald-50/30 p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-sm">
+                          {pIcon}
+                        </div>
+                        <div>
+                          <h4 className="text-sm font-bold text-gray-900">{selectedPolicy.name}</h4>
+                          <p className="text-[11px] text-gray-500 mt-0.5">{selectedPolicy.effectiveLabel} · {selectedPolicy.adjustmentLabel}</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Effective Dates */}
+                    <div className="space-y-3">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Effective Dates</Label>
+                      <div className="flex gap-2">
+                        <button
+                          className={`flex-1 rounded-lg border-2 p-3 text-left transition-all ${policyDateMode === 'default' ? 'border-emerald-400 bg-emerald-50/30' : 'border-gray-100 hover:border-gray-200'}`}
+                          onClick={() => setPolicyDateMode('default')}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${policyDateMode === 'default' ? 'border-emerald-500' : 'border-gray-300'}`}>
+                              {policyDateMode === 'default' && <div className="h-2 w-2 rounded-full bg-emerald-500"></div>}
+                            </div>
+                            <span className="text-xs font-bold text-gray-900">Use Policy Defaults</span>
+                          </div>
+                          <p className="text-[10px] text-gray-500 ml-6">{selectedPolicy.effectiveLabel}</p>
+                        </button>
+                        <button
+                          className={`flex-1 rounded-lg border-2 p-3 text-left transition-all ${policyDateMode === 'custom' ? 'border-emerald-400 bg-emerald-50/30' : 'border-gray-100 hover:border-gray-200'}`}
+                          onClick={() => setPolicyDateMode('custom')}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${policyDateMode === 'custom' ? 'border-emerald-500' : 'border-gray-300'}`}>
+                              {policyDateMode === 'custom' && <div className="h-2 w-2 rounded-full bg-emerald-500"></div>}
+                            </div>
+                            <span className="text-xs font-bold text-gray-900">Custom Dates</span>
+                          </div>
+                          <p className="text-[10px] text-gray-500 ml-6">Override for this staff</p>
+                        </button>
+                      </div>
+                      {policyDateMode === 'custom' && (
+                        <div className="grid grid-cols-2 gap-3 mt-2">
+                          <div className="space-y-1.5">
+                            <Label className="text-[11px] text-gray-600 font-bold">Start Date</Label>
+                            <Input type="date" value={policyCustomStart} onChange={(e) => setPolicyCustomStart(e.target.value)} className="h-9 text-sm" />
+                          </div>
+                          <div className="space-y-1.5">
+                            <Label className="text-[11px] text-gray-600 font-bold">End Date</Label>
+                            <Input type="date" value={policyCustomEnd} onChange={(e) => setPolicyCustomEnd(e.target.value)} className="h-9 text-sm" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Conflict Check */}
+                    <div className="bg-amber-50 p-3.5 rounded-lg border border-amber-100">
+                      <div className="flex items-start gap-2.5">
+                        <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-[11px] font-bold text-amber-800 mb-1">Overlap Notice</p>
+                          <ul className="text-[11px] text-amber-700 space-y-0.5 leading-relaxed">
+                            <li>• Schedule overrides within this period will take precedence</li>
+                            <li>• Approved time-off will remain unaffected</li>
+                            <li>• Recurring off patterns are preserved</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Assignment Note */}
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] text-gray-600 font-bold">Assignment Note (Optional)</Label>
+                      <Textarea placeholder="Reason or context for this assignment..." className="resize-none h-16 text-sm" value={policyAssignNote} onChange={(e) => setPolicyAssignNote(e.target.value)} />
+                    </div>
+                  </div>
+                );
+              })()}
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setAssignPolicyStep(1)} className="gap-1.5">
+                  <ChevronLeft className="h-3.5 w-3.5" /> Back
+                </Button>
+                <Button onClick={() => {
+                  const selectedPolicy = companySchedulePolicies.find(p => p.id === selectedPolicyId);
+                  if (!selectedPolicy) return;
+                  const newAssignment: StaffPolicyAssignment = {
+                    id: `SPA-${Date.now()}`,
+                    policyId: selectedPolicy.id,
+                    policyName: selectedPolicy.name,
+                    policyIcon: selectedPolicy.icon,
+                    policyType: selectedPolicy.type,
+                    status: "active",
+                    effectiveLabel: selectedPolicy.effectiveLabel,
+                    adjustmentLabel: selectedPolicy.adjustmentLabel,
+                    assignedBy: "System Admin",
+                    assignedAt: new Date().toISOString().split('T')[0],
+                    ...(policyDateMode === 'custom' && policyCustomStart && policyCustomEnd ? { customDates: { start: policyCustomStart, end: policyCustomEnd } } : {}),
+                    ...(policyAssignNote ? { note: policyAssignNote } : {}),
+                  };
+                  setStaffAssignedPolicies(prev => [...prev, newAssignment]);
+                  setIsAssignPolicyOpen(false);
+                  setAssignPolicyStep(1);
+                  setSelectedPolicyId(null);
+                  setPolicySearchQuery("");
+                  setPolicyDateMode("default");
+                  setPolicyAssignNote("");
+                  toast.success(`${selectedPolicy.name} assigned`, { description: "Policy will activate during its effective period. Base schedule adjusted accordingly." });
+                }} className="gap-1.5 bg-emerald-600 hover:bg-emerald-700">
+                  <Check className="h-3.5 w-3.5" /> Assign Policy
+                </Button>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* 5b. Manage Policies Modal */}
+      <Dialog open={isManagePoliciesOpen} onOpenChange={setIsManagePoliciesOpen}>
+        <DialogContent className="sm:max-w-[580px]">
           <DialogHeader>
-            <DialogTitle>Assign Schedule Policy</DialogTitle>
-            <DialogDescription>
-              Link a company-wide operational schedule policy.
-            </DialogDescription>
+            <DialogTitle>Manage Schedule Policies</DialogTitle>
+            <DialogDescription>{staffAssignedPolicies.length} {staffAssignedPolicies.length === 1 ? 'policy' : 'policies'} currently assigned to this staff member</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-3">
-            <div className="space-y-2">
-              <Label className="text-xs text-gray-600 font-bold">Select Policy Definition</Label>
-              <Select defaultValue="ramadan_26">
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose policy" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ramadan_26">Ramadan Schedule 2026</SelectItem>
-                  <SelectItem value="summer_heat">Summer Heat Adjustment</SelectItem>
-                  <SelectItem value="winter_peak">Winter Peak Hours</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="bg-gray-50 p-3 rounded-lg border border-gray-100 flex items-start gap-3 mt-2">
-              <Info className="h-4 w-4 text-gray-500 shrink-0 mt-0.5" />
-              <p className="text-[11px] text-gray-600 leading-relaxed">
-                Applying a policy will automatically overwrite base schedule parameters during the policy's effective date range. Current overrides will remain unaffected.
-              </p>
-            </div>
+          <div className="space-y-3 py-2 max-h-[420px] overflow-y-auto pr-1">
+            {/* Active Policies */}
+            {staffAssignedPolicies.filter(p => p.status === 'active').length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Active Policies</Label>
+                {staffAssignedPolicies.filter(p => p.status === 'active').map(assignment => {
+                  const pIcon = assignment.policyIcon === "moon" ? <Moon className="h-4 w-4" /> : assignment.policyIcon === "snowflake" ? <Snowflake className="h-4 w-4" /> : assignment.policyIcon === "calendar" ? <CalendarRange className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
+                  return (
+                    <div key={assignment.id} className="rounded-lg border border-emerald-100 bg-emerald-50/20 p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center border border-emerald-200 shadow-sm shrink-0">
+                            {pIcon}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <h4 className="text-[13px] font-bold text-gray-900">{assignment.policyName}</h4>
+                              <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200 hover:bg-emerald-100 text-[9px] uppercase font-bold px-1.5 py-0 shadow-none">Active</Badge>
+                            </div>
+                            <p className="text-[11px] text-gray-500">{assignment.customDates ? `${assignment.customDates.start} – ${assignment.customDates.end}` : assignment.effectiveLabel} · {assignment.adjustmentLabel}</p>
+                            <p className="text-[10px] text-gray-400 mt-1">Assigned {assignment.assignedAt} by {assignment.assignedBy}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-emerald-100">
+                        <Button size="sm" variant="outline" className="h-7 text-[11px] font-bold gap-1.5 border-gray-200 bg-white shadow-sm" onClick={() => {
+                          setStaffAssignedPolicies(prev => prev.map(p => p.id === assignment.id ? { ...p, status: 'paused' } : p));
+                          toast.success(`${assignment.policyName} paused`, { description: "Staff follows base schedule until resumed." });
+                        }}>
+                          <Pause className="h-3 w-3" /> Pause
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-7 text-[11px] font-bold gap-1.5 border-gray-200 bg-white shadow-sm" onClick={() => {
+                          toast.info("Edit dates feature coming soon");
+                        }}>
+                          <Edit3 className="h-3 w-3" /> Edit Dates
+                        </Button>
+                        <div className="flex-1" />
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px] font-bold gap-1.5 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => {
+                          setStaffAssignedPolicies(prev => prev.filter(p => p.id !== assignment.id));
+                          toast.success(`${assignment.policyName} removed`, { description: "Staff reverted to base schedule for this period." });
+                        }}>
+                          <Trash2 className="h-3 w-3" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Paused Policies */}
+            {staffAssignedPolicies.filter(p => p.status === 'paused').length > 0 && (
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Paused Policies</Label>
+                {staffAssignedPolicies.filter(p => p.status === 'paused').map(assignment => {
+                  const pIcon = assignment.policyIcon === "moon" ? <Moon className="h-4 w-4" /> : assignment.policyIcon === "snowflake" ? <Snowflake className="h-4 w-4" /> : assignment.policyIcon === "calendar" ? <CalendarRange className="h-4 w-4" /> : <Sun className="h-4 w-4" />;
+                  return (
+                    <div key={assignment.id} className="rounded-lg border border-amber-100 bg-amber-50/10 p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-lg bg-amber-100 text-amber-600 flex items-center justify-center border border-amber-200 shadow-sm shrink-0">
+                            {pIcon}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <h4 className="text-[13px] font-bold text-gray-900">{assignment.policyName}</h4>
+                              <Badge className="bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100 text-[9px] uppercase font-bold px-1.5 py-0 shadow-none">Paused</Badge>
+                            </div>
+                            <p className="text-[11px] text-gray-500">{assignment.effectiveLabel} · {assignment.adjustmentLabel}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 mt-3 pt-3 border-t border-amber-100">
+                        <Button size="sm" variant="outline" className="h-7 text-[11px] font-bold gap-1.5 border-gray-200 bg-white shadow-sm" onClick={() => {
+                          setStaffAssignedPolicies(prev => prev.map(p => p.id === assignment.id ? { ...p, status: 'active' } : p));
+                          toast.success(`${assignment.policyName} resumed`, { description: "Policy adjustments re-applied." });
+                        }}>
+                          <Play className="h-3 w-3" /> Resume
+                        </Button>
+                        <div className="flex-1" />
+                        <Button size="sm" variant="ghost" className="h-7 text-[11px] font-bold gap-1.5 text-red-500 hover:text-red-700 hover:bg-red-50" onClick={() => {
+                          setStaffAssignedPolicies(prev => prev.filter(p => p.id !== assignment.id));
+                          toast.success(`${assignment.policyName} removed`, { description: "Staff reverted to base schedule for this period." });
+                        }}>
+                          <Trash2 className="h-3 w-3" /> Remove
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Empty State */}
+            {staffAssignedPolicies.length === 0 && (
+              <div className="text-center py-10">
+                <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                  <FileWarning className="h-5 w-5 text-gray-400" />
+                </div>
+                <p className="text-sm font-bold text-gray-700 mb-1">No policies assigned</p>
+                <p className="text-xs text-gray-500">This staff member follows the base working schedule only.</p>
+              </div>
+            )}
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAssignPolicyOpen(false)}>Cancel</Button>
-            <Button onClick={() => { setIsAssignPolicyOpen(false); toast.success("Policy assigned"); }}>Apply Policy</Button>
+          <DialogFooter className="flex-row justify-between items-center sm:justify-between">
+            <Button variant="outline" className="gap-1.5 text-xs font-bold" onClick={() => { setIsManagePoliciesOpen(false); setAssignPolicyStep(1); setSelectedPolicyId(null); setPolicySearchQuery(""); setPolicyDateMode("default"); setPolicyAssignNote(""); setIsAssignPolicyOpen(true); }}>
+              <Plus className="h-3.5 w-3.5" /> Assign New Policy
+            </Button>
+            <Button onClick={() => setIsManagePoliciesOpen(false)}>Done</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* 6. Edit Dispatch Rules */}
-      <Dialog open={isEditRulesOpen} onOpenChange={setIsEditRulesOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+      {/* 6. Edit Dispatch Rules \u2014 Tabbed Modal */}
+      <Dialog open={isEditRulesOpen} onOpenChange={(open) => { setIsEditRulesOpen(open); if (!open) { setDispatchRulesTab("capacity"); } }}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>Edit Dispatch & Capacity Rules</DialogTitle>
-            <DialogDescription>
-              Adjust core algorithm parameters for automated scheduling.
-            </DialogDescription>
+            <DialogDescription>Configure algorithm parameters for this staff member\u2019s automated scheduling.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-5 py-3">
-            <div className="grid grid-cols-2 gap-6">
-              <div className="space-y-4 border border-gray-100 rounded-lg p-4 bg-gray-50/50">
-                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Capacity Limits</h4>
+
+          <Tabs value={dispatchRulesTab} onValueChange={setDispatchRulesTab} className="w-full">
+            <TabsList className="w-full grid grid-cols-3 h-9 mb-4">
+              <TabsTrigger value="capacity" className="text-xs font-bold gap-1.5 data-[state=active]:shadow-sm"><Timer className="h-3.5 w-3.5" /> Capacity</TabsTrigger>
+              <TabsTrigger value="operations" className="text-xs font-bold gap-1.5 data-[state=active]:shadow-sm"><Settings2 className="h-3.5 w-3.5" /> Operations</TabsTrigger>
+              <TabsTrigger value="preferences" className="text-xs font-bold gap-1.5 data-[state=active]:shadow-sm"><SlidersHorizontal className="h-3.5 w-3.5" /> Preferences</TabsTrigger>
+            </TabsList>
+
+            {/* \u2500\u2500\u2500 Tab 1: Capacity \u2500\u2500\u2500 */}
+            <TabsContent value="capacity" className="space-y-4 mt-0">
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Hourly Limits</Label>
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-gray-600 font-bold">Max Daily Hours</Label>
-                  <Input type="number" defaultValue={10} min={1} max={16} />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-gray-700 font-bold">Max Daily Hours</Label>
+                    <span className="text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-md px-2.5 py-0.5 min-w-[48px] text-center shadow-sm">{editDispatchRules.maxDailyHours}h</span>
+                  </div>
+                  <Slider value={[editDispatchRules.maxDailyHours]} min={1} max={16} step={1} onValueChange={([v]) => setEditDispatchRules(prev => ({...prev, maxDailyHours: v}))} className="py-1" />
+                  <div className="flex justify-between text-[9px] text-gray-400 font-semibold"><span>1h</span><span>8h</span><span>16h</span></div>
+                  {editDispatchRules.maxDailyHours > 12 && <p className="text-[10px] text-amber-600 font-semibold flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Extended shifts may require fatigue management protocol</p>}
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-gray-600 font-bold">Max Weekly Hours</Label>
-                  <Input type="number" defaultValue={48} min={10} max={80} />
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-gray-700 font-bold">Max Weekly Hours</Label>
+                    <span className="text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-md px-2.5 py-0.5 min-w-[48px] text-center shadow-sm">{editDispatchRules.maxWeeklyHours}h</span>
+                  </div>
+                  <Slider value={[editDispatchRules.maxWeeklyHours]} min={10} max={80} step={2} onValueChange={([v]) => setEditDispatchRules(prev => ({...prev, maxWeeklyHours: v}))} className="py-1" />
+                  <div className="flex justify-between text-[9px] text-gray-400 font-semibold"><span>10h</span><span>48h</span><span>80h</span></div>
+                  {editDispatchRules.maxWeeklyHours > 48 && <p className="text-[10px] text-amber-600 font-semibold flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Exceeds Qatar labor law standard (48h). Overtime policy required.</p>}
                 </div>
               </div>
-              
-              <div className="space-y-4 border border-gray-100 rounded-lg p-4 bg-gray-50/50">
-                <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Operational Bounds</h4>
-                <div className="space-y-2">
-                  <Label className="text-[11px] text-gray-600 font-bold">Min Rest Between Shifts (hrs)</Label>
-                  <Input type="number" defaultValue={12} min={8} max={24} />
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-[11px] text-gray-600 font-bold">Travel Buffer (mins)</Label>
-                  <Input type="number" defaultValue={30} step={5} />
+
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-4">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Job Capacity</Label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] text-gray-700 font-bold">Max Jobs Per Day</Label>
+                    <Input type="number" value={editDispatchRules.maxJobsPerDay} onChange={(e) => setEditDispatchRules(prev => ({...prev, maxJobsPerDay: Math.min(20, Math.max(1, parseInt(e.target.value) || 1))}))} min={1} max={20} className="h-9 text-sm" />
+                    <p className="text-[9px] text-gray-400">Hard limit on discrete assignments</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] text-gray-700 font-bold">Max Concurrent Jobs</Label>
+                    <Input type="number" value={editDispatchRules.maxConcurrentJobs} onChange={(e) => setEditDispatchRules(prev => ({...prev, maxConcurrentJobs: Math.min(5, Math.max(1, parseInt(e.target.value) || 1))}))} min={1} max={5} className="h-9 text-sm" />
+                    <p className="text-[9px] text-gray-400">Simultaneous overlapping jobs</p>
+                  </div>
                 </div>
               </div>
+
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Overtime</Label>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-[11px] text-gray-700 font-bold">Willing for Overtime</Label>
+                    <p className="text-[10px] text-gray-500">Extends assignable hours beyond base limit</p>
+                  </div>
+                  <Switch checked={editDispatchRules.overtimeWilling} onCheckedChange={(v) => setEditDispatchRules(prev => ({...prev, overtimeWilling: v}))} />
+                </div>
+                {editDispatchRules.overtimeWilling && (
+                  <div className="space-y-2 pt-2 border-t border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <Label className="text-[11px] text-gray-700 font-bold">Max Overtime Hours / Day</Label>
+                      <span className="text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-md px-2.5 py-0.5 min-w-[48px] text-center shadow-sm">{editDispatchRules.maxOvertimeHours}h</span>
+                    </div>
+                    <Slider value={[editDispatchRules.maxOvertimeHours]} min={0} max={8} step={1} onValueChange={([v]) => setEditDispatchRules(prev => ({...prev, maxOvertimeHours: v}))} className="py-1" />
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* \u2500\u2500\u2500 Tab 2: Operations \u2500\u2500\u2500 */}
+            <TabsContent value="operations" className="space-y-4 mt-0">
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-5">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Rest & Recovery</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-gray-700 font-bold">Min Rest Between Shifts</Label>
+                    <span className="text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-md px-2.5 py-0.5 min-w-[48px] text-center shadow-sm">{editDispatchRules.minRestBetweenShifts}h</span>
+                  </div>
+                  <Slider value={[editDispatchRules.minRestBetweenShifts]} min={8} max={24} step={1} onValueChange={([v]) => setEditDispatchRules(prev => ({...prev, minRestBetweenShifts: v}))} className="py-1" />
+                  <div className="flex justify-between text-[9px] text-gray-400 font-semibold"><span>8h</span><span>12h</span><span>24h</span></div>
+                  {editDispatchRules.minRestBetweenShifts < 11 && <p className="text-[10px] text-amber-600 font-semibold flex items-center gap-1"><AlertTriangle className="h-3 w-3" /> Below recommended minimum (11h consecutive rest)</p>}
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] text-gray-700 font-bold">Travel Buffer</Label>
+                    <span className="text-sm font-bold text-gray-900 bg-white border border-gray-200 rounded-md px-2.5 py-0.5 min-w-[48px] text-center shadow-sm">{editDispatchRules.travelBufferMins}m</span>
+                  </div>
+                  <Slider value={[editDispatchRules.travelBufferMins]} min={0} max={120} step={5} onValueChange={([v]) => setEditDispatchRules(prev => ({...prev, travelBufferMins: v}))} className="py-1" />
+                  <div className="flex justify-between text-[9px] text-gray-400 font-semibold"><span>0m</span><span>60m</span><span>120m</span></div>
+                  <p className="text-[10px] text-gray-500 flex items-center gap-1"><Info className="h-3 w-3" /> Added between consecutive job endings & starts</p>
+                </div>
+              </div>
+
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Dispatch Priority</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(["standard", "preferred", "backup_only"] as const).map(p => (
+                    <button key={p} className={`rounded-lg border-2 p-3 text-left transition-all ${editDispatchRules.dispatchPriority === p ? 'border-blue-400 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-200'}`} onClick={() => setEditDispatchRules(prev => ({...prev, dispatchPriority: p}))}>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div className={`h-3.5 w-3.5 rounded-full border-2 flex items-center justify-center ${editDispatchRules.dispatchPriority === p ? 'border-blue-500' : 'border-gray-300'}`}>
+                          {editDispatchRules.dispatchPriority === p && <div className="h-1.5 w-1.5 rounded-full bg-blue-500"></div>}
+                        </div>
+                        <span className="text-[11px] font-bold text-gray-900">{p === 'backup_only' ? 'Backup' : p === 'preferred' ? 'Preferred' : 'Standard'}</span>
+                      </div>
+                      <p className="text-[9px] text-gray-500 ml-5 leading-tight">{p === 'standard' ? 'Regular rotation' : p === 'preferred' ? 'First in queue' : 'Only when no others'}</p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Emergency Override</Label>
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-[11px] text-gray-700 font-bold">Emergency Availability</Label>
+                    <p className="text-[10px] text-gray-500">Bypass limits for urgent jobs</p>
+                  </div>
+                  <Switch checked={editDispatchRules.emergencyAvailability} onCheckedChange={(v) => setEditDispatchRules(prev => ({...prev, emergencyAvailability: v}))} />
+                </div>
+                {editDispatchRules.emergencyAvailability && (
+                  <div className="space-y-2 pt-2 border-t border-gray-100">
+                    <Label className="text-[10px] text-gray-500 font-bold">Bypass Scope</Label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {(["capacity_only", "capacity_and_rest", "all"] as const).map(scope => (
+                        <button key={scope} className={`rounded-lg border-2 p-2.5 text-center transition-all ${editDispatchRules.emergencyBypassScope === scope ? 'border-blue-400 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-200'}`} onClick={() => setEditDispatchRules(prev => ({...prev, emergencyBypassScope: scope}))}>
+                          <span className="text-[10px] font-bold text-gray-900 block">{scope === 'capacity_only' ? 'Capacity' : scope === 'capacity_and_rest' ? 'Cap + Rest' : 'All Limits'}</span>
+                          {scope === 'all' && <span className="text-[8px] text-red-500 font-bold mt-0.5 block">\u26a0 High Risk</span>}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* \u2500\u2500\u2500 Tab 3: Preferences \u2500\u2500\u2500 */}
+            <TabsContent value="preferences" className="space-y-4 mt-0">
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Shift Preference</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {[
+                    { label: "Morning", value: "Morning (06:00\u201314:00)", icon: <Sun className="h-3.5 w-3.5" />, sub: "06:00\u201314:00" },
+                    { label: "Afternoon", value: "Afternoon (14:00\u201322:00)", icon: <Coffee className="h-3.5 w-3.5" />, sub: "14:00\u201322:00" },
+                    { label: "Night", value: "Night (22:00\u201306:00)", icon: <Moon className="h-3.5 w-3.5" />, sub: "22:00\u201306:00" },
+                    { label: "Flexible", value: "Flexible", icon: <RefreshCw className="h-3.5 w-3.5" />, sub: "Any time" },
+                  ].map(opt => (
+                    <button key={opt.value} className={`rounded-lg border-2 p-2.5 text-center transition-all ${editDispatchRules.shiftPreference === opt.value ? 'border-blue-400 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-200'}`} onClick={() => setEditDispatchRules(prev => ({...prev, shiftPreference: opt.value}))}>
+                      <div className={`mx-auto mb-1 ${editDispatchRules.shiftPreference === opt.value ? 'text-blue-600' : 'text-gray-400'}`}>{opt.icon}</div>
+                      <span className="text-[10px] font-bold text-gray-900 block">{opt.label}</span>
+                      <span className="text-[8px] text-gray-500 block mt-0.5">{opt.sub}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Break Block</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  {["30 min midday", "1 hr midday", "2x 15 min", "No preference"].map(opt => (
+                    <button key={opt} className={`rounded-lg border-2 p-2.5 text-center transition-all ${editDispatchRules.breakPreference === opt ? 'border-blue-400 bg-blue-50/30 shadow-sm' : 'border-gray-100 hover:border-gray-200'}`} onClick={() => setEditDispatchRules(prev => ({...prev, breakPreference: opt}))}>
+                      <span className="text-[10px] font-bold text-gray-900 block">{opt}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Skill Tags</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {editDispatchRules.skillTags.map(tag => (
+                    <Badge key={tag} variant="outline" className="bg-white border-gray-200 text-gray-700 text-[10px] font-bold gap-1 py-0.5 px-2 shadow-sm cursor-pointer hover:border-red-200 hover:text-red-600 transition-colors" onClick={() => setEditDispatchRules(prev => ({...prev, skillTags: prev.skillTags.filter(t => t !== tag)}))}>
+                      {tag} <X className="h-2.5 w-2.5" />
+                    </Badge>
+                  ))}
+                  <div className="flex items-center gap-1">
+                    <Input placeholder="Add skill..." className="h-6 w-24 text-[10px] px-2" value={newSkillTag} onChange={(e) => setNewSkillTag(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && newSkillTag.trim()) { setEditDispatchRules(prev => ({...prev, skillTags: [...prev.skillTags, newSkillTag.trim()]})); setNewSkillTag(""); } }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border border-gray-100 rounded-lg p-4 bg-gray-50/30 space-y-3">
+                <Label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Service Zones</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {editDispatchRules.serviceZones.map(zone => (
+                    <Badge key={zone} variant="outline" className="bg-white border-gray-200 text-gray-700 text-[10px] font-bold gap-1 py-0.5 px-2 shadow-sm cursor-pointer hover:border-red-200 hover:text-red-600 transition-colors" onClick={() => setEditDispatchRules(prev => ({...prev, serviceZones: prev.serviceZones.filter(z => z !== zone)}))}>
+                      <MapPin className="h-2.5 w-2.5" /> {zone} <X className="h-2.5 w-2.5" />
+                    </Badge>
+                  ))}
+                  <div className="flex items-center gap-1">
+                    <Input placeholder="Add zone..." className="h-6 w-24 text-[10px] px-2" value={newServiceZone} onChange={(e) => setNewServiceZone(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && newServiceZone.trim()) { setEditDispatchRules(prev => ({...prev, serviceZones: [...prev.serviceZones, newServiceZone.trim()]})); setNewServiceZone(""); } }} />
+                  </div>
+                </div>
+                {editDispatchRules.serviceZones.length === 0 && <p className="text-[10px] text-gray-500 flex items-center gap-1"><Info className="h-3 w-3" /> Empty = assignable to all zones</p>}
+              </div>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter className="flex-row justify-between items-center sm:justify-between border-t border-gray-100 pt-4">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-gray-500 hover:text-gray-700 font-bold" onClick={() => { setEditDispatchRules({...orgDefaultRules}); toast.info("Reset to organization defaults", { description: "Save to apply or cancel to keep current values." }); }}>
+              <RotateCcw className="h-3 w-3" /> Reset to Defaults
+            </Button>
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setIsEditRulesOpen(false)}>Cancel</Button>
+              <Button onClick={() => {
+                const changes: string[] = [];
+                if (editDispatchRules.maxDailyHours !== dispatchRules.maxDailyHours) changes.push(`Max Daily: ${dispatchRules.maxDailyHours}h \u2192 ${editDispatchRules.maxDailyHours}h`);
+                if (editDispatchRules.maxWeeklyHours !== dispatchRules.maxWeeklyHours) changes.push(`Max Weekly: ${dispatchRules.maxWeeklyHours}h \u2192 ${editDispatchRules.maxWeeklyHours}h`);
+                if (editDispatchRules.maxJobsPerDay !== dispatchRules.maxJobsPerDay) changes.push(`Jobs/Day: ${dispatchRules.maxJobsPerDay} \u2192 ${editDispatchRules.maxJobsPerDay}`);
+                if (editDispatchRules.minRestBetweenShifts !== dispatchRules.minRestBetweenShifts) changes.push(`Min Rest: ${dispatchRules.minRestBetweenShifts}h \u2192 ${editDispatchRules.minRestBetweenShifts}h`);
+                if (editDispatchRules.travelBufferMins !== dispatchRules.travelBufferMins) changes.push(`Travel Buffer: ${dispatchRules.travelBufferMins}m \u2192 ${editDispatchRules.travelBufferMins}m`);
+                if (editDispatchRules.dispatchPriority !== dispatchRules.dispatchPriority) changes.push(`Priority: ${dispatchRules.dispatchPriority} \u2192 ${editDispatchRules.dispatchPriority}`);
+                if (editDispatchRules.shiftPreference !== dispatchRules.shiftPreference) changes.push(`Shift: ${dispatchRules.shiftPreference.split(' ')[0]} \u2192 ${editDispatchRules.shiftPreference.split(' ')[0]}`);
+                if (editDispatchRules.overtimeWilling !== dispatchRules.overtimeWilling) changes.push(`Overtime: ${dispatchRules.overtimeWilling ? 'Yes' : 'No'} \u2192 ${editDispatchRules.overtimeWilling ? 'Yes' : 'No'}`);
+                if (editDispatchRules.emergencyAvailability !== dispatchRules.emergencyAvailability) changes.push(`Emergency: ${dispatchRules.emergencyAvailability ? 'On' : 'Off'} \u2192 ${editDispatchRules.emergencyAvailability ? 'On' : 'Off'}`);
+                setDispatchRules({...editDispatchRules});
+                setIsEditRulesOpen(false);
+                if (changes.length > 0) {
+                  toast.success("Dispatch rules updated", { description: changes.join(" \u00b7 ") });
+                } else {
+                  toast.info("No changes detected");
+                }
+              }}>Save Rules</Button>
             </div>
-            
-            <div className="flex items-center justify-between border border-gray-100 p-4 rounded-lg">
-              <div className="space-y-0.5">
-                <Label className="text-sm font-bold text-gray-900">Emergency Availability</Label>
-                <p className="text-[11px] text-gray-500">Allow system to bypass certain limits for urgent jobs</p>
-              </div>
-              <Switch defaultChecked={true} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditRulesOpen(false)}>Cancel</Button>
-            <Button onClick={() => { setIsEditRulesOpen(false); toast.success("Dispatch rules updated and applied."); }}>Save Rules</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
